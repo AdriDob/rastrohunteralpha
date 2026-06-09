@@ -1,0 +1,16 @@
+python-dotenv>=1.0.0
+fastapi>=0.95.0
+uvicorn[standard]>=0.22.0
+streamlit>=1.30.0
+httpx>=0.24.0
+sqlalchemy>=2.0.0
+pydantic>=2.2.0
+requests>=2.31.0
+rich>=13.0.0
+ollama>=0.1.7
+plotly>=6.0.0
+pandas>=2.0.0
+jinja2>=3.0.0
+cvss>=3.0.0
+psutil>=6.0.0
+taipy>=4.0.0

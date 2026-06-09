@@ -1,0 +1,13 @@
+__pycache__/
+.venv/
+.venv_ws/
+*.pyc
+/.env
+/database/*.db
+/screenshots/
+/logs/
+/archives/
+.ruff_cache/
+.DS_Store
+*.egg-info/
+.aider*
