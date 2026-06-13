@@ -5,37 +5,51 @@ Usage:
     python run.py              # Desktop window (pywebview)
     python run.py --browser    # Browser mode
     python run.py --dev        # Dev mode (verbose logging)
+
+Architecture:
+  - Single entrypoint for dev, frozen (PyInstaller), and CI
+  - Injects PROJECT_ROOT into sys.path for reliable imports
+  - Auto-builds frontend in dev mode when dist/ is missing
 """
 
 import os
 import sys
 from pathlib import Path
 
+# ── Path bootstrap ────────────────────────────────────────────────────
+# Must run before ANY project import to ensure module resolution works
+# in both dev (`python run.py`) and frozen (`dist/Rastro/Rastro`) modes.
+if getattr(sys, "frozen", False):
+    BASE_DIR = Path(sys._MEIPASS)
+else:
+    BASE_DIR = Path(__file__).resolve().parent
+
+if str(BASE_DIR) not in sys.path:
+    sys.path.insert(0, str(BASE_DIR))
+
 
 def _ensure_frontend_build() -> None:
-    dist = Path(__file__).resolve().parent / "frontend" / "dist"
+    """Auto-build frontend when dist/ is missing (dev mode only)."""
+    if getattr(sys, "frozen", False):
+        return  # frontend_dist bundled inside the binary
+
+    dist = BASE_DIR / "frontend" / "dist"
     if not dist.is_dir() or not list(dist.rglob("*.html")):
-        print("[run] Building frontend...")
         import subprocess
+        print("[run] Building frontend...")
         subprocess.run(
             ["npm", "install", "--silent"],
-            cwd=Path(__file__).resolve().parent / "frontend",
-            check=True,
+            cwd=BASE_DIR / "frontend", check=True,
         )
         subprocess.run(
             ["npm", "run", "build"],
-            cwd=Path(__file__).resolve().parent / "frontend",
-            check=True,
+            cwd=BASE_DIR / "frontend", check=True,
         )
         print("[run] Frontend built.")
 
 
 def main() -> None:
-    # Ensure we're in the project root
-    os.chdir(Path(__file__).resolve().parent)
-
     _ensure_frontend_build()
-
     from desktop.main_desktop import main as desktop_main
     desktop_main()
 

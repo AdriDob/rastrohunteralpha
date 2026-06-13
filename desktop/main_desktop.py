@@ -15,6 +15,11 @@ Shutdown:
   SIGINT/SIGTERM/tray quit → Stop uvicorn → Dispose DB → Stop tray → Exit
 
 PyInstaller produces: dist/Rastro/Rastro  (or dist/Rastro.exe on Windows)
+
+Path strategy:
+  dev:    BASE_DIR = Path(__file__).resolve().parent  (project root)
+  frozen: BASE_DIR = sys._MEIPASS (PyInstaller temp extraction)
+  exe:    BASE_DIR = Path(sys.executable).resolve().parent (for data alongside .exe)
 """
 
 from __future__ import annotations
@@ -328,22 +333,16 @@ def main() -> None:
     # ── Set env before imports that read them ────────────────────────
     if getattr(sys, "frozen", False):
         exe_dir = Path(sys.executable).resolve().parent
-        db_url = f"sqlite:///{exe_dir}/database/rastro.db"
         base_dir = str(getattr(sys, "_MEIPASS", exe_dir))
+        db_path = exe_dir / "database" / "rastro.db"
     else:
-        db_url = "sqlite:///./database/rastro.db"
-        base_dir = str(Path.cwd())
+        base_dir = str(Path(__file__).resolve().parent.parent)
+        db_path = Path(base_dir) / "database" / "rastro.db"
 
-    Path(db_url.removeprefix("sqlite:///")).parent.mkdir(parents=True, exist_ok=True)
-
-    if getattr(sys, "frozen", False):
-        os.environ["DATABASE_URL"] = db_url
-        os.environ["RASTRO_BASE_DIR"] = base_dir
-        os.environ["RASTRO_DESKTOP"] = "1"
-    else:
-        os.environ.setdefault("DATABASE_URL", db_url)
-        os.environ.setdefault("RASTRO_BASE_DIR", base_dir)
-        os.environ.setdefault("RASTRO_DESKTOP", "1")
+    db_path.parent.mkdir(parents=True, exist_ok=True)
+    os.environ["DATABASE_URL"] = f"sqlite:///{db_path}"
+    os.environ["RASTRO_BASE_DIR"] = base_dir
+    os.environ["RASTRO_DESKTOP"] = "1"
 
     # ── Init settings / first-run ───────────────────────────────────
     port = _init_settings()

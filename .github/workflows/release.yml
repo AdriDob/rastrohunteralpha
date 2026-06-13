@@ -1,0 +1,134 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+          cd ..
+
+      - name: Build executable
+        run: pyinstaller Rastro.spec -y
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rastro-Windows-${{ github.ref_name }}
+          path: dist/Rastro/
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install system deps (pywebview)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+
+      - name: Build frontend
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+          cd ..
+
+      - name: Build executable
+        run: pyinstaller Rastro.spec -y
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Rastro-Linux-${{ github.ref_name }}
+          path: dist/Rastro/
+
+  release:
+    needs: [build-windows, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Rastro-Windows-${{ github.ref_name }}
+          path: release/Rastro-Windows
+
+      - name: Download Linux artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: Rastro-Linux-${{ github.ref_name }}
+          path: release/Rastro-Linux
+
+      - name: Read version
+        id: version
+        run: echo "tag=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Create ZIP archives
+        run: |
+          cd release
+          Compress-Archive -Path Rastro-Windows/* -DestinationPath "Rastro-${{ steps.version.outputs.tag }}-Windows.zip" 2>/dev/null || \
+            (cd Rastro-Windows && zip -r "../Rastro-${{ steps.version.outputs.tag }}-Windows.zip" .)
+          (cd Rastro-Linux && zip -r "../Rastro-${{ steps.version.outputs.tag }}-Linux.zip" .)
+        shell: bash
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Rastro ${{ github.ref_name }}
+          body_path: CHANGELOG.md
+          files: |
+            release/Rastro-${{ steps.version.outputs.tag }}-Windows.zip
+            release/Rastro-${{ steps.version.outputs.tag }}-Linux.zip

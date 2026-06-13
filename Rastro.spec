@@ -1,48 +1,80 @@
 # -*- mode: python ; coding: utf-8 -*-
 #
 # Rastro Desktop — PyInstaller build spec.
-# Runs from project root (os.getcwd()).
-# Output: dist/Rastro/Rastro.exe
+# Single entrypoint: run.py → desktop/main_desktop.py → FastAPI + pywebview.
+# Output: dist/Rastro/Rastro.exe  (or dist/Rastro/Rastro on Linux)
+#
+# Usage:
+#   pyinstaller Rastro.spec -y          # one-dir build
+#   pyinstaller Rastro.spec -y --onefile  # single .exe (Windows only)
 
 import os
+import sys
 from pathlib import Path
 
-PROJECT_ROOT = Path(os.getcwd())
+PROJECT_ROOT = Path(os.getcwd()).resolve()
 FRONTEND_DIST = str(PROJECT_ROOT / "frontend" / "dist")
 ICON_PATH = str(PROJECT_ROOT / "desktop" / "build" / "icons" / "rastro.ico")
 
+# ── Collect all router modules (automatically discovered) ──────────────
+ROUTERS_DIR = PROJECT_ROOT / "api" / "routers"
+router_modules = []
+if ROUTERS_DIR.is_dir():
+    for f in sorted(ROUTERS_DIR.iterdir()):
+        if f.suffix == ".py" and f.stem != "__init__":
+            router_modules.append(f"api.routers.{f.stem}")
+
+# ── Collect all core subpackages for hidden imports ──────────────────
+CORE_DIR = PROJECT_ROOT / "core"
+core_packages = []
+if CORE_DIR.is_dir():
+    for d in sorted(CORE_DIR.iterdir()):
+        if d.is_dir() and (d / "__init__.py").exists() and d.stem != "__pycache__":
+            core_packages.append(f"core.{d.stem}")
+
+# ── Common hidden imports shared across platforms ────────────────────
+BASE_HIDDEN = [
+    # Desktop layer
+    'desktop', 'desktop.main_desktop', 'desktop.settings',
+    'desktop.autostart', 'desktop.browser_opener', 'desktop.notifications',
+    'desktop.tray', 'desktop.serve_frontend', 'desktop.first_run',
+    'desktop.updater',
+    # API layer
+    'api', 'api.main', *router_modules,
+    # Database
+    'database', 'database.db', 'database.models',
+    # Core
+    'core', 'core.config', 'core.env', 'core.env.config',
+    'core.platform', 'core.platform.system',
+    'core.log_config', 'core.observability',
+    *core_packages,
+    # Web server
+    'uvicorn', 'uvicorn.logging', 'uvicorn.loops', 'uvicorn.loops.auto',
+    'uvicorn.protocols', 'uvicorn.protocols.http.auto',
+    'uvicorn.protocols.websockets.auto',
+    # HTTP / networking
+    'httpx', 'sniffio', 'h11', 'anyio',
+    # Desktop UI
+    'webview', 'pystray', 'PIL', 'PIL.Image', 'PIL.ImageDraw',
+    'plyer', 'plyer.notification',
+    # Config / serialization
+    'dotenv', 'pydantic',
+    # Database ORM
+    'sqlalchemy',
+]
+
 a = Analysis(
-    ['desktop/main_desktop.py'],
+    ['run.py'],
     pathex=[str(PROJECT_ROOT)],
     binaries=[],
     datas=[
         (FRONTEND_DIST, 'frontend_dist'),
     ],
-    hiddenimports=[
-        'desktop', 'desktop.settings', 'desktop.autostart',
-        'desktop.browser_opener', 'desktop.notifications',
-        'desktop.tray',
-        'desktop.serve_frontend', 'desktop.first_run',
-        'api', 'api.main',
-        'core', 'core.config', 'core.env', 'core.env.config',
-        'core.platform', 'core.platform.system',
-        'core.log_config', 'core.observability',
-        'core.intelligence', 'core.intelligence.adaptive_memory',
-        'database', 'database.db', 'database.models',
-        'uvicorn', 'uvicorn.logging', 'uvicorn.loops', 'uvicorn.loops.auto',
-        'uvicorn.protocols', 'uvicorn.protocols.http.auto',
-        'uvicorn.protocols.websockets.auto',
-        'httpx', 'sniffio', 'h11', 'anyio', 'pydantic',
-        'pystray', 'PIL', 'PIL.Image', 'PIL.ImageDraw',
-        'webview',
-        'plyer', 'plyer.notification',
-        'dotenv',
-        'sqlalchemy',
-    ],
+    hiddenimports=BASE_HIDDEN,
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
-    excludes=[],
+    excludes=['tkinter', 'matplotlib', 'scipy', 'notebook', 'jupyter'],
     noarchive=False,
     module_collection_mode={},
 )
