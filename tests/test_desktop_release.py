@@ -212,7 +212,7 @@ class TestMobileBuild:
 
 class TestCoreEnvConfig:
     def test_module_exists(self):
-        assert (PROJECT_DIR / "core" / "env" / "config.py").is_file()
+        assert (PROJECT_DIR / "core_engines" / "env" / "config.py").is_file()
 
     def test_config_dir_default(self):
         from core_engines.env.config import EnvConfig
