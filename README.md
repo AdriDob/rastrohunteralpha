@@ -32,7 +32,7 @@ Rastro es una herramienta local-first para cazadores de bugs que necesitan:
 ## Requisitos
 
 | Dependencia | Requerido | Notas |
-|-------------|-----------|-------|
+|-------------|-----------|-------| ---
 | Python 3.10+ | Sí | |  Actualizaremos!
 | FastAPI / Uvicorn | Sí | Backend |
 | SQLAlchemy | Sí | ORM |
