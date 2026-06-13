@@ -2,16 +2,19 @@ import asyncio
 from pathlib import Path
 from typing import Optional
 
+from .tools import _resolve_tool
+
 
 class SubfinderRunner:
     def __init__(self, output_dir: Path, timeout: int = 120):
         self.output_dir = output_dir
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.timeout = timeout
+        self._binary = _resolve_tool("subfinder") or "subfinder"
 
     async def run_subfinder(self, domain: str, out_file: str = "subfinder.txt") -> Path:
         path = self.output_dir / out_file
-        cmd = ["subfinder", "-d", domain, "-silent"]
+        cmd = [self._binary, "-d", domain, "-silent"]
         proc = await asyncio.create_subprocess_exec(
             *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
         )

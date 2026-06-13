@@ -28,7 +28,7 @@ except ImportError:
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BACKEND_PORT = 8000
 DASHBOARD_PORT = 8501
-TAIPY_PORT = 8502
+# TAIPY_PORT = 8502  -- removed: taipy dashboard does not exist
 FRONTEND_PORT = 5173
 DEMO_PORT = 8001
 
@@ -184,23 +184,6 @@ def start_frontend(demo: bool = False) -> subprocess.Popen:
     return proc
 
 
-def start_taipy_dashboard(demo: bool = False) -> subprocess.Popen:
-    env = os.environ.copy()
-    env["TAIPY_PORT"] = str(TAIPY_PORT)
-    log(f"Starting Taipy dashboard on http://localhost:{TAIPY_PORT}")
-    proc = subprocess.Popen(
-        [sys.executable, "-m", "dashboard_taipy.app"],
-        cwd=ROOT,
-        stdout=FNULL,
-        stderr=subprocess.PIPE,
-        env=env,
-    )
-    if not _wait_for_port(proc, "127.0.0.1", TAIPY_PORT):
-        _abort("Taipy dashboard failed to start")
-    log("Taipy dashboard ready")
-    return proc
-
-
 def seed_demo_data():
     """Load fake dataset for demo mode."""
     sys.path.insert(0, ROOT)
@@ -275,8 +258,7 @@ def _get_proc_info(p: subprocess.Popen) -> str:
         return "backend"
     if "streamlit" in args:
         return "dashboard"
-    if "dashboard_taipy" in args:
-        return "taipy_dashboard"
+    # dashboard_taipy removed
     if "npm" in args:
         return "frontend"
     return f"pid={p.pid}"
@@ -349,8 +331,8 @@ def main():
     parser = argparse.ArgumentParser(description="Rastro — attack surface intelligence")
     parser.add_argument("--backend", action="store_true", help="Start backend only")
     parser.add_argument("--dashboard", nargs="?", const="streamlit", default=None,
-                        choices=["streamlit", "taipy", "react"],
-                        help="Start dashboard only (streamlit|taipy|react)")
+                        choices=["streamlit", "react"],
+                        help="Start dashboard only (streamlit|react)")
     parser.add_argument("--demo", action="store_true", help="Demo mode with fake dataset")
     args = parser.parse_args()
 
@@ -380,11 +362,7 @@ def main():
 
     if both or only_dashboard:
         dash_type = args.dashboard or "streamlit"
-        if dash_type == "taipy":
-            p = start_taipy_dashboard(demo=args.demo)
-            port = TAIPY_PORT
-            port_label = "Taipy Dashboard"
-        elif dash_type == "react":
+        if dash_type == "react":
             p = start_frontend(demo=args.demo)
             port = FRONTEND_PORT
             port_label = "React Frontend"
@@ -401,10 +379,7 @@ def main():
         print(f"    \033[94mAPI\033[0m       http://127.0.0.1:{port}")
     if both or only_dashboard:
         dash_type = args.dashboard or "streamlit"
-        if dash_type == "taipy":
-            port = TAIPY_PORT
-            label = "Taipy Dashboard"
-        elif dash_type == "react":
+        if dash_type == "react":
             port = FRONTEND_PORT
             label = "React Frontend"
         else:

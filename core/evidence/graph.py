@@ -67,21 +67,24 @@ class EvidenceGraph:
             })
 
     def get_node(self, node_id: str) -> Optional[Dict[str, Any]]:
-        return self._nodes.get(node_id)
+        with self._lock:
+            return self._nodes.get(node_id)
 
     def get_edges(self, node_id: Optional[str] = None) -> List[Dict[str, str]]:
-        if node_id is None:
-            return list(self._edges)
-        return [
-            e for e in self._edges
-            if e["from"] == node_id or e["to"] == node_id
-        ]
+        with self._lock:
+            if node_id is None:
+                return list(self._edges)
+            return [
+                e for e in self._edges
+                if e["from"] == node_id or e["to"] == node_id
+            ]
 
     def get_nodes_by_type(self, node_type: str) -> List[Dict[str, Any]]:
-        return [
-            n for n in self._nodes.values()
-            if n.get("type") == node_type
-        ]
+        with self._lock:
+            return [
+                n for n in self._nodes.values()
+                if n.get("type") == node_type
+            ]
 
     def get_verdicts(self) -> List[Dict[str, Any]]:
         return self.get_nodes_by_type("verdict")
@@ -90,10 +93,11 @@ class EvidenceGraph:
         return self.get_nodes_by_type("comparison")
 
     def to_dict(self) -> Dict[str, Any]:
-        return {
-            "nodes": self._nodes,
-            "edges": self._edges,
-        }
+        with self._lock:
+            return {
+                "nodes": dict(self._nodes),
+                "edges": list(self._edges),
+            }
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "EvidenceGraph":

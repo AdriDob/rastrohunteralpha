@@ -8,6 +8,7 @@ import {
   flexRender,
 } from '@tanstack/react-table';
 import type { ColumnDef, SortingState as TanStackSortingState, PaginationState } from '@tanstack/react-table';
+import { useDebounce } from '../../lib/useDebounce';
 
 interface DataTableProps<T extends Record<string, unknown>> {
   data: T[];
@@ -34,7 +35,8 @@ export default function DataTable<T extends Record<string, unknown>>({
 }: DataTableProps<T>) {
   const [internalSorting, setInternalSorting] = useState<TanStackSortingState>([]);
   const [internalPagination, setInternalPagination] = useState<PaginationState>({ pageIndex: 0, pageSize });
-  const [internalFilter, setInternalFilter] = useState('');
+  const [rawFilter, setRawFilter] = useState('');
+  const debouncedFilter = useDebounce(rawFilter, 250);
 
   const sorting = manual ? (externalSorting ?? []) : internalSorting;
   const pagination = manual ? (externalPagination ?? { pageIndex: 0, pageSize }) : internalPagination;
@@ -63,12 +65,12 @@ export default function DataTable<T extends Record<string, unknown>>({
     state: {
       sorting,
       pagination,
-      globalFilter: internalFilter,
+      globalFilter: debouncedFilter,
     },
     onSortingChange: handleSortingChange,
     onPaginationChange: handlePaginationChange,
     onGlobalFilterChange: (v) => {
-      setInternalFilter(v);
+      setRawFilter(v);
       onGlobalFilterChange?.(v);
     },
     getCoreRowModel: getCoreRowModel(),
@@ -99,17 +101,36 @@ export default function DataTable<T extends Record<string, unknown>>({
   const displayPageCount = manual ? (pageCount ?? 1) : table.getPageCount();
   const displayTotal = total ?? data.length;
 
+  const handleFilterChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const v = e.target.value;
+    setRawFilter(v);
+    onGlobalFilterChange?.(v);
+  }, [onGlobalFilterChange]);
+
+  const handleRowClick = useCallback((row: T) => () => {
+    onRowClick?.(row);
+  }, [onRowClick]);
+
+  const handleMouseEnter = useCallback((e: React.MouseEvent<HTMLTableRowElement>) => {
+    e.currentTarget.style.background = '#222639';
+  }, []);
+
+  const handleMouseLeave = useCallback((e: React.MouseEvent<HTMLTableRowElement>) => {
+    e.currentTarget.style.background = '';
+  }, []);
+
+  const goFirst = useCallback(() => table.setPageIndex(0), [table]);
+  const goPrev = useCallback(() => table.previousPage(), [table]);
+  const goNext = useCallback(() => table.nextPage(), [table]);
+  const goLast = useCallback(() => table.setPageIndex(table.getPageCount() - 1), [table]);
+
   return (
     <div>
       {filterable && (
         <input
           placeholder="Filter…"
-          value={internalFilter}
-          onChange={(e) => {
-            const v = e.target.value;
-            setInternalFilter(v);
-            onGlobalFilterChange?.(v);
-          }}
+          value={rawFilter}
+          onChange={handleFilterChange}
           style={inputStyle}
         />
       )}
@@ -135,10 +156,10 @@ export default function DataTable<T extends Record<string, unknown>>({
             {table.getRowModel().rows.map((row) => (
               <tr
                 key={row.id}
-                onClick={() => onRowClick?.(row.original)}
+                onClick={handleRowClick(row.original)}
                 style={{ cursor: onRowClick ? 'pointer' : undefined, transition: 'background 0.1s' }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = '#222639'; }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = ''; }}
+                onMouseEnter={handleMouseEnter}
+                onMouseLeave={handleMouseLeave}
               >
                 {row.getVisibleCells().map((cell) => (
                   <td key={cell.id} style={cellStyle}>
@@ -158,14 +179,10 @@ export default function DataTable<T extends Record<string, unknown>>({
           }
         </span>
         <div style={{ display: 'flex', gap: 6 }}>
-          <button onClick={() => table.setPageIndex(0)} disabled={!table.getCanPreviousPage()}
-            style={btnStyle}>«</button>
-          <button onClick={() => table.previousPage()} disabled={!table.getCanPreviousPage()}
-            style={btnStyle}>‹</button>
-          <button onClick={() => table.nextPage()} disabled={!table.getCanNextPage()}
-            style={btnStyle}>›</button>
-          <button onClick={() => table.setPageIndex(table.getPageCount() - 1)} disabled={!table.getCanNextPage()}
-            style={btnStyle}>»</button>
+          <button onClick={goFirst} disabled={!table.getCanPreviousPage()} style={btnStyle}>«</button>
+          <button onClick={goPrev} disabled={!table.getCanPreviousPage()} style={btnStyle}>‹</button>
+          <button onClick={goNext} disabled={!table.getCanNextPage()} style={btnStyle}>›</button>
+          <button onClick={goLast} disabled={!table.getCanNextPage()} style={btnStyle}>»</button>
         </div>
       </div>
     </div>

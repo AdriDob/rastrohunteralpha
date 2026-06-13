@@ -154,3 +154,28 @@ class EvidenceStore:
             ]
         finally:
             session.close()
+
+    def batch_get_evidence_for_verdicts(self, verdict_ids: List[int]) -> Dict[int, List[Dict[str, Any]]]:
+        if not verdict_ids:
+            return {}
+        session = SessionLocal()
+        try:
+            rows = (
+                session.query(models.Evidence)
+                .filter(models.Evidence.verdict_id.in_(verdict_ids))
+                .all()
+            )
+            result: Dict[int, List[Dict[str, Any]]] = {vid: [] for vid in verdict_ids}
+            for e in rows:
+                result.setdefault(e.verdict_id, []).append({
+                    "id": e.id,
+                    "attempt": e.attempt_label,
+                    "response_status": e.response_status,
+                    "body_diff_ratio": e.body_diff_ratio,
+                    "sensitive_fields": json.loads(e.sensitive_fields) if e.sensitive_fields else [],
+                    "consistent": e.consistent,
+                    "curl_command": e.curl_command,
+                })
+            return result
+        finally:
+            session.close()

@@ -1,13 +1,49 @@
+# Python
 __pycache__/
+*.py[cod]
+*.egg-info/
 .venv/
 .venv_ws/
-*.pyc
-/.env
-/database/*.db
-/screenshots/
-/logs/
-/archives/
 .ruff_cache/
+
+# Environment
+.env
+
+# Database
+/database/*.db
+test_rastro.db
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/dist-ssr/
+
+# Build artifacts
+dist/
+build/
+
+# Logs & data
+/logs/
+/screenshots/
+/archives/
+
+# OS
 .DS_Store
-*.egg-info/
+Thumbs.db
+
+# Editor
 .aider*
+*.swp
+*.swo
+*~
+
+# Work docs / session artifacts
+OPENCODE_PLAN.md
+PRODUCT_FREEZE.md
+RELEASE_READINESS.md
+RUNTIME_GAPS.md
+
+# Runtime / target data
+/targets/
+/mobile/
+/package-lock.json

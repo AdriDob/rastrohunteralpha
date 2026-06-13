@@ -1,5 +1,22 @@
-"""Captura: motor de captura automática de evidencia visual."""
+"""
+screenshot — Screenshot Engine.
 
-from core.screenshot.engine import ScreenshotEngine, ScreenshotResult
+Visual evidence translation layer.
+Converts pipeline evidence into structured visual representations.
+"""
 
-__all__ = ["ScreenshotEngine", "ScreenshotResult"]
+from core.screenshot.engine import (
+    AnnotationItem,
+    ScreenshotBundle,
+    ScreenshotEngine,
+    ScreenshotSpec,
+    VisualBlock,
+)
+
+__all__ = [
+    "AnnotationItem",
+    "ScreenshotBundle",
+    "ScreenshotEngine",
+    "ScreenshotSpec",
+    "VisualBlock",
+]

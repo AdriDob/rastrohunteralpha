@@ -4,10 +4,26 @@ Tool availability checking and version detection for recon tools.
 
 import asyncio
 import logging
+import os
 import shutil
+from pathlib import Path
 from typing import Dict, List
 
 logger = logging.getLogger("rastro.recon.tools")
+
+GO_BIN = Path.home() / "go" / "bin"
+
+# Tools installed via `go install projectdiscovery/...` — prefer go bin path
+GO_TOOLS = {"httpx", "katana", "subfinder", "waybackurls"}
+
+
+def _resolve_tool(tool_name: str) -> str | None:
+    """Resolve tool path, preferring Go-installed binaries over system PATH."""
+    if tool_name in GO_TOOLS:
+        go_path = GO_BIN / tool_name
+        if go_path.is_file():
+            return str(go_path)
+    return shutil.which(tool_name)
 
 # Map of tool names to CLI commands for version checking
 TOOL_CHECKS = {
@@ -22,8 +38,8 @@ OPTIONAL_TOOLS = ["waybackurls", "nuclei"]
 
 
 def check_tool_available(tool_name: str) -> bool:
-    """Check if a CLI tool is available in PATH."""
-    return shutil.which(tool_name) is not None
+    """Check if a CLI tool is available, preferring Go-installed binaries."""
+    return _resolve_tool(tool_name) is not None
 
 
 async def check_tool_async(

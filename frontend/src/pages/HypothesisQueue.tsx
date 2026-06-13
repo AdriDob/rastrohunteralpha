@@ -1,7 +1,5 @@
 import { useState } from 'react';
 import { useRunHypotheses, useTargets } from '../lib/query';
-import { useStore } from '../lib/store';
-import { useNavigate } from 'react-router-dom';
 import DataTable from '../components/tables/DataTable';
 import { createColumnHelper } from '@tanstack/react-table';
 import type { Hypothesis } from '../types';
@@ -23,8 +21,6 @@ export default function HypothesisQueue() {
   const [targetId, setTargetId] = useState<number | null>(null);
   const { data: targetsRes } = useTargets();
   const { data: engineOutput, isFetching, error } = useRunHypotheses(targetId);
-  const navigate = useNavigate();
-  const setSelectedTarget = useStore((s) => s.setSelectedTarget);
 
   const targets = targetsRes?.items ?? [];
   const hypotheses = engineOutput?.attack_queue ?? [];

@@ -1,14 +1,62 @@
 @import "tailwindcss";
 
 :root {
+  /* ── Colors ─────────────────────────────────────────────── */
   --bg-primary: #0f1117;
   --bg-secondary: #1a1d29;
   --bg-card: #1e2230;
+  --bg-hover: #252836;
+  --bg-pressed: #2a2e3d;
   --border: #2a2e3d;
+  --border-hover: #3b3f52;
   --text-primary: #e2e4e9;
+  --text-secondary: #c4c7d0;
   --text-muted: #7c8299;
+  --text-faint: #4a4f63;
   --accent: #7c3aed;
   --accent-hover: #6d28d9;
+  --accent-glow: rgba(124,58,237,0.12);
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --error: #ef4444;
+
+  /* ── Typography Scale ────────────────────────────────────── */
+  --font-title: 24px;
+  --font-heading: 22px;
+  --font-section: 14px;
+  --font-body: 13px;
+  --font-small: 12px;
+  --font-label: 11px;
+  --font-meta: 10px;
+  --font-weight-bold: 700;
+  --font-weight-semibold: 600;
+  --font-weight-medium: 500;
+  --font-weight-regular: 400;
+
+  /* ── Spacing ─────────────────────────────────────────────── */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 12px;
+  --space-lg: 16px;
+  --space-xl: 20px;
+  --space-2xl: 24px;
+
+  /* ── Radii ───────────────────────────────────────────────── */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+  --radius-xl: 14px;
+  --radius-full: 999px;
+
+  /* ── Transitions ─────────────────────────────────────────── */
+  --transition-fast: 0.12s ease;
+  --transition-normal: 0.15s ease;
+  --transition-slow: 0.2s ease;
+
+  /* ── Shadows (mobile: reduced) ───────────────────────────── */
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.3);
+  --shadow-primary: 0 0 16px var(--accent-glow);
+  --shadow-risk: 0 0 12px rgba(239,68,68,0.08);
 }
 
 body {
@@ -16,6 +64,50 @@ body {
   background: var(--bg-primary);
   color: var(--text-primary);
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: var(--font-body);
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
 }
 
 * { box-sizing: border-box; }
+
+h1, h2, h3, p { margin: 0; }
+
+/* ── Touch-friendly tap targets ──────────────────────────── */
+button, summary, [role="button"], a {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+/* ── Prevent double-tap zoom on interactive elements ─────── */
+button, a, summary {
+  touch-action: manipulation;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Mobile overrides (768px and below) ──────────────────── */
+@media (max-width: 767px) {
+  :root {
+    --shadow-card: none;
+    --shadow-primary: none;
+    --shadow-risk: none;
+  }
+
+  body {
+    font-size: 14px;
+  }
+}

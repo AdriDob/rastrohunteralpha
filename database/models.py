@@ -1,7 +1,7 @@
 import json
 import ast
 import logging
-from sqlalchemy import Column, Integer, String, DateTime, Text, ForeignKey
+from sqlalchemy import Boolean, Column, Integer, String, DateTime, Text, ForeignKey
 from sqlalchemy.sql import func
 
 from .db import Base
@@ -328,4 +328,80 @@ class ScanRun(Base):
     finished_at = Column(
         DateTime(timezone=True),
         nullable=True,
+    )
+
+
+class Favorite(Base):
+    """User workspace favorites — metadata only, never modifies core data."""
+    __tablename__ = "favorites"
+
+    id = Column(Integer, primary_key=True, index=True)
+    item_type = Column(String, nullable=False, index=True)  # target, endpoint, evidence, report, quick_win
+    item_id = Column(Integer, nullable=False, index=True)
+    label = Column(String, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class Task(Base):
+    """Operational task queue — organizational only, never modifies core data."""
+    __tablename__ = "tasks"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, nullable=False)
+    description = Column(Text, nullable=True)
+    status = Column(String, nullable=False, default="pending", index=True)  # pending, in_progress, waiting, completed
+    priority = Column(String, nullable=True, default="medium")  # low, medium, high, critical
+    linked_type = Column(String, nullable=True, index=True)  # target, evidence, report, quick_win, replay
+    linked_id = Column(Integer, nullable=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class Session(Base):
+    """Persistent working context — tracks current investigation state."""
+    __tablename__ = "sessions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=True, default="Default Session")
+    current_target_id = Column(Integer, nullable=True)
+    current_investigation = Column(Text, nullable=True)  # JSON
+    open_evidence_ids = Column(Text, nullable=True)  # JSON array
+    current_replay_id = Column(Integer, nullable=True)
+    current_report_draft = Column(Text, nullable=True)  # JSON
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+
+
+class Notification(Base):
+    """Internal operational notifications — no external integrations."""
+    __tablename__ = "notifications"
+
+    id = Column(Integer, primary_key=True, index=True)
+    notification_type = Column(String, nullable=False, index=True)
+    message = Column(String, nullable=False)
+    linked_type = Column(String, nullable=True)
+    linked_id = Column(Integer, nullable=True)
+    is_read = Column(String, nullable=False, default="false")  # boolean as string
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class QuickWin(Base):
+    """Stores actionable quick wins associated with a target."""
+    __tablename__ = "quick_wins"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    target_id = Column(
+        Integer,
+        ForeignKey("targets.id"),
+        nullable=False,
+        index=True,
+    )
+
+    title = Column(String, nullable=False)
+    impact = Column(String, nullable=False, default="medium")
+    description = Column(Text, nullable=True)
+
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
     )

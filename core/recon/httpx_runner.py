@@ -2,16 +2,19 @@ import asyncio
 from pathlib import Path
 from typing import Optional
 
+from .tools import _resolve_tool
+
 
 class HttpxRunner:
     def __init__(self, output_dir: Path, timeout: int = 180):
         self.output_dir = output_dir
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.timeout = timeout
+        self._binary = _resolve_tool("httpx") or "httpx"
 
     async def run_httpx(self, input_file: Path, out_file: str = "httpx.json") -> Path:
         path = self.output_dir / out_file
-        cmd = ["httpx", "-l", str(input_file), "-json", "-o", str(path), "-silent"]
+        cmd = [self._binary, "-l", str(input_file), "-json", "-o", str(path), "-silent"]
         proc = await asyncio.create_subprocess_exec(
             *cmd, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
         )

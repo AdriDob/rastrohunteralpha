@@ -1,5 +1,6 @@
 import re
-from typing import Any, Dict, List, Optional, Set
+from functools import lru_cache
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 
 UUID_PATTERN = re.compile(
@@ -161,6 +162,20 @@ def _rank_attack_vector(path: str, params: Optional[Dict[str, Any]]) -> str:
     return "Business logic"
 
 
+_score_cache: Dict[Tuple[str, str, str], Dict[str, Any]] = {}
+
+try:
+    from core.config import get_config
+    _MAX_CACHE = get_config().cache_size
+except Exception:
+    _MAX_CACHE = 4096
+
+
+def _make_score_key(path: str, method: str, params: Optional[Dict[str, Any]]) -> Tuple[str, str, str]:
+    params_key = str(sorted((params or {}).items()))
+    return (path, method.upper(), params_key)
+
+
 def score(
     path: str,
     method: str = "GET",
@@ -182,6 +197,10 @@ def score(
 
     Returns a normalized dict with risk_score, vector, confidence, signals.
     """
+    key = _make_score_key(path, method, params)
+    cached = _score_cache.get(key)
+    if cached is not None:
+        return cached
     safe_path = str(path or "/")
     safe_method = str(method or "GET").upper()
     safe_params = params or {}
@@ -197,7 +216,14 @@ def score(
             "vector": vector,
             "confidence": 0.0,
             "signals": [vector.lower().replace(" ", "_")],
+            "labels": [],
+            "attack_surface": [],
+            "auth_smells": [],
+            "potential_idor": False,
             "actionable": False,
+            "is_auth_related": False,
+            "is_admin": False,
+            "is_graphql": False,
         }
 
     labels: List[str] = []
@@ -371,7 +397,7 @@ def score(
 
     confidence = round(min(risk_score / 100.0, 1.0), 2)
 
-    return {
+    result = {
         "risk_score": risk_score,
         "vector": vector,
         "confidence": confidence,
@@ -385,6 +411,9 @@ def score(
         "is_admin": "admin" in labels,
         "is_graphql": "graphql" in labels,
     }
+    if len(_score_cache) < _MAX_CACHE:
+        _score_cache[key] = result
+    return result
 
 
 def score_target(meta: Optional[Dict[str, Any]] = None) -> Dict[str, float]:

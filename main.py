@@ -594,8 +594,9 @@ async def list_verdicts(
     
     if status:
         query = query.filter(models.Verdict.status == status)
-    if confidence_min > 0:
-        query = query.filter(models.Verdict.confidence.cast(models.db.Float) >= confidence_min)
+        if confidence_min > 0:
+            from sqlalchemy import cast, Float
+            query = query.filter(cast(models.Verdict.confidence, Float) >= confidence_min)
     if target_id:
         query = query.filter(models.Verdict.endpoint_id.in_(
             session.query(models.Endpoint.id).filter(models.Endpoint.target_id == target_id)
@@ -608,7 +609,7 @@ async def list_verdicts(
             "id": v.id,
             "hot_path_id": v.hot_path_id,
             "status": v.status,
-            "confidence": float(v.confidence) if v.confidence else 0.0,
+            "confidence": _parse_confidence(v.confidence),
             "reproducibility_score": float(v.reproducibility_score) if v.reproducibility_score else 0.0,
             "retry_count": v.retry_count,
             "reason": v.reason,
@@ -620,6 +621,25 @@ async def list_verdicts(
         }
         for v in verdicts
     ]
+
+
+def _parse_confidence(raw) -> float:
+    if raw is None:
+        return 0.0
+    if isinstance(raw, (int, float)):
+        return float(raw)
+    if isinstance(raw, str):
+        raw_stripped = raw.strip()
+        if raw_stripped.startswith("{"):
+            try:
+                return float(__import__("json").loads(raw_stripped).get("score", 0.0))
+            except (ValueError, TypeError, __import__("json").JSONDecodeError):
+                pass
+        try:
+            return float(raw_stripped)
+        except (ValueError, TypeError):
+            pass
+    return 0.0
 
 
 @app.get("/verdicts/{verdict_id}")

@@ -2,6 +2,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useEndpoint, useFindings } from '../lib/query';
 import { useStore } from '../lib/store';
+import FavoriteButton from '../components/FavoriteButton';
 import DataTable from '../components/tables/DataTable';
 import { createColumnHelper } from '@tanstack/react-table';
 import type { Finding, PaginationState } from '../types';
@@ -40,7 +41,10 @@ export default function EndpointDetail() {
       <button onClick={() => navigate('/hot-paths')} style={backBtnStyle}>← Back to Hot Paths</button>
 
       <div style={{ background: '#1e2230', borderRadius: 8, border: '1px solid #2a2e3d', padding: 20, marginBottom: 20 }}>
-        <h2 style={{ margin: 0, fontSize: 18, color: '#fff' }}>{endpoint.method} {endpoint.path}</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <h2 style={{ margin: 0, fontSize: 18, color: '#fff' }}>{endpoint.method} {endpoint.path}</h2>
+          <FavoriteButton itemType="endpoint" itemId={endpoint.id} label={`${endpoint.method} ${endpoint.path}`} />
+        </div>
         <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8 }}>
           <div><span style={labelStyle}>Risk Score</span><span style={valStyle}>{Math.round(endpoint.risk_score)}</span></div>
           <div><span style={labelStyle}>Confidence</span><span style={valStyle}>{(endpoint.confidence * 100).toFixed(0)}%</span></div>

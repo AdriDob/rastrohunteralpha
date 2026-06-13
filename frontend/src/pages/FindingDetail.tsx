@@ -12,7 +12,7 @@ export default function FindingDetail() {
   const fid = id ? parseInt(id) : null;
   const { data: findings } = useFindings();
 
-  const finding = findings?.find((f) => f.id === fid);
+  const finding = findings?.items?.find((f) => f.id === fid);
 
   if (!finding) return <p style={{ color: '#7c8299' }}>Loading…</p>;
 
@@ -27,7 +27,7 @@ export default function FindingDetail() {
             <span style={labelStyle}>Severity</span>
             <span style={{
               ...valStyle,
-              color: { critical: '#ef4444', high: '#f97316', medium: '#eab308', low: '#6b7280' }[finding.severity] ?? '#6b7280',
+              color: ({ critical: '#ef4444', high: '#f97316', medium: '#eab308', low: '#6b7280' } as Record<string, string>)[finding.severity] ?? '#6b7280',
             }}>
               {finding.severity.toUpperCase()}
             </span>

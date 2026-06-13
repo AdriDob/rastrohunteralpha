@@ -1,5 +1,6 @@
 import { useReport, useFindings } from '../lib/query';
 import KPICard from '../components/layout/KPICard';
+import FavoriteButton from '../components/FavoriteButton';
 import { useState } from 'react';
 
 const btnStyle: React.CSSProperties = {
@@ -45,7 +46,10 @@ export default function ReportCenter() {
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0, color: '#fff' }}>Report Center</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0, color: '#fff' }}>Report Center</h1>
+          <FavoriteButton itemType="report" itemId={1} label="Report Center" />
+        </div>
         <p style={{ margin: '4px 0 0', fontSize: 13, color: '#7c8299' }}>Generate and export bug bounty reports</p>
       </div>
 

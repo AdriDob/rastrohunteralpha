@@ -1,8 +1,27 @@
+"""
+Rastro AI Assistant — main orchestrator + ScanAssistant.
+
+ScanAssistant: original rule-based assistant for scan analysis, findings, risk narratives.
+Assistant: new unified orchestrator with context, insights, recommendations, chat.
+"""
+
+from __future__ import annotations
+
+import logging
 from typing import Any, Dict, List, Optional
 
+from core.ai.context_builder import build_full_context
+from core.ai.insights import generate_insights, get_top_insight
+from core.ai.recommendations import generate_recommendations, get_best_recommendation
+from core.ai.advisor import answer_query
+from core.ai.summary import daily_summary, system_status
+from core.ai.memory import get_memory, save_interaction, get_recent_interactions
+from core.ai.provider import get_provider
 from core.evidence.graph import EvidenceGraph
 from core.reporting.report_engine import FinalReport, ReportEngine
 from core.reporting.severity import confidence_to_label, risk_to_severity
+
+logger = logging.getLogger("rastro.ai.assistant")
 
 
 class ScanAssistant:
@@ -213,6 +232,81 @@ class ScanAssistant:
 
         return "\n".join(lines)
 
+    def explain_differential(
+        self,
+        differential_bundle=None,
+    ) -> str:
+        """
+        Generate a narrative explanation of differential intelligence findings.
+        Does NOT convert differences into vulnerabilities.
+        """
+        if differential_bundle is None:
+            return "## Differential Intelligence\n\nNo differential data available."
+
+        from core.engines import DifferentialBundle
+        if not isinstance(differential_bundle, DifferentialBundle):
+            return "## Differential Intelligence\n\nInvalid differential data."
+
+        lines: List[str] = []
+        lines.append("## Differential Intelligence Summary")
+        lines.append("")
+        lines.append(differential_bundle.summary)
+        lines.append("")
+
+        all_findings: List[Any] = []
+        for field_name in (
+            "target_differences", "endpoint_differences", "historical_changes",
+            "cross_target_patterns", "web3_differences", "interesting_anomalies",
+        ):
+            all_findings.extend(getattr(differential_bundle, field_name, []))
+
+        if not all_findings:
+            lines.append("No meaningful differences detected in this analysis.")
+            return "\n".join(lines)
+
+        # Group by category
+        by_cat: Dict[str, List[Any]] = {}
+        for f in all_findings:
+            cat = getattr(f, "category", "general")
+            by_cat.setdefault(cat, []).append(f)
+
+        for cat, items in sorted(by_cat.items()):
+            high_risk = [f for f in items if getattr(f, "risk_level", "low") in ("high", "critical")]
+            lines.append(f"### {cat.title()} ({len(items)} observation{'' if len(items) == 1 else 's'})")
+            for item in items[:5]:
+                title = getattr(item, "title", "Unknown")
+                risk = getattr(item, "risk_level", "low")
+                conf = getattr(item, "confidence", 0)
+                desc = getattr(item, "description", "")
+                objects = getattr(item, "affected_objects", [])
+                objs_str = ", ".join(objects[:3]) if objects else ""
+                requires = getattr(item, "requires_validation", True)
+                lines.append(
+                    f"- **{title}** (risk: {risk}, confidence: {conf:.0%})"
+                    + (f" — {objs_str}" if objs_str else "")
+                )
+                if desc:
+                    lines.append(f"  {desc[:200]}")
+                if requires:
+                    lines.append("  ⚠ Requires human validation — observation only, not a finding.")
+            if len(items) > 5:
+                lines.append(f"  ... and {len(items) - 5} more")
+            lines.append("")
+
+        if differential_bundle.interesting_anomalies:
+            lines.append("### Recommended Review Priority")
+            for a in differential_bundle.interesting_anomalies[:3]:
+                lines.append(
+                    f"- [{getattr(a, 'validation_priority', 'low').upper()}] "
+                    f"{getattr(a, 'title', 'Unknown')}"
+                )
+
+        lines.append("")
+        lines.append("*These are observations derived from existing pipeline data. "
+                     "They do not constitute vulnerability findings and require human validation.*")
+
+        return "\n".join(lines)
+
     @staticmethod
     def _rule_explanation(rule: str) -> str:
         explanations = {
@@ -235,3 +329,87 @@ class ScanAssistant:
             ),
         }
         return explanations.get(rule, "Validation rule triggered. Review the evidence for details.")
+
+
+class Assistant:
+    def __init__(self):
+        self.memory = get_memory()
+        self.provider = get_provider()
+
+    def chat(self, message: str) -> Dict[str, Any]:
+        self.memory.add("user", message)
+        save_interaction("user", message)
+
+        result = answer_query(message)
+        answer = result.get("answer", "")
+        source = result.get("source", "local/rules")
+
+        self.memory.add("assistant", answer)
+        save_interaction("assistant", answer)
+
+        return {
+            "answer": answer,
+            "source": source,
+            "context": result.get("context_summary", {}),
+            "suggestions": self._generate_suggestions(answer),
+        }
+
+    def _generate_suggestions(self, last_answer: str) -> List[str]:
+        suggestions = [
+            "¿Qué target tiene mejor ROI?",
+            "¿Qué cambió hoy?",
+            "¿Qué oportunidades puedo completar en dos horas?",
+        ]
+        last_lower = last_answer.lower()
+        if "recomendación" in last_lower or "atacar" in last_lower:
+            suggestions.insert(0, "¿Qué reporte está casi listo?")
+        if "cambio" in last_lower or "nuevo" in last_lower:
+            suggestions.insert(0, "¿Qué cambió desde el último análisis?")
+        if "scan" in last_lower or "escaneo" in last_lower:
+            suggestions.insert(0, "¿Qué scan terminó?")
+        return suggestions[:4]
+
+    def get_context(self) -> Dict[str, Any]:
+        ctx = build_full_context()
+        ctx["provider"] = self.provider.name
+        return ctx
+
+    def get_insights(self) -> List[Dict[str, Any]]:
+        return generate_insights()
+
+    def get_recommendations(self) -> List[Dict[str, Any]]:
+        return generate_recommendations()
+
+    def get_top_insight(self) -> Dict[str, Any]:
+        return get_top_insight()
+
+    def get_best_recommendation(self) -> Dict[str, Any]:
+        return get_best_recommendation()
+
+    def get_summary(self) -> Dict[str, Any]:
+        return daily_summary()
+
+    def get_status(self) -> Dict[str, Any]:
+        return {
+            "provider": self.provider.name,
+            "available": self.provider.is_available(),
+            "memory_exchanges": len(self.memory.all()),
+            "recent_interactions": get_recent_interactions(5),
+            "system": system_status(),
+        }
+
+    def get_history(self, limit: int = 10) -> List[Dict[str, Any]]:
+        return get_recent_interactions(limit)
+
+    def clear_memory(self) -> None:
+        self.memory.clear()
+
+
+_assistant_instance: Optional[Assistant] = None
+
+
+def get_assistant() -> Assistant:
+    global _assistant_instance
+    if _assistant_instance is None:
+        _assistant_instance = Assistant()
+    return _assistant_instance

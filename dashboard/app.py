@@ -450,6 +450,11 @@ def backend_get(path: str) -> dict | None:
         st.warning(f"Backend error: {exc}")
         return None
 
+def safe_fetch(path: str, label: str = "Loading"):
+    """Fetch from backend with a spinning indicator."""
+    with st.spinner(f"{label}..."):
+        return backend_get(path)
+
 def backend_post(path: str, payload: dict) -> dict | None:
     if not use_backend:
         return None
@@ -550,6 +555,19 @@ _page_aliases = {"targets": "hot_targets", "reports": "reports",
                  "dashboard": "dashboard"}
 _current_page = _page_aliases.get(_current_page, "dashboard")
 
+# Catch-all for unimplemented pages
+_coming_soon_pages = {"opportunities", "acquisition_engine", "bounty_programs",
+                       "web3_crypto", "technologies", "parameter_analyzer",
+                       "idor_engine", "graphql_explorer", "integrations",
+                       "preferences", "api_keys", "recon_history", "monitor"}
+
+if _current_page in _coming_soon_pages:
+    st.markdown(f'<div class="dark-tab-content"><div style="text-align:center;padding:80px 20px;color:rgba(255,255,255,0.3)"><div style="font-size:48px;margin-bottom:16px">🚧</div><h2 style="color:#fff">Coming Soon</h2><p style="color:rgba(255,255,255,0.4)">This view is not yet implemented.</p></div></div>', unsafe_allow_html=True)
+    if st.button("← Back to Dashboard"):
+        st.session_state.page = "dashboard"
+        st.rerun()
+    st.stop()
+
 # Sub-pages (full page renders)
 if _current_page == "replay":
     from dashboard.pages.replay import render_replay_page
@@ -573,13 +591,14 @@ if _current_page == "verdicts":
     st.stop()
 
 # Main dashboard — show tab bar as styled page buttons
-tab_names = ["Dashboard", "Hot Targets", "Attack Surface", "Evidence", "Reports"]
+tab_names = ["Dashboard", "Hot Targets", "Attack Surface", "Evidence", "Reports", "Differential"]
 if editor_mode:
     tab_names.append("Editor")
 
 _tab_page_map = {"Dashboard": "dashboard", "Hot Targets": "hot_targets",
                   "Attack Surface": "attack_surfaces", "Evidence": "evidence_tab",
-                  "Reports": "reports", "Editor": "editor"}
+                  "Reports": "reports", "Differential": "differential",
+                  "Editor": "editor"}
 _current_tab_label = next((k for k, v in _tab_page_map.items() if v == _current_page), "Dashboard")
 
 col_tabs = st.columns(len(tab_names))
@@ -598,538 +617,11 @@ if _current_page != "dashboard":
         st.session_state.page = "dashboard"
         st.rerun()
 
-# ── Tab 0 — Dashboard ─────────────────────────────
+# ── Tab 0 — Mission Control ───────────────────────
 if _current_page == "dashboard":
-    col_main, col_right = st.columns([3.2, 1])
-
-    with col_main:
-        # ── Header ──
-        session = get_session()
-        try:
-            target_count = session.query(models.Target).count()
-            endpoint_count = session.query(models.Endpoint).count()
-            finding_count = session.query(models.Finding).count()
-            verdict_count = session.query(models.Verdict).count()
-            high_risk_count = 0
-            for ep in session.query(models.Endpoint).limit(200):
-                s = unified_score(ep.path, ep.method or "GET", ep.parsed_params)
-                if s["risk_score"] >= 60:
-                    high_risk_count += 1
-        except Exception:
-            target_count = endpoint_count = finding_count = verdict_count = high_risk_count = 0
-        finally:
-            session.close()
-
-        st.markdown(f"""
-        <div class="header-bar">
-          <div class="header-left">
-            <h1>Dashboard</h1>
-            <p>High signal. Low noise. Maximum impact.</p>
-          </div>
-          <div class="header-right">
-            <select class="header-select"><option>Last 7 days</option></select>
-            <div class="header-icon-btn">🔔</div>
-            <div class="header-icon-btn">⊞</div>
-            <div class="header-avatar">R</div>
-          </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        # ── Stat Cards ──
-        est_value_str = "$0"
-        try:
-            sev_dollars = {"critical": 25000, "high": 10000, "medium": 3000, "low": 500, "info": 0}
-            total_val = 0
-            for f in session.query(models.Finding).all():
-                total_val += sev_dollars.get((f.severity or "info").lower(), 0)
-            if total_val >= 1_000_000:
-                est_value_str = f"${total_val // 1_000_000}M+"
-            elif total_val >= 1000:
-                est_value_str = f"${total_val // 1000}K+"
-            else:
-                est_value_str = f"${total_val}+"
-        except Exception:
-            est_value_str = "$0"
-
-        try:
-            intel_rows = session.query(TargetIntel.opportunity_score).all()
-            scores = [r[0] for r in intel_rows if r[0] is not None]
-            avg_roi = round(sum(scores) / len(scores), 1) if scores else 0.0
-        except Exception:
-            avg_roi = 0.0
-
-        stats = [
-            ("🎯", "#7c3aed20", "OPPORTUNITIES", str(endpoint_count), "+28%"),
-            ("📊", "#22c55e20", "HIGH SIGNAL", str(high_risk_count), "+33%"),
-            ("📈", "#3b82f620", "AVG ROI SCORE", f"{min(10, avg_roi)}/10", f"+{min(0.9, avg_roi/10):.1f}"),
-            ("💰", "#f59e0b20", "EST. TOTAL VALUE", est_value_str, "+41%"),
-            ("🛡", "#a855f720", "TARGETS MONITORED", str(target_count), "+18%"),
-        ]
-
-        cols = st.columns(5)
-        for i, (icon, icon_bg, label, value, trend) in enumerate(stats):
-            with cols[i]:
-                st.markdown(f"""
-                <div class="stat-card">
-                  <div class="stat-card-top">
-                    <div class="stat-card-icon" style="background:{icon_bg};">{icon}</div>
-                    <span class="stat-card-badge">{trend.split()[0]}</span>
-                  </div>
-                  <div class="stat-card-label">{label}</div>
-                  <div class="stat-card-value">{value}</div>
-                  <div class="stat-card-trend up">{trend} vs last 7 days</div>
-                </div>
-                """, unsafe_allow_html=True)
-
-        # ── Plotly Charts ──
-        if px is not None:
-            session = get_session()
-            try:
-                eps = session.query(models.Endpoint).limit(500).all()
-                findings = session.query(models.Finding).all()
-                targets = session.query(models.Target).all()
-
-                if eps:
-                    rows = []
-                    for ep in eps:
-                        s = unified_score(ep.path, ep.method or "GET", ep.parsed_params)
-                        rows.append({
-                            "path": ep.path, "method": ep.method,
-                            "risk_score": s["risk_score"],
-                            "vector": s.get("vector", "unknown"),
-                            "target_id": ep.target_id,
-                        })
-                    df = pd.DataFrame(rows)
-
-                    fig1 = px.histogram(df, x="risk_score", nbins=20, title="Risk Score Distribution",
-                        labels={"risk_score": "Risk Score", "count": "Endpoints"},
-                        color_discrete_sequence=["#7c3aed"], range_x=[0, 100])
-                    fig1.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                        font_color="#e2e4e9", title_font_size=14, margin=dict(l=16, r=16, t=40, b=16), height=270,
-                        title_font_color="#fff")
-                    fig1.update_xaxes(gridcolor="rgba(255,255,255,0.04)", title_font_color="rgba(255,255,255,0.3)")
-                    fig1.update_yaxes(gridcolor="rgba(255,255,255,0.04)", title_font_color="rgba(255,255,255,0.3)")
-
-                    top = df.groupby("target_id")["risk_score"].max().reset_index().sort_values("risk_score", ascending=False).head(10)
-                    name_map = {t.id: t.name for t in targets}
-                    top["name"] = top["target_id"].map(lambda x: name_map.get(x, f"#{x}"))
-                    fig2 = px.bar(top, x="risk_score", y="name", orientation="h", title="Top Targets by Risk",
-                        labels={"risk_score": "Max Risk", "name": ""}, color="risk_score",
-                        color_continuous_scale=["#22c55e", "#eab308", "#ef4444"])
-                    fig2.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                        font_color="#e2e4e9", title_font_size=14, margin=dict(l=16, r=16, t=40, b=16), height=270,
-                        title_font_color="#fff", coloraxis_showscale=False)
-                    fig2.update_xaxes(gridcolor="rgba(255,255,255,0.04)")
-                    fig2.update_yaxes(gridcolor="rgba(255,255,255,0.04)")
-
-                    vec_counts = df["vector"].value_counts().reset_index()
-                    vec_counts.columns = ["vector", "count"]
-                    fig3 = px.pie(vec_counts, values="count", names="vector", title="Attack Vector Distribution",
-                        color_discrete_sequence=px.colors.qualitative.Vivid)
-                    fig3.update_layout(paper_bgcolor="rgba(0,0,0,0)", font_color="#e2e4e9", title_font_size=14,
-                        title_font_color="#fff", margin=dict(l=16, r=16, t=40, b=16), height=270,
-                        legend=dict(font=dict(size=10, color="rgba(255,255,255,0.5)")))
-
-                    fig4 = None
-                    if findings:
-                        sev_order = ["critical", "high", "medium", "low", "info"]
-                        sev_counts = {}
-                        for f in findings:
-                            sev = (f.severity or "info").lower()
-                            sev_counts[sev] = sev_counts.get(sev, 0) + 1
-                        df_sev = pd.DataFrame([{"severity": s, "count": sev_counts.get(s, 0)} for s in sev_order])
-                        sev_colors = {"critical": "#ef4444", "high": "#f97316", "medium": "#eab308", "low": "#22c55e", "info": "#6b7280"}
-                        fig4 = px.bar(df_sev, x="severity", y="count", title="Findings by Severity",
-                            labels={"severity": "", "count": "Findings"}, color="severity",
-                            color_discrete_map=sev_colors, category_orders={"severity": sev_order})
-                        fig4.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)",
-                            font_color="#e2e4e9", title_font_size=14, title_font_color="#fff",
-                            margin=dict(l=16, r=16, t=40, b=16), height=270, showlegend=False)
-                        fig4.update_xaxes(gridcolor="rgba(255,255,255,0.04)")
-                        fig4.update_yaxes(gridcolor="rgba(255,255,255,0.04)")
-
-                    st.markdown("""
-                    <div class="section-header">
-                      <div class="section-header-left">
-                        <h2>Analytics</h2>
-                        <p>Risk distribution, top targets, and findings breakdown</p>
-                      </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-
-                    r1 = st.columns(2)
-                    with r1[0]: st.plotly_chart(fig1, width='stretch', key="hrd")
-                    with r1[1]: st.plotly_chart(fig2, width='stretch', key="htt")
-                    r2 = st.columns(2)
-                    with r2[0]: st.plotly_chart(fig3, width='stretch', key="hvd")
-                    with r2[1]:
-                        if fig4 is not None:
-                            st.plotly_chart(fig4, width='stretch', key="hsd")
-                        else:
-                            st.info("No findings data for severity chart.")
-            except Exception:
-                pass
-            finally:
-                session.close()
-
-        # ── Top Opportunities Table ──
-        st.markdown("""
-        <div class="section-header">
-          <div class="section-header-left">
-            <h2>Top Opportunities</h2>
-            <p>High signal targets ranked by ROI</p>
-          </div>
-          <div class="section-header-right">
-            <button class="btn-ghost">Filter</button>
-            <button class="btn-ghost">Customize</button>
-            <button class="btn-primary">View All →</button>
-          </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        session = get_session()
-        table_rows = []
-        try:
-            targets = session.query(models.Target).all()
-            endpoints = session.query(models.Endpoint).limit(300).all()
-            ep_by_tid = {}
-            for ep in endpoints:
-                ep_by_tid.setdefault(ep.target_id, []).append(ep)
-            for t in targets:
-                el = ep_by_tid.get(t.id, [])
-                if not el:
-                    continue
-                api_count = len(el)
-                has_graphql = any("/graphql" in (e.path or "").lower() for e in el)
-                has_admin = any("admin" in (e.path or "").lower() for e in el)
-                has_api = any(e.path and "/api/" in e.path for e in el)
-                has_exports = any("export" in (e.path or "").lower() for e in el)
-                max_score = 0
-                surfaces = set()
-                labels = set()
-                for ep in el:
-                    s = unified_score(ep.path, ep.method or "GET", ep.parsed_params)
-                    if s["risk_score"] > max_score:
-                        max_score = s["risk_score"]
-                    for surf in s.get("attack_surface", []):
-                        surfaces.add(surf)
-                    for lbl in s.get("labels", []):
-                        labels.add(lbl)
-                roi_res = unified_score_target({
-                    "api_count": api_count, "has_graphql": has_graphql,
-                    "has_admin": has_admin, "has_api": has_api, "has_exports": has_exports,
-                })
-                roi_score = round(roi_res["roi_score"] / 10, 1)
-                surf_list = list(surfaces)[:4] if surfaces else ["API"]
-                dup_risk = "Low" if max_score > 80 else ("Medium" if max_score > 65 else "High")
-                if max_score >= 80:
-                    p_icon, p_label, p_cls = "🔴", "Critical", "priority-critical"
-                elif max_score >= 60:
-                    p_icon, p_label, p_cls = "⬆", "High", "priority-high"
-                else:
-                    p_icon, p_label, p_cls = "⬜", "Medium", "priority-medium"
-                platform = "HackerOne"
-                if any(w in (t.name or "").lower() for w in ["crypto", "web3", "defi"]):
-                    platform = "Immunefi"
-                elif "graphql" in str(labels).lower():
-                    platform = "Bugcrowd"
-                ev = int(max_score * 325)
-                ev_str = f"${ev // 1000}K+" if ev >= 1000 else f"${ev}+"
-                _ts = t.created_at.strftime("%H:%M") if t.created_at else "?"
-                table_rows.append({
-                    "name": t.name or f"Target #{t.id}",
-                    "domain": t.domain or f"target{t.id}.example.com",
-                    "platform": platform, "roi": roi_score,
-                    "duplicate_risk": dup_risk, "surfaces": surf_list,
-                    "est_value": ev_str,
-                    "p_icon": p_icon, "p_label": p_label, "p_cls": p_cls,
-                    "ts": _ts,
-                })
-            table_rows.sort(key=lambda r: r["roi"], reverse=True)
-            if not table_rows:
-                table_rows = [
-                    {"name":"Airbyte","domain":"api.airbyte.com","platform":"HackerOne","roi":9.6,"duplicate_risk":"Low","surfaces":["GraphQL","Org IDOR","Exports"],"est_value":"$25K+","p_icon":"🔴","p_label":"Critical","p_cls":"priority-critical","ts":"2h ago"},
-                    {"name":"Immunefi-Protocol","domain":"defi.example.com","platform":"Immunefi","roi":9.2,"duplicate_risk":"Low","surfaces":["Smart Contracts","Admin","Bridge"],"est_value":"$100K+","p_icon":"🔴","p_label":"Critical","p_cls":"priority-critical","ts":"4h ago"},
-                    {"name":"Linear","domain":"api.linear.app","platform":"HackerOne","roi":8.9,"duplicate_risk":"Medium","surfaces":["Org IDOR","Attachments","API"],"est_value":"$15K+","p_icon":"⬆","p_label":"High","p_cls":"priority-high","ts":"1h ago"},
-                    {"name":"Uniswap Labs","domain":"app.uniswap.org","platform":"Immunefi","roi":8.7,"duplicate_risk":"Low","surfaces":["Wallet","API","Admin Panel"],"est_value":"$50K+","p_icon":"⬆","p_label":"High","p_cls":"priority-high","ts":"3h ago"},
-                    {"name":"Notion","domain":"www.notion.so","platform":"Bugcrowd","roi":8.4,"duplicate_risk":"Medium","surfaces":["File Access","Org IDOR","API"],"est_value":"$10K+","p_icon":"⬆","p_label":"High","p_cls":"priority-high","ts":"5h ago"},
-                    {"name":"StarkNet","domain":"starknet.io","platform":"Immunefi","roi":8.1,"duplicate_risk":"Low","surfaces":["Smart Contracts","Sequencer"],"est_value":"$75K+","p_icon":"⬆","p_label":"High","p_cls":"priority-high","ts":"6h ago"},
-                    {"name":"GitHub","domain":"github.com","platform":"HackerOne","roi":7.8,"duplicate_risk":"High","surfaces":["Token Scopes","Org IDOR","API"],"est_value":"$5K+","p_icon":"⬜","p_label":"Medium","p_cls":"priority-medium","ts":"7h ago"},
-                    {"name":"Segment","domain":"api.segment.com","platform":"Bugcrowd","roi":7.6,"duplicate_risk":"Medium","surfaces":["Exports","Org IDOR","API"],"est_value":"$8K+","p_icon":"⬜","p_label":"Medium","p_cls":"priority-medium","ts":"8h ago"},
-                ]
-        finally:
-            session.close()
-
-        colors = ["#7c3aed", "#22c55e", "#f97316", "#3b82f6", "#eab308", "#ec4899", "#8b5cf6", "#14b8a6"]
-        th = '<div class="table-wrap"><table class="data-table"><thead><tr>'
-        th += '<th>#</th><th>Program / Target</th><th>Platform</th><th>ROI Score</th><th>Duplicate Risk</th>'
-        th += '<th>Attack Surface</th><th>Est. Value</th><th>Priority</th><th>Last Update</th><th></th>'
-        th += '</tr></thead><tbody>'
-        for idx, row in enumerate(table_rows[:8]):
-            c = colors[idx % 8]
-            dbc = f"badge-{row['duplicate_risk'].lower()}"
-            stags = ''.join(f'<span class="surface-tag">{s}</span>' for s in row['surfaces'])
-            bp = int((row['roi'] / 10) * 100)
-            th += f'<tr><td style="color:rgba(255,255,255,0.25);font-size:12px;">{idx+1}</td>'
-            th += f'<td><div style="display:flex;align-items:center;"><div class="table-avatar" style="background:{c}20;color:{c};">{row["name"][0].upper()}</div><div><div class="table-name">{row["name"]}</div><div class="table-url">{row["domain"]}</div></div></div></td>'
-            th += f'<td style="color:rgba(255,255,255,0.45);font-size:12px;">{row["platform"]}</td>'
-            th += f'<td><div class="table-progress-wrap"><span style="font-weight:700;">{row["roi"]}</span><div class="table-progress"><div class="table-progress-bar" style="width:{bp}%;"></div></div></div></td>'
-            th += f'<td><span class="badge-pill {dbc}">{row["duplicate_risk"]}</span></td>'
-            th += f'<td><div style="display:flex;flex-wrap:wrap;gap:2px;">{stags}</div></td>'
-            th += f'<td style="font-weight:700;">{row["est_value"]}</td>'
-            th += f'<td><span class="{row["p_cls"]}">{row["p_icon"]} {row["p_label"]}</span></td>'
-            th += f'<td style="color:rgba(255,255,255,0.25);font-size:12px;">{row["ts"]}</td>'
-            th += f'<td class="table-chevron">›</td></tr>'
-        th += '</tbody></table></div>'
-        st.markdown(th, unsafe_allow_html=True)
-
-        # ── Bottom Row ──
-        bot_cols = st.columns(3)
-        with bot_cols[0]:
-            st.markdown('<div class="panel-card"><h3>ROI Distribution</h3>', unsafe_allow_html=True)
-            _s = get_session()
-            segs = []
-            try:
-                _scores = [r[0] for r in _s.query(TargetIntel.opportunity_score).all() if r[0] is not None]
-                if _scores:
-                    b = {"9-10 (Elite)": 0, "7-8 (High)": 0, "5-6 (Medium)": 0, "3-4 (Low)": 0, "0-2 (Avoid)": 0}
-                    b_labels = list(b.keys())
-                    b_colors = ["#22c55e", "#3b82f6", "#7c3aed", "#a855f7", "#ef4444"]
-                    for s in _scores:
-                        dec = s / 10
-                        if dec >= 9: b["9-10 (Elite)"] += 1
-                        elif dec >= 7: b["7-8 (High)"] += 1
-                        elif dec >= 5: b["5-6 (Medium)"] += 1
-                        elif dec >= 3: b["3-4 (Low)"] += 1
-                        else: b["0-2 (Avoid)"] += 1
-                    segs = [(b_labels[i], b[b_labels[i]], b_colors[i]) for i in range(5)]
-            except Exception:
-                pass
-            finally:
-                _s.close()
-            if not segs or segs[0][1] == 0:
-                segs = [("No data", 1, "#6b7280")]
-            _tot = max(sum(s[1] for s in segs), 1)
-            _circ = 2 * 3.14159 * 40
-            _off = 0
-            _arcs = ""
-            for _, _cnt, _col in segs:
-                _pct = _cnt / _tot
-                _sl = _pct * _circ
-                _arcs += f'<circle r="40" cx="50" cy="50" fill="none" stroke="{_col}" stroke-width="16" stroke-dasharray="{_sl} {_circ-_sl}" stroke-dashoffset="{_off*-1}" transform="rotate(-90 50 50)" opacity="0.85"/>'
-                _off += _sl
-            _svg = f'''<div style="display:flex;gap:16px;align-items:center;">
-              <div class="donut-container"><svg width="120" height="120" viewBox="0 0 100 100"><circle r="40" cx="50" cy="50" fill="none" stroke="rgba(255,255,255,0.04)" stroke-width="16"/>{_arcs}</svg>
-              <div class="donut-center"><div class="donut-center-value">{_tot}</div><div class="donut-center-label">Targets</div></div></div>
-              <div style="flex:1;">'''
-            for _lbl, _cnt, _col in segs:
-                _pct = (_cnt / _tot) * 100
-                _svg += f'<div class="legend-row"><span class="legend-dot" style="background:{_col}"></span><span class="legend-label">{_lbl}</span><span class="legend-count">{_cnt}</span><span class="legend-pct">({_pct:.0f}%)</span></div>'
-            _svg += '</div></div>'
-            st.markdown(_svg + '</div>', unsafe_allow_html=True)
-
-        with bot_cols[1]:
-            st.markdown('<div class="panel-card"><h3>Top Platforms</h3>', unsafe_allow_html=True)
-            _s2 = get_session()
-            _plat_colors = {"hackerone": "#7c3aed", "bugcrowd": "#3b82f6", "immunefi": "#22c55e",
-                           "intigriti": "#f97316", "yeswehack": "#eab308", "huntr": "#ec4899"}
-            _plat_counts = {}
-            try:
-                _sources = [r[0] for r in _s2.query(TargetIntel.source).all() if r[0]]
-                _sources += [r[0] for r in _s2.query(models.Target.name).all() if r[0]]
-                for _src in _sources:
-                    _src_lower = _src.lower()
-                    _matched = False
-                    for _plat_key in _plat_colors:
-                        if _plat_key in _src_lower:
-                            _plat_counts[_plat_key.title()] = _plat_counts.get(_plat_key.title(), 0) + 1
-                            _matched = True
-                            break
-                    if not _matched:
-                        _plat_counts["Other"] = _plat_counts.get("Other", 0) + 1
-            except Exception:
-                _plat_counts = {"Other": 1}
-            finally:
-                _s2.close()
-            if not _plat_counts:
-                _plat_counts = {"Other": 1}
-            _plats = sorted(_plat_counts.items(), key=lambda x: x[1], reverse=True)
-            _plats = [(n, c, _plat_colors.get(n.lower(), "#6b7280")) for n, c in _plats]
-            _mx = max(c for _, c, _ in _plats) if _plats else 1
-            _bars = ""
-            for _nm, _cnt, _col in _plats:
-                _w = (_cnt / _mx) * 100
-                _pct_all = int(_cnt / sum(p[1] for p in _plats) * 100)
-                _bars += f'<div class="hbar-row"><div class="hbar-label">{_nm}</div><div class="hbar-track"><div class="hbar-bar" style="width:{_w}%;background:{_col}"></div></div><div class="hbar-stats">{_cnt} ({_pct_all}%)</div></div>'
-            st.markdown(_bars + '</div>', unsafe_allow_html=True)
-
-        with bot_cols[2]:
-            st.markdown('<div class="panel-card"><h3>Recent High Signal Detections</h3>', unsafe_allow_html=True)
-            _s3 = get_session()
-            _dets = []
-            try:
-                _recent = _s3.query(models.Finding).filter(
-                    models.Finding.severity.in_(["high", "critical"])
-                ).order_by(models.Finding.created_at.desc()).limit(5).all()
-                for _f in _recent:
-                    _ts = _f.created_at.strftime("%H:%M") if _f.created_at else "?"
-                    _dets.append((
-                        _f.title or f"Finding #{_f.id}",
-                        [(_f.severity.upper(), _f.severity.lower())],
-                        _ts
-                    ))
-                if not _dets:
-                    _recent_v = _s3.query(models.Verdict).filter(
-                        models.Verdict.status == "confirmed"
-                    ).order_by(models.Verdict.created_at.desc()).limit(5).all()
-                    for _v in _recent_v:
-                        _ts = _v.created_at.strftime("%H:%M") if _v.created_at else "?"
-                        _dets.append((
-                            _v.hot_path_id or f"Verdict #{_v.id}",
-                            [("CONFIRMED", "high")],
-                            _ts
-                        ))
-            except Exception:
-                pass
-            finally:
-                _s3.close()
-            _dh = ""
-            for _pth, _tags, _ts in _dets:
-                _tg = ''.join(f'<span class="detection-tag {_cls}">{_lbl}</span>' for _lbl, _cls in _tags)
-                _dh += f'<div class="detection-item"><div class="detection-path">{_pth}</div><div class="detection-tags">{_tg}</div><div class="detection-ts">{_ts}</div></div>'
-            if not _dets:
-                _dh += '<div class="detection-item" style="color:rgba(255,255,255,0.3);">No high-signal findings yet</div>'
-            _dh += '<a class="view-all">View All Detections →</a>'
-            st.markdown(_dh + '</div>', unsafe_allow_html=True)
-
-        # ── Status Bar ──
-        _s_sb = get_session()
-        try:
-            _sb_te = _s_sb.query(models.Endpoint).count()
-            _sb_tt = _s_sb.query(models.Target).count()
-            _sb_eps_with_params = _s_sb.query(models.Endpoint).filter(models.Endpoint.params.isnot(None)).count()
-            _sb_eps_mutable = _s_sb.query(models.Endpoint).filter(
-                models.Endpoint.method.in_(["POST", "PUT", "PATCH", "DELETE"])
-            ).count()
-            _sb_ch = _s_sb.query(models.Verdict).count() + _s_sb.query(models.Finding).count()
-            _sb_pf = _sb_eps_with_params
-            _sb_ids = _sb_eps_mutable
-        except Exception:
-            _sb_te, _sb_tt, _sb_pf, _sb_ids, _sb_ch = 0, 0, 0, 0, 0
-        finally:
-            _s_sb.close()
-
-        st.markdown(f"""
-        <div class="status-bar">
-          <div class="status-bar-left">
-            <div class="status-item"><span class="status-dot"></span><span>Scanning <span class="status-value">{_sb_tt}</span> targets</span><span class="status-live">● Live</span></div>
-            <div class="status-item"><span class="status-label">Endpoints:</span><span class="status-value">{_sb_te}</span></div>
-            <div class="status-item"><span class="status-label">Parameters:</span><span class="status-value">{_sb_pf}</span></div>
-            <div class="status-item"><span class="status-label">Mutable:</span><span class="status-value">{_sb_ids}</span></div>
-            <div class="status-item"><span class="status-label">Artifacts:</span><span class="status-value">{_sb_ch}</span></div>
-          </div>
-          <div class="status-bar-right">
-            <span class="status-label">Last activity:</span><span class="status-value">now</span>
-            <span class="status-refresh">↻</span>
-          </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with col_right:
-        _s_r = get_session()
-        try:
-            _all_eps = _s_r.query(models.Endpoint).limit(200).all()
-            _top_ep = None
-            _top_score = 0
-            _top_suggestions = []
-            for _ep in _all_eps:
-                _s = unified_score(_ep.path, _ep.method or "GET", _ep.parsed_params)
-                if _s["risk_score"] > _top_score and _s["actionable"]:
-                    _top_score = _s["risk_score"]
-                    _top_ep = _ep
-                    _top_suggestions = generate_suggestions(_ep.path, _ep.method or "GET", _ep.parsed_params)
-        except Exception:
-            _top_ep = None
-            _top_suggestions = []
-        finally:
-            _s_r.close()
-
-        if _top_ep:
-            _insight_text = f"**{_top_ep.method} {_top_ep.path}** — risk score {_top_score}/100 — vector {unified_score(_top_ep.path, _top_ep.method or 'GET', _top_ep.parsed_params)['vector']}"
-            _rec_text = _top_suggestions[0] if _top_suggestions else "Review this endpoint for authorization weaknesses."
-        else:
-            _insight_text = "No high-value endpoints scored yet. Run a scan to generate insights."
-            _rec_text = "Add targets and run reconnaissance to begin."
-
-        st.markdown(f"""
-        <div class="right-panel-section insight-card">
-          <div class="insight-gradient"></div>
-          <div class="insight-label">Top Insight</div>
-          <div class="insight-text">{_insight_text}</div>
-          <div class="insight-label">Recommendation</div>
-          <div class="insight-text">{_rec_text}</div>
-          <button class="btn-primary" style="width:100%;">View All Insights →</button>
-        </div>
-        """, unsafe_allow_html=True)
-
-        st.markdown('<div class="right-panel-section"><h3>Activity Feed</h3>', unsafe_allow_html=True)
-        _s_a = get_session()
-        _acts = []
-        _act_colors = ["#22c55e", "#7c3aed", "#eab308", "#3b82f6", "#f97316"]
-        try:
-            _recent_findings = _s_a.query(models.Finding).order_by(models.Finding.created_at.desc()).limit(3).all()
-            for _f in _recent_findings:
-                _ts = _f.created_at.strftime("%H:%M") if _f.created_at else "?"
-                _acts.append(("#ef4444", f"Finding: {_f.title or 'Untitled'}", f"severity {_f.severity or 'unknown'} — target #{_f.target_id}", _ts))
-            _recent_verdicts = _s_a.query(models.Verdict).order_by(models.Verdict.created_at.desc()).limit(3).all()
-            for _v in _recent_verdicts:
-                _ts = _v.created_at.strftime("%H:%M") if _v.created_at else "?"
-                _acts.append(("#22c55e" if _v.status == "confirmed" else "#f87171", f"Verdict: {_v.status}", _v.hot_path_id or f"#{_v.id}", _ts))
-            _recent_scans = _s_a.query(models.ScanRun).order_by(models.ScanRun.started_at.desc()).limit(2).all()
-            for _sc in _recent_scans:
-                _ts = _sc.started_at.strftime("%H:%M") if _sc.started_at else "?"
-                _acts.append(("#3b82f6", f"Scan {_sc.status}", f"target #{_sc.target_id} — {_sc.mode or 'FAST'}", _ts))
-        except Exception:
-            pass
-        finally:
-            _s_a.close()
-        if not _acts:
-            _acts = [("#6b7280", "No activity recorded yet", "Add targets and run a scan", "—")]
-        _ah = ""
-        for _i, (_dc, _txt, _sub, _ts) in enumerate(_acts[:6]):
-            _ah += f'<div class="activity-item"><div class="activity-dot" style="background:{_dc}"></div><div style="flex:1"><div class="activity-text"><strong>{_txt}</strong><div class="activity-subtext">{_sub}</div></div></div><div class="activity-ts">{_ts}</div></div>'
-        _ah += '<a class="view-all">View Full Activity →</a></div>'
-        st.markdown(_ah, unsafe_allow_html=True)
-
-        st.markdown('<div class="right-panel-section"><h3>Attack Surface Heatmap</h3>', unsafe_allow_html=True)
-        _s_h = get_session()
-        _heat_counts = {}
-        try:
-            _eps_for_heat = _s_h.query(models.Endpoint).limit(300).all()
-            for _ep in _eps_for_heat:
-                _res = unified_score(_ep.path, _ep.method or "GET", _ep.parsed_params)
-                for _surf in _res.get("attack_surface", []):
-                    label = _surf.replace("_surface", "").replace("_", " ").title()
-                    _heat_counts[label] = _heat_counts.get(label, 0) + 1
-        except Exception:
-            pass
-        finally:
-            _s_h.close()
-        _heat_sorted = sorted(_heat_counts.items(), key=lambda x: x[1], reverse=True)[:9]
-        if not _heat_sorted:
-            _heat_sorted = [("No data", 0)]
-        _heat_colors = [
-            ("#166534", "#22c55e"), ("#14532d", "#4ade80"), ("#3f6212", "#a3e635"),
-            ("#52525b", "#eab308"), ("#78350f", "#fb923c"), ("#7c2d12", "#f97316"),
-            ("#9a3412", "#fdba74"), ("#7f1d1d", "#ef4444"), ("#881337", "#f43f5e"),
-        ]
-        _hh = '<div class="heatmap-grid">'
-        for _i, (_lbl, _cnt) in enumerate(_heat_sorted):
-            _bg, _col = _heat_colors[_i % len(_heat_colors)]
-            _hh += f'<div class="heatmap-tile" style="background:{_bg}"><div class="heatmap-tile-count" style="color:{_col}">{_cnt}</div><div class="heatmap-tile-label" style="color:{_col}80">{_lbl}</div></div>'
-        _hh += '</div><div style="margin-top:10px;height:4px;border-radius:2px;background:linear-gradient(90deg,#166534,#22c55e,#eab308,#ef4444)"></div>'
-        _hh += '<div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,0.2);margin-top:4px"><span>Low</span><span>High</span></div></div>'
-        st.markdown(_hh, unsafe_allow_html=True)
+    from dashboard.pages.mission_control import render_mission_control
+    render_mission_control(BACKEND_BASE, use_backend)
+    st.stop()
 
 # ── Tab 1 — Hot Targets ──────────────────────────
 elif _current_page == "hot_targets":
@@ -1138,7 +630,7 @@ elif _current_page == "hot_targets":
     st.markdown("Endpoints ranked by risk score (computed by unified engine)")
     mode = st.radio("Source", ["Backend /digest", "Local DB"], horizontal=True, key="hot_targets_source")
     if mode == "Backend /digest":
-        digest = backend_get("/digest")
+        digest = safe_fetch("/digest", "Fetching digest")
         if digest and digest.get("high_signal"):
             for item in digest["high_signal"]:
                 c = score_color(item["risk_score"])
@@ -1300,7 +792,108 @@ elif _current_page == "reports":
     finally: session.close()
     st.markdown('</div>', unsafe_allow_html=True)
 
-# ── Tab 5 — Editor (optional) ──────────────────
+# ── Tab 5 — Differential Intelligence ──────────
+elif _current_page == "differential":
+    st.markdown('<div class="dark-tab-content">', unsafe_allow_html=True)
+    st.header("Differential Intelligence")
+    st.markdown("Interesting differences and anomalies detected across targets, endpoints, and configurations.")
+    st.markdown("")
+
+    col1, col2 = st.columns([1, 4])
+    with col1:
+        target_id_filter = st.text_input("Target ID (optional)", placeholder="all")
+    with col2:
+        run_btn = st.button("Run Analysis", type="primary", use_container_width=False)
+
+    if run_btn:
+        tid = int(target_id_filter) if target_id_filter.strip().isdigit() else None
+        params = f"?target_id={tid}" if tid else ""
+        data = safe_fetch(f"/differential-intelligence/analyze{params}", "Running differential analysis")
+        if data:
+            all_findings = []
+            for section in ("target_differences", "endpoint_differences", "historical_changes",
+                            "cross_target_patterns", "web3_differences", "interesting_anomalies"):
+                all_findings.extend(data.get(section, []))
+
+            st.markdown(f"**Summary:** {data.get('summary', '')}")
+            st.markdown(f"**Overall confidence:** {data.get('confidence', 0):.2f}")
+            st.markdown("")
+
+            if not all_findings:
+                st.info("No differences detected in this analysis.")
+            else:
+                # Risk breakdown
+                risk_counts = {"critical": 0, "high": 0, "medium": 0, "low": 0}
+                for f in all_findings:
+                    rl = f.get("risk_level", "low")
+                    risk_counts[rl] = risk_counts.get(rl, 0) + 1
+
+                cols = st.columns(4)
+                with cols[0]:
+                    st.metric("Total Observations", len(all_findings))
+                with cols[1]:
+                    st.metric("High Risk", risk_counts.get("high", 0) + risk_counts.get("critical", 0))
+                with cols[2]:
+                    st.metric("Medium Risk", risk_counts.get("medium", 0))
+                with cols[3]:
+                    st.metric("Low Risk", risk_counts.get("low", 0))
+
+                st.markdown("")
+
+                # Group findings by category
+                by_cat: Dict[str, List[Dict]] = {}
+                for f in all_findings:
+                    cat = f.get("category", "general")
+                    by_cat.setdefault(cat, []).append(f)
+
+                cat_labels = {"auth": "🔐 Auth", "idor": "🔑 IDOR", "tenant": "🏢 Multi-tenant",
+                              "graphql": "⚡ GraphQL", "api": "🔌 API", "admin": "🛡️ Admin",
+                              "export": "📤 Export", "storage": "💾 Storage", "web3": "⛓️ Web3",
+                              "oracle": "🔮 Oracle", "bridge": "🌉 Bridge", "contract": "📜 Contract",
+                              "configuration": "⚙️ Configuration", "historical": "📋 Historical",
+                              "general": "📎 General"}
+
+                tab_list = list(by_cat.keys())
+                if tab_list:
+                    cat_tabs = st.tabs([cat_labels.get(c, c.title()) for c in tab_list])
+                    for i, cat in enumerate(tab_list):
+                        with cat_tabs[i]:
+                            for f in by_cat[cat]:
+                                risk = f.get("risk_level", "low")
+                                conf = f.get("confidence", 0)
+                                novelty = f.get("novelty_score", 0)
+                                priority = f.get("validation_priority", "low")
+                                signal_str = ", ".join(f.get("supporting_signals", []))
+                                objs_str = ", ".join(f.get("affected_objects", [])[:3])
+
+                                risk_icon = {"critical": "🔥", "high": "⚠️", "medium": "📌", "low": "ℹ️"}
+                                icon = risk_icon.get(risk, "ℹ️")
+
+                                st.markdown(
+                                    f"{icon} **{f.get('title', '')}** "
+                                    f"— risk: {risk}, confidence: {conf:.0%}"
+                                )
+                                if f.get("description"):
+                                    st.markdown(f"  _{f.get('description', '')}_")
+                                if objs_str:
+                                    st.markdown(f"  Affected: `{objs_str}`")
+                                if signal_str:
+                                    st.markdown(f"  Signals: `{signal_str}`")
+                                if f.get("requires_validation", True):
+                                    st.markdown("  ⚠️ Requires validation")
+                                st.markdown(
+                                    f"  <small>Novelty: {novelty:.2f} | "
+                                    f"Priority: {priority}</small>",
+                                    unsafe_allow_html=True,
+                                )
+                                st.markdown("---", unsafe_allow_html=False)
+        else:
+            st.warning("No data available. Start the backend API and run a scan first.")
+    else:
+        st.info("Click 'Run Analysis' to detect interesting differences and anomalies.")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# ── Tab 6 — Editor (optional) ──────────────────
 elif _current_page == "editor" and editor_mode:
     st.markdown('<div class="dark-tab-content">', unsafe_allow_html=True)
     st.header("Editor")

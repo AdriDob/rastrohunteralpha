@@ -27,6 +27,11 @@ export default function OpportunityRadar() {
   const setSelectedTarget = useStore((s) => s.setSelectedTarget);
   const navigate = useNavigate();
 
+  const handleRowClick = useCallback((row: Opportunity) => {
+    setSelectedTarget(row.target_id);
+    navigate(`/target/${row.target_id}`);
+  }, [setSelectedTarget, navigate]);
+
   const filters = {
     skip: pagination.pageIndex * pagination.pageSize,
     limit: pagination.pageSize,
@@ -55,10 +60,7 @@ export default function OpportunityRadar() {
         sorting={sorting as any}
         onPaginationChange={setPagination as any}
         onSortingChange={setSorting as any}
-        onRowClick={(row) => {
-          setSelectedTarget((row as any).target_id);
-          navigate(`/target/${(row as any).target_id}`);
-        }}
+        onRowClick={handleRowClick as any}
       />
     </div>
   );

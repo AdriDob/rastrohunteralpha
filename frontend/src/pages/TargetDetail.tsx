@@ -1,7 +1,9 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useTarget, useEndpoints } from '../lib/query';
 import { useStore } from '../lib/store';
+import { updateSession } from '../lib/api';
+import FavoriteButton from '../components/FavoriteButton';
 import DataTable from '../components/tables/DataTable';
 import { createColumnHelper } from '@tanstack/react-table';
 import type { Endpoint, PaginationState } from '../types';
@@ -31,6 +33,15 @@ export default function TargetDetail() {
     limit: pagination.pageSize,
   });
   const setSelectedEndpoint = useStore((s) => s.setSelectedEndpoint);
+  const setSession = useStore((s) => s.setSession);
+
+  useEffect(() => {
+    if (target) {
+      updateSession({ current_target_id: target.id }).then(r => {
+        setSession({ id: r.id, name: '', current_target_id: target.id, current_investigation: null, open_evidence_ids: [], current_replay_id: null, current_report_draft: null, updated_at: '' });
+      }).catch(() => {});
+    }
+  }, [target, setSession]);
 
   if (!target) return <p style={{ color: '#7c8299' }}>Loading…</p>;
 
@@ -42,7 +53,10 @@ export default function TargetDetail() {
       <button onClick={() => navigate('/radar')} style={backBtnStyle}>← Back to Radar</button>
 
       <div style={{ background: '#1e2230', borderRadius: 8, border: '1px solid #2a2e3d', padding: 20, marginBottom: 20 }}>
-        <h2 style={{ margin: 0, fontSize: 18, color: '#fff' }}>{target.name}</h2>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <h2 style={{ margin: 0, fontSize: 18, color: '#fff' }}>{target.name}</h2>
+          <FavoriteButton itemType="target" itemId={target.id} label={target.name} />
+        </div>
         <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8 }}>
           <div><span style={labelStyle}>Domain</span><span style={valStyle}>{target.domain ?? '—'}</span></div>
           <div><span style={labelStyle}>Risk</span><span style={valStyle}>{Math.round(target.max_risk)}</span></div>

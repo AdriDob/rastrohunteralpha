@@ -1,4 +1,16 @@
-from typing import Dict
+from typing import Any, Dict, List
+
+
+def filter_targets_by_min_quality(targets: List[Dict[str, Any]], min_quality: int = 30) -> List[Dict[str, Any]]:
+    return [t for t in targets if t.get("quality_score", 50) >= min_quality]
+
+
+def filter_targets_by_max_complexity(targets: List[Dict[str, Any]], max_complexity: int = 70) -> List[Dict[str, Any]]:
+    return [t for t in targets if t.get("complexity", 50) <= max_complexity]
+
+
+def filter_targets_by_platform(targets: List[Dict[str, Any]], platform: str) -> List[Dict[str, Any]]:
+    return [t for t in targets if t.get("platform", "").lower() == platform.lower()]
 
 
 def should_deprioritize(metadata: Dict) -> bool:

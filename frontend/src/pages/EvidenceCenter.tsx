@@ -2,10 +2,14 @@ import { useState } from 'react';
 import { useEvidence } from '../lib/query';
 import { createColumnHelper } from '@tanstack/react-table';
 import DataTable from '../components/tables/DataTable';
+import FavoriteButton from '../components/FavoriteButton';
 import type { Evidence, PaginationState } from '../types';
 
 const helper = createColumnHelper<Evidence>();
 const columns = [
+  helper.display({ id: 'fav', header: '', cell: (c) => (
+    <FavoriteButton itemType="evidence" itemId={(c.row.original as Evidence).id} />
+  ), meta: { width: 40 } }),
   helper.accessor('id', { header: 'ID' }),
   helper.accessor('attempt_label', { header: 'Attempt' }),
   helper.accessor('request_url', { header: 'URL', cell: (c) => {

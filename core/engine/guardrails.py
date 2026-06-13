@@ -19,9 +19,7 @@ AUTHORIZED_SCORING_CONSUMERS = {
     "core.engine.risk_model",
 }
 
-FORBIDDEN_IMPORTS = {
-    "core.scoring.scorer",
-    "core.scoring.endpoint_scorer",
+FORBIDDEN_IMPORTS: set[str] = {
     "core.targets.scorer",
 }
 

@@ -1,4 +1,5 @@
 import os
+import re
 from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
@@ -14,10 +15,18 @@ SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 Base = declarative_base()
 
 
+def _ensure_db_dir() -> None:
+    """Ensure the database directory exists, parsing path from DATABASE_URL."""
+    match = re.match(r"sqlite:///(.+)", DATABASE_URL)
+    if match:
+        db_path = Path(match.group(1))
+        db_path.parent.mkdir(parents=True, exist_ok=True)
+
+
 def init_db():
     from . import models
 
-    Path("./database").mkdir(parents=True, exist_ok=True)
+    _ensure_db_dir()
     Base.metadata.create_all(bind=engine)
 
     # Auto-migration for targets_intel

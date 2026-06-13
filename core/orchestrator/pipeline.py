@@ -1,4 +1,3 @@
-import json
 import logging
 from typing import Any, Dict, List, Optional
 
@@ -15,7 +14,11 @@ from core.execution.poc_generator import PoCGenerator
 from core.memory.identity_graph import IdentityGraph
 from core.reporting.report_engine import ProgramData, ReportEngine
 from core.engine.priority_rebalancer import PriorityRebalancer
+from core.engine.risk_model import AttackSurfaceMapper, ROIEstimator
+from core.engine.hypothesis.engine import HypothesisEngine
+from core.engine.snapshot import PipelineSnapshot, from_pipeline_output
 from core.validation.gate import Verdict
+from core.observability import timer
 
 LOG = logging.getLogger("rastro.pipeline")
 
@@ -38,6 +41,9 @@ class Pipeline:
             report_engine=self.report_engine,
             scorer=None,
         )
+        self.surface_mapper = AttackSurfaceMapper()
+        self.roi_estimator = ROIEstimator()
+        self.hypothesis_engine = HypothesisEngine(enable_llm=False)
 
     def run(
         self,
@@ -45,22 +51,41 @@ class Pipeline:
         baseline_token: Optional[str] = None,
         probe_token: Optional[str] = None,
         program_data: Optional[ProgramData] = None,
+        target_id: int = 0,
+        target_name: str = "",
     ) -> Dict[str, Any]:
         if not endpoints:
             return {"status": "no_endpoints", "verdicts": {}, "reports": []}
 
-        LOG.info("Pipeline: scoring %d endpoints", len(endpoints))
-        scored = self._score_endpoints(endpoints)
+        with timer("pipeline.score"):
+            LOG.info("Pipeline: scoring %d endpoints", len(endpoints))
+            scored = self._score_endpoints(endpoints)
 
-        LOG.info("Pipeline: noise reduction (%d input)", len(scored))
-        noise_result = self.noise_filter.analyze(scored)
-        clean = noise_result.clean_endpoints
-        LOG.info("Pipeline: %d clean, %d noise", len(clean), len(noise_result.noise_endpoints))
+        with timer("pipeline.noise_reduction"):
+            LOG.info("Pipeline: noise reduction (%d input)", len(scored))
+            noise_result = self.noise_filter.analyze(scored)
+            clean = noise_result.clean_endpoints
+            LOG.info("Pipeline: %d clean, %d noise", len(clean), len(noise_result.noise_endpoints))
 
-        LOG.info("Pipeline: building investigation graph")
-        inv_report = self.graph_builder.build(clean)
-        hot_paths = inv_report.hot_paths
-        LOG.info("Pipeline: %d hot paths detected", len(hot_paths))
+        # Attack surface mapping + ROI estimation for clean endpoints
+        with timer("pipeline.surface_mapping"):
+            LOG.info("Pipeline: mapping attack surface (%d clean)", len(clean))
+            surface_map = self.surface_mapper.map(clean)
+            for ep in clean:
+                ep["roi"] = vars(self.roi_estimator.estimate(ep))
+            LOG.info(
+                "Pipeline: surface: %d IDOR clusters, %d auth boundaries, %d multi-tenant, %d GraphQL",
+                len(surface_map.idor_clusters),
+                len(surface_map.auth_boundaries),
+                len(surface_map.multi_tenant_zones),
+                len(surface_map.graphql_surfaces),
+            )
+
+        with timer("pipeline.investigation_graph"):
+            LOG.info("Pipeline: building investigation graph")
+            inv_report = self.graph_builder.build(clean)
+            hot_paths = inv_report.hot_paths
+            LOG.info("Pipeline: %d hot paths detected", len(hot_paths))
 
         if not hot_paths:
             return {
@@ -68,6 +93,7 @@ class Pipeline:
                 "verdicts": {},
                 "reports": [],
                 "noise_ratio": noise_result.noise_ratio,
+                "surface_map": vars(surface_map),
             }
 
         endpoint_details_map: Dict[str, Dict[str, Any]] = {}
@@ -127,19 +153,52 @@ class Pipeline:
         if rebalanced:
             hot_paths = self.priority_rebalancer.reorder_hot_paths(hot_paths, rebalanced)
 
-        LOG.info("Pipeline: running differential validation on %d hot paths", len(hot_paths))
-        verdicts = self.diff_engine.run(
-            hot_paths=[{"id": str(i), "nodes": hp.nodes} for i, hp in enumerate(hot_paths)],
-            endpoint_details_map=endpoint_details_map,
-            endpoint_signals_map=endpoint_signals_map,
-            baseline_token=baseline_token,
-            probe_token=probe_token,
-            min_attempts=3,
-        )
+        # Hypothesis generation — turns hot paths into actionable attack hypotheses
+        if target_id and target_name:
+            LOG.info("Pipeline: generating hypotheses for target %s", target_name)
+            try:
+                hp_dicts = [
+                    {
+                        "nodes": hp.nodes,
+                        "template": getattr(hp, "why_it_matters", ""),
+                        "bridge_entity": "",
+                        "reward": getattr(hp, "estimated_reward", "medium"),
+                    }
+                    for hp in hot_paths
+                ]
+                hypothesis_output = self.hypothesis_engine.run(
+                    target_id=target_id,
+                    target_name=target_name,
+                    endpoints=clean,
+                    attack_surface_map=vars(surface_map),
+                    hot_paths=hp_dicts,
+                )
+                LOG.info("Pipeline: %d hypotheses generated", hypothesis_output.total_hypotheses)
+            except Exception as exc:
+                LOG.warning("Pipeline: hypothesis generation failed: %s", exc)
+                hypothesis_output = None
+        else:
+            hypothesis_output = None
+
+        with timer("pipeline.differential_validation"):
+            LOG.info("Pipeline: running differential validation on %d hot paths", len(hot_paths))
+            verdicts = self.diff_engine.run(
+                hot_paths=[{"id": str(i), "nodes": hp.nodes} for i, hp in enumerate(hot_paths)],
+                endpoint_details_map=endpoint_details_map,
+                endpoint_signals_map=endpoint_signals_map,
+                baseline_token=baseline_token,
+                probe_token=probe_token,
+                min_attempts=3,
+            )
 
         LOG.info("Pipeline: persisting verdicts and evidence")
         confirmed: List[Verdict] = []
         verdict_db_ids: Dict[str, int] = {}
+
+        # Batch-resolve endpoint IDs for all node_ids across all hot_paths
+        all_node_ids = list({nid for hp in hot_paths for nid in hp.nodes})
+        endpoint_id_cache = self._batch_resolve_endpoint_ids(all_node_ids)
+
         for hp_idx, hp in enumerate(hot_paths):
             for node_id in hp.nodes:
                 hp_key = f"{hp_idx}:{node_id}"
@@ -147,7 +206,7 @@ class Pipeline:
                 if verdict is None:
                     continue
                 self.evidence_graph.add_verdict(verdict)
-                endpoint_id = self._resolve_endpoint_id(node_id)
+                endpoint_id = endpoint_id_cache.get(node_id)
                 db_id = self.evidence_store.save_verdict(verdict, endpoint_id=endpoint_id)
                 verdict_db_ids[verdict.hot_path_id] = db_id
                 if verdict.status == "confirmed":
@@ -155,16 +214,22 @@ class Pipeline:
 
         LOG.info("Pipeline: %d confirmed findings, building reports", len(confirmed))
         reports = []
-        for verdict in confirmed:
-            node_id = verdict.hot_path_id.split(":", 1)[1] if ":" in verdict.hot_path_id else ""
-            ep_data = endpoint_details_map.get(node_id, {})
-            verdict_db_id = verdict_db_ids.get(verdict.hot_path_id, 0)
-            evidence = self.evidence_store.get_evidence_for_verdict(verdict_db_id) if verdict_db_id else []
-            report = self.report_engine.build(
-                verdict, program_data=program_data, endpoint_data=ep_data, evidence_list=evidence,
-            )
-            if report:
-                reports.append(report)
+        if confirmed:
+            # Batch-load evidence for all confirmed verdicts at once
+            all_verdict_db_ids = [
+                verdict_db_ids.get(v.hot_path_id, 0) for v in confirmed
+            ]
+            batch_evidence = self.evidence_store.batch_get_evidence_for_verdicts(all_verdict_db_ids)
+            for verdict in confirmed:
+                node_id = verdict.hot_path_id.split(":", 1)[1] if ":" in verdict.hot_path_id else ""
+                ep_data = endpoint_details_map.get(node_id, {})
+                verdict_db_id = verdict_db_ids.get(verdict.hot_path_id, 0)
+                evidence = batch_evidence.get(verdict_db_id, [])
+                report = self.report_engine.build(
+                    verdict, program_data=program_data, endpoint_data=ep_data, evidence_list=evidence,
+                )
+                if report:
+                    reports.append(report)
 
         # Gap analysis: compute coverage and detect blind spots
         LOG.info("Pipeline: running gap analysis")
@@ -200,9 +265,10 @@ class Pipeline:
             reports=reports,
         )
 
-        return {
+        result: Dict[str, Any] = {
             "status": "completed",
             "total_endpoints": len(endpoints),
+            "endpoints": clean,
             "clean_endpoints": len(clean),
             "noise_ratio": noise_result.noise_ratio,
             "hot_paths_found": len(hot_paths),
@@ -220,7 +286,60 @@ class Pipeline:
             "missing_hot_paths": [m["node_id"] for m in gap_report.missing_hot_paths[:5]],
             "identity_chains": len(identity_chains),
             "assistant_summary": assistant_summary,
+            "surface_map": {
+                "idor_clusters": [
+                    {"path": e.get("path"), "method": e.get("method"), "risk_score": e.get("risk_score")}
+                    for e in surface_map.idor_clusters
+                ],
+                "auth_boundaries": [
+                    {"path": e.get("path"), "method": e.get("method"), "risk_score": e.get("risk_score")}
+                    for e in surface_map.auth_boundaries
+                ],
+                "multi_tenant_zones": [
+                    {"path": e.get("path"), "method": e.get("method"), "risk_score": e.get("risk_score")}
+                    for e in surface_map.multi_tenant_zones
+                ],
+                "graphql_surfaces": [
+                    {"path": e.get("path"), "method": e.get("method"), "risk_score": e.get("risk_score")}
+                    for e in surface_map.graphql_surfaces
+                ],
+            },
         }
+
+        if hypothesis_output:
+            result["hypotheses"] = {
+                "total": hypothesis_output.total_hypotheses,
+                "by_source": hypothesis_output.by_source,
+                "by_type": hypothesis_output.by_type,
+                "avg_roi": hypothesis_output.avg_roi,
+                "max_roi": hypothesis_output.max_roi,
+                "profitable_count": hypothesis_output.profitable_count,
+                "summary": hypothesis_output.summary,
+                "queue": [
+                    {
+                        "id": h.id,
+                        "vulnerability_type": h.vulnerability_type.value,
+                        "priority_score": h.priority_score,
+                        "roi_score": h.roi_score,
+                        "likelihood": h.likelihood,
+                        "impact": h.impact,
+                        "exploitability": h.exploitability,
+                        "reasoning": h.reasoning[:200],
+                        "vector": h.vector,
+                        "source": h.source.value,
+                    }
+                    for h in hypothesis_output.attack_queue.prioritized()[:20]
+                ],
+            }
+
+        # Build canonical snapshot
+        try:
+            target_info = {"id": target_id, "name": target_name} if target_id else None
+            result["snapshot"] = from_pipeline_output(result, target_info)
+        except Exception as exc:
+            LOG.warning("Pipeline: snapshot build failed: %s", exc)
+
+        return result
 
     def _score_endpoints(self, endpoints: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         scored = []
@@ -246,21 +365,38 @@ class Pipeline:
         return f"https://target.example.com{path}"
 
     @staticmethod
-    def _resolve_endpoint_id(node_id: str) -> Optional[int]:
+    def _batch_resolve_endpoint_ids(node_ids: List[str]) -> Dict[str, Optional[int]]:
         import re
-        match = re.search(r"endpoint:(\w+):(.+)", node_id)
-        if match:
-            from database import models
-            from database.db import SessionLocal
-            session = SessionLocal()
-            try:
-                method = match.group(1)
-                path = match.group(2)
-                ep = session.query(models.Endpoint).filter(
-                    models.Endpoint.method == method,
-                    models.Endpoint.path == path,
-                ).first()
-                return ep.id if ep else None
-            finally:
-                session.close()
-        return None
+        from database import models
+        from database.db import SessionLocal
+
+        cache: Dict[str, Optional[int]] = {}
+        method_path_pairs: List[tuple] = []
+        id_to_pair: Dict[str, tuple] = {}
+
+        for nid in node_ids:
+            match = re.search(r"endpoint:(\w+):(.+)", nid)
+            if match:
+                m, p = match.group(1), match.group(2)
+                method_path_pairs.append((m, p))
+                id_to_pair[nid] = (m, p)
+                cache[nid] = None
+
+        if not method_path_pairs:
+            return cache
+
+        session = SessionLocal()
+        try:
+            from sqlalchemy import or_
+            clauses = [
+                (models.Endpoint.method == m) & (models.Endpoint.path == p)
+                for m, p in method_path_pairs
+            ]
+            if clauses:
+                rows = session.query(models.Endpoint).filter(or_(*clauses)).all()
+                lookup = {(r.method, r.path): r.id for r in rows}
+                for nid, (m, p) in id_to_pair.items():
+                    cache[nid] = lookup.get((m, p))
+        finally:
+            session.close()
+        return cache

@@ -165,7 +165,7 @@ class HypothesisEngine:
                 if not nodes:
                     continue
 
-                start_type = "IDOR"
+                start_type = "idor"
                 if "auth" in template.lower():
                     start_type = "auth_bypass"
                 elif "tenant" in template.lower() or "multi" in template.lower():
