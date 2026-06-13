@@ -9,12 +9,15 @@
 #   pyinstaller Rastro.spec -y --onefile  # single .exe (Windows only)
 
 import os
+import shutil
 import sys
 from pathlib import Path
 
 PROJECT_ROOT = Path(os.getcwd()).resolve()
 FRONTEND_DIST = str(PROJECT_ROOT / "frontend" / "dist")
+IS_WINDOWS = sys.platform.startswith("win")
 ICON_PATH = str(PROJECT_ROOT / "desktop" / "build" / "icons" / "rastro.ico")
+UPX_AVAILABLE = os.getenv("UPX_PATH") is not None or bool(shutil.which("upx"))
 
 # ── Collect all router modules (automatically discovered) ──────────────
 ROUTERS_DIR = PROJECT_ROOT / "api" / "routers"
@@ -56,7 +59,7 @@ BASE_HIDDEN = [
     'httpx', 'sniffio', 'h11', 'anyio',
     # Desktop UI
     'webview', 'pystray', 'PIL', 'PIL.Image', 'PIL.ImageDraw',
-    'plyer', 'plyer.facades.notification', 'plyer.platforms.win.notification',
+    'plyer', 'plyer.facades.notification',
     # Config / serialization
     'dotenv', 'pydantic',
     # Database ORM
@@ -99,7 +102,7 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=ICON_PATH,
+    icon=ICON_PATH if IS_WINDOWS else None,
 )
 
 coll = COLLECT(
@@ -107,7 +110,7 @@ coll = COLLECT(
     a.binaries,
     a.datas,
     strip=False,
-    upx=True,
+    upx=UPX_AVAILABLE,
     upx_exclude=[],
     name='Rastro',
 )

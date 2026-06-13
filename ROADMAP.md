@@ -1,117 +1,110 @@
 # ROADMAP — RASTRO INVESTIGATION OS
-**Versión:** Alpha 0.4
+**Versión:** 1.0.0
 **Fecha:** Junio 2026
-**Visión:** Convertir Rastro en un **Sistema Operativo Privado de Investigación** para analistas de bug bounty y attack surface intelligence.
+**Visión:** Sistema Operativo Privado de Investigación para analistas de bug bounty y attack surface intelligence.
 
 ## 1. Estado Actual Real del Sistema
 
-Rastro ha alcanzado un estado **Alpha funcional estable — UX transformation completada**:
+Rastro — **producción-ready con hardening completo**:
 
-- **Backend estable**: FastAPI + SQLAlchemy + SQLite con 183 rutas operativas, 0 deprecation warnings.
-- **Base de datos**: SQLite única (`database/rastro.db`) con seed data: 5 targets, 50 endpoints, 8 findings, 54 verdicts, 834 memory_records.
-- **Discovery Engine**: Subfinder, Katana, Httpx operativos vía Go binaries con scheduler async.
-- **Frontend**: React 19 + Vite 8, build en ~0.9s, 0 errores TypeScript, 22 páginas con lazy loading.
+- **Backend**: FastAPI + SQLAlchemy + SQLite, 183 rutas, 37 routers, auth + rate-limit + license middleware.
+- **Base de datos**: SQLite única con seed data: 5 targets, 50 endpoints, 8 findings, 54 verdicts, 834 memory_records.
+- **Discovery Engine**: Subfinder, Katana, Httpx vía Go binaries con scheduler async (30min).
+- **Frontend**: React 19 + Vite 8, build ~950ms, 0 TS errors, 24 páginas, onboarding UX.
 - **AI Layer**: Ollama (Qwen2.5-Coder) + OpenAI-compatible + fallback local rule-based.
 - **Investigation Narrator**: 7 funciones de interpretación de inteligencia.
-- **Test suite**: 107/107 passed.
-- **Gaps resueltos**: 9 gaps identificados, 7/9 corregidos (incluyendo build fix, deprecation warnings, housekeeping).
-- **UX OS completo**: Command Palette con shortcuts, AI Copilot contextual, Sidebar extraída, Dashboard con Quick Actions.
-
-El núcleo técnico es sólido. La experiencia de uso está elevada a nivel de sistema operativo de investigación.
+- **Test suite**: 122/122 passed (incluyendo 11 tests de seguridad).
+- **Auth**: JWT middleware global — 401 en rutas protegidas, 403 si sin licencia.
+- **Rate limiter**: Token bucket — 30/s default, login 5/s, overview 10/s.
+- **License system**: HMAC-SHA256, machine fingerprint, persistencia, 3 endpoints + frontend Activation.
+- **Onboarding UX**: WelcomeWizard + TourOverlay + BootScreen.
+- **Auto-updater**: GitHub Releases + SHA-256 + rollback.
+- **Windows lifecycle**: install/uninstall scripts, Add/Remove Programs, shortcuts.
+- **Hardening**: P1-P8 completado (auth, rate-limit, tests, license, onboarding, updater, lifecycle, N+1 optimization).
+- **Housekeeping**: Legacy removals (dashboard/, root main.py, main_desktop.spec, schema.sql, 3 dead components, differential/discovery skeletons).
 
 ## 2. Arquitectura Real Observada
 
-- **Backend**: FastAPI modular con 36 routers independientes (`api/routers/`)
-- **Base de datos**: SQLite (`database/rastro.db`) con modelos SQLAlchemy — única autoritativa
-- **Frontend**: React + Vite + TypeScript (carpeta `/frontend/`)
-- **Recon**: Herramientas CLI (subfinder, katana, httpx) invocadas desde Python
-- **AI**: Ollama local + OpenAI-compatible + reglas locales
-- **Assistant Layer**: `core/ai/` (conversacional) + `core/assistant/` (narrativo/interpretativo)
-- **Launcher**: `launcher/start.py` para orquestar backend + dashboard
+```
+Middleware: CORS → RateLimit → Auth (global)
+Backend:    FastAPI modular con 37 routers + 183 rutas
+DB:         SQLite (15 tablas, SQLAlchemy)
+Frontend:   React 19 + Vite 8 + Tailwind 4 + 24 páginas
+Desktop:    pywebview 6 + pystray 0.19.5 + PyInstaller
+Engine:     core_engines/ (recon, scoring, graph, evidence, verdict, report)
+AI:         core_engines/ai/ (conversacional) + core_engines/assistant/ (narrativo)
+Auth:       core_engines/auth/ + api/middleware/auth_middleware.py
+License:    core_engines/license/ (validator, hardware, store)
+```
 
 ## 3. UX Transformation Phase (Investigation OS) — COMPLETADO
 
-**Objetivo principal de esta fase:**
-Transformar Rastro de una "herramienta" a un **entorno de investigación privado**, rápido y de baja fricción.
-
 **Pilares clave (completados):**
-- **Mission-First Dashboard**: Quick Actions bar + auto-select target + misión del día destacada.
-- **AI Copilot Contextual**: Sugerencias cambian según ruta actual (/target/, /evidence/, /insights/).
-- **Command Palette** (`Ctrl + K`): Shortcuts visibles (`g m`, `g d`), recent targets, badges por sección.
-- **Investigation Narrator**: Interpretación automática del estado del sistema (7 endpoints).
-- **Minimal Cognitive Load**: Layout simplificado (-81% en Layout.tsx), sidebar en componente propio.
-- **Desktop-first mindset**: Preparado para futura aplicación nativa Windows.
+- Mission-First Dashboard: Quick Actions bar + auto-select target + misión del día.
+- AI Copilot Contextual: Sugerencias por ruta activa.
+- Command Palette (Ctrl+K): Shortcuts visibles, recent targets, badges por sección.
+- Investigation Narrator: 7 endpoints de interpretación.
+- Sidebar extraída: Colapsable, búsqueda, favoritos, 6 secciones.
+- Onboarding: BootScreen + WelcomeWizard + TourOverlay.
 
-## 4. Features Existentes (Verificadas)
+## 4. Productization Hardening (P1-P8) — COMPLETADO
+
+| ID | Área | Estado |
+|----|------|--------|
+| P1 | Auth middleware global | JWT en todas las rutas protegidas |
+| P2 | Rate limiter | Token bucket con path-pattern rules |
+| P3 | Security tests | 11 tests: auth + rate-limit |
+| P4 | License system | HMAC + fingerprint + persistencia + frontend |
+| P5 | Onboarding UX | WelcomeWizard + TourOverlay |
+| P6 | Windows product lifecycle | install/uninstall + Add/Remove Programs |
+| P7 | Auto-updater | GitHub Releases + SHA-256 + rollback |
+| P8 | N+1 performance optimization | Score cache batch en overview/data_service |
+
+## 5. Features Existentes (Verificadas)
 
 - Motor de descubrimiento (subfinder, katana, httpx)
 - Persistencia de endpoints y findings
-- Sistema de scoring de oportunidades (v1 + v2 layered)
-- Dashboard con 22 páginas y navegación completa
-- Gestión de targets con favoritos y recientes
-- API endpoints estables (183 rutas, 100% funcionales)
-- Launcher unificado
-- Seed de datos demo
-- **Investigation Narrator**: 7 funciones de interpretación de inteligencia
-- **AI Copilot**: Briefing diario, bounty potential, sugerencias contextuales por ruta
-- **Command Palette**: Shortcuts keyboard + recent targets + badges + búsqueda dinámica
-- **Sidebar**: Componente extraído, colapsable, persistente, búsqueda, favoritos, 6 secciones
-- **Dashboard**: Mission Widget + Quick Actions bar + auto-select target
-- **Housekeeping**: 0 DB duplicadas, 0 deprecation warnings, build en 0.9s
+- Sistema de scoring determinista con cache LRU
+- Dashboard con 24 páginas y navegación completa
+- AI Copilot + Briefing diario + Bounty potential
+- Command Palette con shortcuts + búsqueda + badges
+- Sidebar colapsable con favoritos y 6 secciones
+- Onboarding: BootScreen + WelcomeWizard (3-step) + TourOverlay (3-step)
+- License: Activation page + 403 interceptor
+- 122 tests, build ~950ms, 0 TS errors
+- 15 tablas (targets, endpoints, findings, verdicts, evidence, etc.)
 
-## 5. Issues Conocidos (Baja Prioridad)
+## 6. Issues Conocidos (Baja Prioridad)
 
-- GAP-008: `targets_intel` tiene 5 filas con campos NULL — datos incompletos
-- GAP-009: 3 scan_runs stuck en "running" — registros huérfanos
-- Widget drag & drop (pendiente definición arquitectónica)
+- `targets_intel` campos NULL — datos incompletos
+- 3 `scan_runs` stuck en "running" — registros huérfanos
+- StarletteDeprecationWarning por `httpx` (usar httpx2)
+- `datetime.utcnow()` deprecado en `schemas.py`
 
-## 6. Ideas Avanzadas (Experimental / "Locas" pero útiles)
+## 7. Roadmap Futuro
 
-- **"Today's Mission"**: ✅ Implementado — MissionWidget + Quick Actions
-- **AI Memory de Sesión**: El asistente recuerda qué estabas investigando ayer y te ofrece "¿Continuamos con el target X?".
-- **Zero-Click Insights**: ✅ Parcial — Briefing se carga al abrir Rastro
-- **Replay Timeline Visual**: Ver la evolución de un target como una película (cambios en endpoints, findings nuevos, etc.).
-- **Predictive Navigation**: Sugerir "¿Quieres ver los endpoints con IDOR?" basado en tu historial.
-- **Investigation Canvas**: Espacio infinito donde arrastrar evidencias, conectar hallazgos y construir hipótesis visualmente.
-- **One-Click Report**: ✅ Parcial — ReportNarrative implementado en InvestigationNarrator
-- **Attack Path Visualization**: ✅ Parcial — explain_attack_path en InvestigationNarrator
-- **Unified Web2+Web3 Dashboard**: ✅ Parcial — unified_intelligence en InvestigationNarrator
-- **Auto-generated Intelligence Briefing**: PDF ejecutivo generado automáticamente cada 24h.
+### Short-term
+- UX Premium: design tokens, theme refinement, skeletal loading, transitions
+- AI Provider abstraction layer + streaming SSE
+- Engine polish: visual clustering, evidence traceability, human-language narrator
+- Windows .exe via GitHub Actions CI
 
-## 7. Roadmap Futuro (Incremental)
+### Medium-term
+- Widget system con drag & drop
+- Modo offline mejorado
+- Investigation Canvas (espacio infinito de hipótesis visuales)
+- Replay Timeline Visual (evolución de target como película)
 
-**Q3 2026 (Beta)**
-- ✅ UX Transformation completa (100%)
-- ✅ Command Palette + AI Copilot contextual (completado)
-- ✅ Sidebar extraída (completado)
-- ✅ Dashboard con Quick Actions (completado)
-- ✅ Housekeeping (DB única, 0 deprecation warnings)
-- ⬜ Widget system con drag & drop
-- ⬜ Desktop packaging (Windows .exe) estable
-- ⬜ Modo offline básico
-
-**Q4 2026**
-- Investigation Canvas
-- Advanced Replay & Differential Engine visual
-- Multi-target workspace
-- Exportable investigation packages
-
-**2027 (Versión 1.0)**
-- Versión nativa Windows + Linux
+### Long-term
 - AI Memory persistente entre sesiones
 - Soporte para equipos (opcional)
-- Integraciones con herramientas externas (Burp, Nuclei, etc.)
+- Integraciones externas (Burp, Nuclei, etc.)
+- Versión nativa Windows + Linux estable
 
 ## 8. Riesgos de Evolución
 
-- Sobrecarga cognitiva si se agregan demasiados widgets
-- Dependencia excesiva de AI → usuario pierde agency
-- Complejidad del packaging Windows (PyInstaller + assets)
-- Mantenimiento de compatibilidad entre backend y frontend
-- Rendimiento con grandes volúmenes de endpoints
-- La capa InvestigationNarrator hace queries complejas a DB — monitorear con datasets grandes
-
----
-
-**Próximo paso recomendado:**
-Widget system con drag & drop, o comenzar packaging desktop para Windows.
+- Sobrecarga cognitiva con demasiados widgets
+- Dependencia excesiva de AI → pérdida de agency del usuario
+- Complejidad del packaging multiplataforma
+- Rendimiento con datasets grandes (>100k endpoints)
+- Mantenimiento de compatibilidad backend-frontend

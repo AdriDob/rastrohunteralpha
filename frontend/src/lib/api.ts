@@ -11,9 +11,7 @@ import type {
   DifferentialData,
   ScreenshotBundle,
   ActivityFeed, DigestData,
-  InvestigationState, ReportNarrativeResult,
-  AttackPathExplanation, UnifiedReasoning,
-  BountyPotential, DailyBriefing as AssistantDailyBriefing, SystemIntelligenceReport,
+  BountyPotential, DailyBriefing as AssistantDailyBriefing,
 } from '../types';
 
 const BASE = '/api';
@@ -50,9 +48,6 @@ export function setAuthToken(token: string | null) {
   }
 }
 
-export function getAuthToken(): string | null {
-  return sessionStorage.getItem('rastro-token');
-}
 
 function toQuery(filters?: PaginationFilters): string {
   if (!filters) return '';
@@ -183,32 +178,12 @@ export function getAssistantNextAction() {
   return fetchJson<AssistantNextAction>('/assistant/recommendations/best');
 }
 
-export function getInvestigationState(targetId: number) {
-  return fetchJson<InvestigationState>(`/assistant/investigation/${targetId}`);
-}
-
-export function getReportNarrative(targetId: number) {
-  return fetchJson<ReportNarrativeResult>(`/assistant/narrative/${targetId}`);
-}
-
-export function getAttackPathExplanation(hotPathId: string) {
-  return fetchJson<AttackPathExplanation>(`/assistant/attack-path/${encodeURIComponent(hotPathId)}`);
-}
-
-export function getUnifiedReasoning(targetId: number) {
-  return fetchJson<UnifiedReasoning>(`/assistant/unified/${targetId}`);
-}
-
 export function getBountyPotential(targetId: number) {
   return fetchJson<BountyPotential>(`/assistant/bounty/${targetId}`);
 }
 
 export function getAssistantDailyBriefing() {
   return fetchJson<AssistantDailyBriefing>('/assistant/briefing');
-}
-
-export function getSystemIntelligenceReport() {
-  return fetchJson<SystemIntelligenceReport>('/assistant/intelligence-report');
 }
 
 // --- Timeline ---
@@ -350,10 +325,6 @@ export function deleteTask(taskId: number) {
   return fetchJson<{ status: string }>(`/operations/tasks/${taskId}`, { method: 'DELETE' });
 }
 
-export function getSession() {
-  return fetchJson<import('../types').SessionData>('/operations/session');
-}
-
 export function updateSession(data: Record<string, unknown>) {
   return fetchJson<{ id: number | null; status: string }>('/operations/session', {
     method: 'PUT',
@@ -373,14 +344,6 @@ export function runSelfTest() {
 export function getNotifications(unreadOnly?: boolean) {
   const p = unreadOnly ? '?unread_only=true' : '';
   return fetchJson<import('../types').NotificationList>(`/operations/notifications${p}`);
-}
-
-export function createNotification(type: string, message: string, linkedType?: string, linkedId?: number) {
-  return fetchJson<{ id: number; status: string }>('/operations/notifications', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ notification_type: type, message, linked_type: linkedType, linked_id: linkedId }),
-  });
 }
 
 export function markNotificationRead(notificationId: number) {
@@ -411,40 +374,6 @@ export function getOpportunityEVHRankings(limit?: number) {
   return fetchJson<import('../types').EVHRanking>(`/opportunity/evh${p}`);
 }
 
-export function getOpportunityScoreBreakdown(oppId: string) {
-  return fetchJson<import('../types').OpportunityItem>(`/opportunity/score-breakdown/${oppId}`);
-}
-
-export function getOpportunityCategories() {
-  return fetchJson<import('../types').OpportunityCategories>('/opportunity/categories');
-}
-
-export function getOpportunityByCategory(category: string) {
-  return fetchJson<{ opportunities: import('../types').OpportunityItem[]; count: number }>(`/opportunity/by-category/${category}`);
-}
-
-export function getEmergingOpportunities() {
-  return fetchJson<{ opportunities: import('../types').OpportunityItem[]; count: number }>('/opportunity/emerging');
-}
-
-export function getIndependentOpportunities() {
-  return fetchJson<{ opportunities: import('../types').OpportunityItem[]; count: number }>('/opportunity/independent');
-}
-
-export function getWeb3Opportunities() {
-  return fetchJson<{ opportunities: import('../types').OpportunityItem[]; count: number }>('/opportunity/web3');
-}
-
-export function getOpportunityHistory(period?: string, limit?: number) {
-  const p = new URLSearchParams();
-  if (period) p.set('period', period);
-  if (limit) p.set('limit', String(limit));
-  return fetchJson<import('../types').OpportunityHistory>(`/opportunity/history?${p}`);
-}
-
-export function refreshOpportunities() {
-  return fetchJson<{ status: string; count: number; refreshed_at: string }>('/opportunity/refresh', { method: 'POST' });
-}
 
 // ─── Identity Vault ─────────────────────────────────────────────────
 
@@ -452,31 +381,11 @@ export function getIdentityAccounts() {
   return fetchJson<import('../types').IdentityAccounts>('/opportunity/identity/accounts');
 }
 
-export function storeIdentity(provider: string, email: string, token?: string, password?: string, metadata?: Record<string, string>) {
-  return fetchJson<{ status: string; provider: string; email: string }>('/opportunity/identity/store', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ provider, email, token, password, metadata }),
-  });
-}
-
-export function removeIdentity(provider: string) {
-  return fetchJson<{ status: string; provider: string }>(`/opportunity/identity/remove/${provider}`, { method: 'POST' });
-}
-
-export function getIdentityStatus(provider: string) {
-  return fetchJson<{ provider: string; account: import('../types').IdentityAccount; session_health: { connected: boolean; reason: string } }>(`/opportunity/identity/status/${provider}`);
-}
 
 // ─── Execution Layer ─────────────────────────────────────────────────
 
 export function getExecutionTrackerStats() {
   return fetchJson<import('../types').ExecutionStats>('/execution/tracker');
-}
-
-export function getExecutionRecent(limit?: number) {
-  const p = limit ? `?limit=${limit}` : '';
-  return fetchJson<{ executions: import('../types').ExecutionRecord[] }>(`/execution/tracker/recent${p}`);
 }
 
 export function getExecutionScorecard() {
@@ -491,10 +400,6 @@ export function getExecutionOutcomes(limit?: number) {
 export function getExecutionExplanations(limit?: number) {
   const p = limit ? `?limit=${limit}` : '';
   return fetchJson<{ explanations: import('../types').ExplanationData[]; count: number }>(`/execution/explain${p}`);
-}
-
-export function getExecutionExplanation(decisionId: string) {
-  return fetchJson<import('../types').ExplanationData>(`/execution/explain/${decisionId}`);
 }
 
 export function getExecutionTraces(limit?: number) {

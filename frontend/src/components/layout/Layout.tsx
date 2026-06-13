@@ -1,4 +1,5 @@
 import { Outlet, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useStore } from '../../lib/store';
 import { useIsMobile } from '../../lib/useIsMobile';
 import AssistantPanel from '../AssistantPanel';
@@ -33,7 +34,18 @@ export default function Layout() {
       {isMobile ? (
         <>
           <main style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column' }}>
-            <Outlet />
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={location.pathname}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.15, ease: 'easeOut' }}
+                style={{ flex: 1 }}
+              >
+                <Outlet />
+              </motion.div>
+            </AnimatePresence>
           </main>
           <MobileBottomBar />
         </>
@@ -46,7 +58,18 @@ export default function Layout() {
             transition: 'margin-right 0.2s ease',
             marginRight: assistantOpen ? 320 : 0,
           }}>
-            <Outlet />
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={location.pathname}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -6 }}
+                transition={{ duration: 0.15, ease: 'easeOut' }}
+                style={{ flex: 1 }}
+              >
+                <Outlet />
+              </motion.div>
+            </AnimatePresence>
           </main>
         </>
       )}

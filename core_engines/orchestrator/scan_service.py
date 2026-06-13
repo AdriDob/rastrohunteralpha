@@ -2,6 +2,7 @@ from pathlib import Path
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from database import models
+from core_engines.platform.system import get_data_dir
 from core_engines.recon.runner import ReconRunner
 
 async def launch_scan(target_name: str, target_domain: str, target_mode: str, session: Session):
@@ -53,7 +54,7 @@ async def launch_scan(target_name: str, target_domain: str, target_mode: str, se
     session.refresh(scan)
     logger.info(f"Started scan run {scan.id} for target {target_name}")
 
-    runner = ReconRunner(Path("./targets") / target_name)
+    runner = ReconRunner(get_data_dir() / "targets" / target_name)
     outputs = {}
     endpoint_count = 0
 

@@ -74,15 +74,20 @@ export function getTheme(name: string): AppTheme {
 export function applyTheme(theme: AppTheme): void {
   const root = document.documentElement;
   const c = theme.colors;
-  root.style.setProperty('--bg', c.background);
-  root.style.setProperty('--surface', c.surface);
-  root.style.setProperty('--surface-alt', c.surfaceAlt);
+  root.style.setProperty('--bg-primary', c.background);
+  root.style.setProperty('--bg-secondary', c.surface);
+  root.style.setProperty('--bg-card', c.surfaceAlt);
+  root.style.setProperty('--bg-hover', c.surfaceAlt);
+  root.style.setProperty('--bg-pressed', c.surfaceAlt);
   root.style.setProperty('--border', c.border);
-  root.style.setProperty('--text', c.text);
+  root.style.setProperty('--border-hover', c.border);
+  root.style.setProperty('--text-primary', c.text);
   root.style.setProperty('--text-secondary', c.textSecondary);
   root.style.setProperty('--text-muted', c.textMuted);
+  root.style.setProperty('--text-faint', c.textMuted);
   root.style.setProperty('--accent', c.accent);
   root.style.setProperty('--accent-hover', c.accentHover);
+  root.style.setProperty('--accent-glow', `${c.accent}1F`);
   root.style.setProperty('--success', c.success);
   root.style.setProperty('--warning', c.warning);
   root.style.setProperty('--error', c.error);

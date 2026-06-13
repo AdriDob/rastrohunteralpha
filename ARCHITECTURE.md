@@ -10,7 +10,17 @@ Arquitectura local-first con backend FastAPI, frontend React, y SQLite como alma
 - **Señal sobre ruido**: heurísticas deterministas, etiquetas explícitas, scoring práctico.
 - **Simplicidad**: módulos claros, sin dependencia pesada de ML en pipeline central.
 - **Local-first**: todo corre en la máquina del usuario.
-- **Bajo demanda**: nada corre en background sin intervención del usuario.
+- **Bajo demanda**: nada corre en background sin intervención del usuario (excepto scan scheduler + notification poller).
+
+## Middleware Chain
+
+```
+Request → CORSMiddleware → RateLimitMiddleware → AuthMiddleware → Router
+```
+
+1. **CORSMiddleware**: development (`*`), production (`http://127.0.0.1:8000`, `http://localhost:8000`, `app://`)
+2. **RateLimitMiddleware**: Token bucket, 30/s burst 50 default. Excluye health/version/docs. Login: 5/s burst 10. Overview/Digest: 10/s burst 20. Retorna 429 + `X-RateLimit-Remaining`.
+3. **AuthMiddleware**: JWT validation en todas las rutas excepto `PUBLIC_PATHS` (health, version, docs) y `PUBLIC_PREFIXES` (`/api/auth`, `/api/license`). También valida licencia (403 si no hay licencia válida).
 
 ## Flujo de ejecución real (verificado en runtime)
 
@@ -19,25 +29,18 @@ Arquitectura local-first con backend FastAPI, frontend React, y SQLite como alma
     │
     ▼
   Brave/Chrome → localhost:8000 (API) / localhost:5173 (Frontend dev)
+    │                      │
+    ▼                      ▼
+  CORSMiddleware ──→ RateLimitMiddleware ──→ AuthMiddleware
     │
     ▼
-  FastAPI (api.main)
+  FastAPI (api.main) — 37 routers montados en /api/*
     │
-    ├── 35 routers montados en /api/*
-    │   ├── targets, endpoints, findings → CRUD básico
-    │   ├── opportunities, daily, overview → inteligencia
-    │   ├── verdicts, evidence → validación
-    │   ├── pipeline, attack-surface → análisis
-    │   ├── scans → lanzar recon
-    │   ├── assistant → AI conversacional + Investigation Narrator
-    │   └── system, intelligence, operations → estado y operaciones
-    │
-    ├── Startup: init_db, event_bus, system_state, identity,
+    ├── Startup (25 pasos): init_db, event_bus, system_state, identity,
     │   orchestrator, execution_tracker, scorecard, memory,
-    │   scan_scheduler, notification_poller
+    │   scan_scheduler, notification_poller, opportunity discovery
     │
-    ├── CORS abierto (development)
-    ├── Exception handler global
+    ├── CORS + Exception handler global
     │
     ▼
   SQLite (database/rastro.db)
@@ -49,98 +52,70 @@ Arquitectura local-first con backend FastAPI, frontend React, y SQLite como alma
 ## Componentes backend
 
 ### `api/main.py` — Aplicación principal (usada por desktop)
-- 35 routers montados desde `api/routers/`
-- Endpoints adicionales: `/api/health`, `/api/version`, `/api/metrics`
+- 37 routers montados desde `api/routers/`
+- Endpoints adicionales: `/api/health`, `/api/version`, `/api/stats`, `/api/metrics`
 - Importada por `desktop/main_desktop.py`
-- **183 rutas totales** (176 originales + 7 narrator)
+- **183 rutas totales** (179 router routes + 4 app-level)
 
-### `api/routers/assistant.py` (16 endpoints)
-- `/api/assistant/context`, `/insights`, `/insights/top` — datos de contexto
-- `/api/assistant/recommendations`, `/recommendations/best` — recomendaciones
-- `/api/assistant/summary`, `/status`, `/history` — estado del assistant
-- `/api/assistant/chat` — chat conversacional con AI
-- `/api/assistant/investigation/{id}` — estado de investigación (NUEVO)
-- `/api/assistant/narrative/{id}` — narrativa de reporte estilo HackerOne (NUEVO)
-- `/api/assistant/attack-path/{id}` — razonamiento de ruta de ataque (NUEVO)
-- `/api/assistant/unified/{id}` — razonamiento unificado Web2+Web3 (NUEVO)
-- `/api/assistant/bounty/{id}` — potencial de bounty (NUEVO)
-- `/api/assistant/briefing` — briefing diario del sistema (NUEVO)
-- `/api/assistant/intelligence-report` — reporte de inteligencia completo (NUEVO)
+### `api/middleware/`
+- `auth_middleware.py` — AuthMiddleware: JWT + license check
+- `rate_limit_middleware.py` — RateLimitMiddleware: token bucket
 
-### `core/assistant/` — Investigation Narrator (NUEVO)
-- **`ai_assistant.py`**: `InvestigationNarrator` — capa de interpretación del sistema
-  - `explain_investigation_state()` — interpreta graph + evidence + verdicts
-  - `generate_report_narrative()` — narrativa de reporte HackerOne/Immunefi
-  - `explain_attack_path()` — por qué existe un hotspot
-  - `unified_reasoning()` — Web2 + Web3 en una sola narrativa
-  - `explain_bounty_potential()` — payout potencial basado en señales reales
-  - `generate_daily_briefing()` — briefing diario completo
-  - `generate_system_intelligence_report()` — reporte de inteligencia del sistema
+### `core_engines/assistant/` — Investigation Narrator
+- `ai_assistant.py`: `InvestigationNarrator` — 7 funciones de interpretación
+  - `explain_investigation_state()`, `generate_report_narrative()`
+  - `explain_attack_path()`, `unified_reasoning()`
+  - `explain_bounty_potential()`, `generate_daily_briefing()`
+  - `generate_system_intelligence_report()`
 
-### `core/ai/` — AI Conversacional
-- `assistant.py` — `ScanAssistant` (legacy) + `Assistant` (unified orchestrator)
-- `advisor.py` — respuestas a consultas del usuario
-- `analyzer.py` — `AIAnalyzer` (wrapper del unified_classifier)
-- `context_builder.py` — construcción de contexto del sistema
-- `insights.py` — generación de insights automáticos
-- `memory.py` — memoria conversacional
-- `provider.py` — abstracción de proveedores AI (Ollama, OpenAI, fallback local)
-- `recommendations.py` — generación de recomendaciones
-- `summary.py` — resúmenes diarios
+### `core_engines/ai/` — AI Conversacional
+- `assistant.py`, `advisor.py`, `analyzer.py`
+- `context_builder.py`, `insights.py`, `memory.py`
+- `provider.py` — Ollama, OpenAI, fallback local
+- `recommendations.py`, `summary.py`
 
-### `core/engine/`
-- `unified_scoring.py` — score() y score_target(), motor de scoring determinista
+### `core_engines/engine/`
+- `unified_scoring.py` — score() y score_target(), motor determinista con cache LRU
 - `unified_classifier.py` — classify(), clasificación de endpoints
 
-### `core/validation/`
-- `loop_engine.py` — motor de validación
-- `evidence_builder.py` — construcción de evidencia
-- `verdict_handler.py` — manejo de veredictos
-- `replayer.py` — replay de requests
-- `confidence.py` — scoring de confianza
-- `rules.py` — reglas de validación
-- `hardening.py` — detección de WAF/rate limiting
-- `gate.py` — admisión de reportes
+### `core_engines/validation/`
+- `loop_engine.py`, `evidence_builder.py`, `verdict_handler.py`
+- `replayer.py`, `confidence.py`, `rules.py`, `hardening.py`, `gate.py`
 
-### `core/evidence/`
-- `graph.py` — `EvidenceGraph` (grafo en memoria de comparaciones + veredictos)
-- `store.py` — `EvidenceStore` (CRUD para evidencia)
+### `core_engines/evidence/`
+- `graph.py` — `EvidenceGraph`
+- `store.py` — `EvidenceStore`
 
-### `core/analysis/`
+### `core_engines/analysis/`
 - `investigation_graph.py` — `InvestigationGraphBuilder` + `HotPathDetector` + `ClusterEngine`
-- `analyzer.py` — `EndpointAnalyzer` (wrapper legacy)
+- `analyzer.py` — `EndpointAnalyzer`
+- `noise_reduction.py` — `NoiseReductionEngine`
 
-### `core/opportunity/`
-- `engine.py` — motor de oportunidades
-- `providers.py` — proveedores de datos (PublicProgram, GitHub, Huntr, AllSources)
-- `scoring.py`, `scoring2.py` — scoring de oportunidades v1 y v2
+### `core_engines/opportunity/`
+- `engine.py`, `providers.py`, `scoring.py`, `scoring2.py`, `history.py`, `recommendations.py`
 
-### `core/reporting/`
-- `report_engine.py` — `ReportEngine`, `FinalReport`, `ProgramData`
-- `reporting.py` — `ReportGenerator`
-- `severity.py` — niveles de severidad, CVSS, confianza
-- `export_formats.py` — formatos de exportación (HackerOne JSON, Markdown, Bugcrowd HTML)
+### `core_engines/reporting/`
+- `report_engine.py`, `reporting.py`, `severity.py`, `export_formats.py`
 
-### `core/orchestrator/`
-- `scan_service.py` — lanza scans con ReconRunner
-- `assistant_orchestrator.py` — orquestación de asistencias
+### `core_engines/orchestrator/`
+- `scan_service.py`, `assistant_orchestrator.py`, `pipeline.py`
 
-### `core/recon/`
-- `runner.py` — orquesta pipeline de recon
-- `subfinder_runner.py`, `wayback_runner.py`, `httpx_runner.py`, `katana_runner.py`
-- `parser.py` — normaliza endpoints
+### `core_engines/recon/`
+- `runner.py`, `subfinder_runner.py`, `wayback_runner.py`, `httpx_runner.py`, `katana_runner.py`, `parser.py`
 
-### Otros módulos core
-- `core/intelligence/` — `PriorityEngine`, `DependencyGraph`, `UnifiedOrchestrator`
-- `core/memory/` — `MemoryStore`, `DecisionMemory`, `InsightArchive`, `IdentityGraph`
-- `core/accountability/` — `OutcomeTracker`, `SystemScorecard`
-- `core/explainability/` — `ExplanationEngine`, `DecisionTrace`
-- `core/events/` — `EventBus`
-- `core/system_state.py` — `SystemState` singleton
+### Otros módulos core_engines
+- `intelligence/` — `PriorityEngine`, `DependencyGraph`, `UnifiedOrchestrator`, `LearningLoop`, `TrendDetector`
+- `memory/` — `MemoryStore`, `DecisionMemory`, `InsightArchive`, `IdentityGraph`, `PatternExtractor`
+- `accountability/` — `OutcomeTracker`, `SystemScorecard`
+- `explainability/` — `ExplanationEngine`, `DecisionTrace`
+- `events/` — `EventBus`
+- `auth/` — `AuthManager`, `SessionValidator`, `TokenService`
+- `gateway/` — `RateLimiter`, `Version`, `Router`
+- `license/` — `Validator`, `Hardware`, `Store`
 
 ## Base de datos
 
-SQLite con SQLAlchemy. Tablas actuales:
+SQLite con SQLAlchemy. 15 tablas:
 
 | Tabla | Propósito |
 |-------|-----------|
@@ -158,28 +133,41 @@ SQLite con SQLAlchemy. Tablas actuales:
 | sessions | Sesiones de trabajo |
 | targets_intel | Inteligencia de objetivos |
 | target_scopes | Scopes de objetivos |
+| quick_wins | Quick wins identificados |
 
 ## Frontend
 
-- React + TypeScript con Vite 8
-- 22 páginas con lazy loading + 1 catch-all 404
-- Componentes: CommandPalette, AssistantPanel, DesktopSidebar
+- React 19 + TypeScript 6 + Vite 8
+- 24 páginas (22 lazy-loaded + Activation + NotFound)
+- Componentes: CommandPalette, AssistantPanel, DesktopSidebar, BootScreen, WelcomeWizard, TourOverlay
 - Store: Zustand con persistencia localStorage
-- Compila a `frontend/dist/`
-- Servido por FastAPI en producción (desktop)
-- Desarrollo: Vite dev server en puerto 5173
+- UI: Tailwind 4 + Radix UI + framer-motion + cmdk
+- Data: TanStack Query + TanStack Table
+- i18n: EN + ES
+- Tema: detective_dark / aurora_light
+- Compila a `frontend/dist/` (~950ms, 0 TS errors)
 
 ### Layout
-- `Layout.tsx` — Sidebar (19 nav items, 6 secciones) + AI Copilot global (320px)
-- `AssistantPanel.tsx` — Briefing diario, bounty potential, insights, recomendaciones
-- `CommandPalette.tsx` — Ctrl+K overlay con ROUTE_MAP explícito, mode tabs, búsqueda
+- `Layout.tsx` — Sidebar + Outlet + AI Copilot
+- `Sidebar.tsx` — 19 nav items, 6 secciones, colapsable, favoritos, búsqueda
+- `CommandPalette.tsx` — Ctrl+K con ROUTE_MAP, mode tabs, recent targets, badges
+- `AssistantPanel.tsx` — AI Copilot contextual
 
-## Desktop (Windows 11)
+### Onboarding
+- `BootScreen.tsx` — animación de carga inicial
+- `WelcomeWizard.tsx` — 3-step first-run wizard
+- `TourOverlay.tsx` — 3-step UI tour (Sidebar, Command Palette, Mission Control)
+- `Activation.tsx` — license activation page
+
+## Desktop (Windows 11 + Linux)
 
 - `desktop/main_desktop.py` — entrypoint para PyInstaller
-- In-process: backend y frontend en un solo proceso
-- System tray opcional
-- Build: PyInstaller via `Rastro.spec`
+- Boot: 13 pasos (rollback check → settings → API import → frontend mount → uvicorn → health check → UI)
+- UI modes: pywebview window (1400×900), system browser, o system tray (pystray)
+- Auto-updater: GitHub Releases + SHA256 checksum + rollback on crash
+- Build: PyInstaller via `Rastro.spec` → `dist/Rastro/Rastro.exe`
+- Installer: `installer/install_windows.ps1` (LOCALAPPDATA + shortcuts + Add/Remove Programs)
+- Uninstaller: `installer/uninstall_windows.ps1` (files + registry + user data opcional)
 
 ## Discovery Engine
 
@@ -190,15 +178,28 @@ SQLite con SQLAlchemy. Tablas actuales:
 | httpx | Disponible en sistema |
 | katana | Disponible en sistema |
 | wayback (curl) | Disponible |
-| Scheduler automático | Activo en startup |
+| Scheduler automático | 30min interval en startup |
 | Notification poller | Activo en startup |
-| Opportunity refresh | Activo bajo demanda |
+| Opportunity refresh | Auto-descubrimiento en startup |
 
 ## Patrones de Arquitectura
 
-- **Singleton**: `get_assistant()`, `get_narrator()`, `get_engine()`, `get_system_state()`, `get_event_bus()`
-- **Provider**: `AIProvider` (Ollama, OpenAI, LocalFallback), `BaseProvider` (oportunidades)
+- **Singleton**: get_assistant(), get_narrator(), get_engine(), get_system_state(), get_event_bus(), get_rate_limiter()
+- **Provider**: AIProvider (Ollama, OpenAI, LocalFallback), BaseProvider (oportunidades)
 - **Dataclass-first**: Modelos de dominio como dataclasses, SQLAlchemy solo para persistencia
 - **Manual DB sessions**: Cada handler crea/cierra su propia sesión (sin DI)
-- **Read-only intelligence**: Opportunity y Assistant NUNCA modifican pipeline data
+- **Read-only intelligence**: Opportunity, Assistant, Desktop NUNCA modifican pipeline data
 - **Chain of Responsibility**: Replayer → Rules → Confidence → Gate → VerdictHandler
+
+## Pipeline Core (NO MODIFICAR)
+
+```
+Recon → Scoring → Graph → Evidence → Verdict → Report
+
+Recon:     subfinder → httpx → katana → wayback → parser → persist
+Scoring:   unified_scoring.score() + unified_classifier.classify()
+Graph:     investigation_graph.py → hot path detection + clustering
+Evidence:  validation loop (replayer → rules → confidence → gate)
+Verdict:   verdict_handler.py → status + confidence + validation_report
+Report:    report_engine.py → severity + CVSS + export formats
+```

@@ -14,23 +14,6 @@ export interface Target {
   freshness_score: number;
 }
 
-export interface TargetSummary {
-  id: number;
-  name: string;
-  domain: string | null;
-  endpoint_count: number;
-  finding_count: number;
-  confirmed_count: number;
-  estimated_payout: number;
-  roi: number;
-  max_risk: number;
-  surfaces: string[];
-  vectors: string[];
-  opportunity_score: number;
-  competition_score: number;
-  freshness_score: number;
-}
-
 export interface Endpoint {
   id: number;
   target_id: number;
@@ -335,6 +318,18 @@ export interface TargetSummary {
   id: number;
   name: string;
   opportunities: number;
+  domain: string | null;
+  endpoint_count: number;
+  finding_count: number;
+  confirmed_count: number;
+  estimated_payout: number;
+  roi: number;
+  max_risk: number;
+  surfaces: string[];
+  vectors: string[];
+  opportunity_score: number;
+  competition_score: number;
+  freshness_score: number;
   [key: string]: unknown;
 }
 

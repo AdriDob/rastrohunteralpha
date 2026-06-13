@@ -11,7 +11,8 @@ from typing import Dict, List
 
 logger = logging.getLogger("rastro.recon.tools")
 
-GO_BIN = Path.home() / "go" / "bin"
+_GO_BIN_ENV = os.environ.get("GOPATH", str(Path.home() / "go"))
+GO_BIN = Path(_GO_BIN_ENV) / "bin"
 
 # Tools installed via `go install projectdiscovery/...` — prefer go bin path
 GO_TOOLS = {"httpx", "katana", "subfinder", "waybackurls"}
