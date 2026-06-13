@@ -243,7 +243,7 @@ class ScanAssistant:
         if differential_bundle is None:
             return "## Differential Intelligence\n\nNo differential data available."
 
-        from core_engines.engines import DifferentialBundle
+        from core_engines.differential_intelligence import DifferentialBundle
         if not isinstance(differential_bundle, DifferentialBundle):
             return "## Differential Intelligence\n\nInvalid differential data."
 

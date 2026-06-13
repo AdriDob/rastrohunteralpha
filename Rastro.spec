@@ -24,13 +24,13 @@ if ROUTERS_DIR.is_dir():
         if f.suffix == ".py" and f.stem != "__init__":
             router_modules.append(f"api.routers.{f.stem}")
 
-# ── Collect all core subpackages for hidden imports ──────────────────
-CORE_DIR = PROJECT_ROOT / "core"
+# ── Collect all core_engines subpackages for hidden imports ──────────
+CORE_DIR = PROJECT_ROOT / "core_engines"
 core_packages = []
 if CORE_DIR.is_dir():
     for d in sorted(CORE_DIR.iterdir()):
         if d.is_dir() and (d / "__init__.py").exists() and d.stem != "__pycache__":
-            core_packages.append(f"core.{d.stem}")
+            core_packages.append(f"core_engines.{d.stem}")
 
 # ── Common hidden imports shared across platforms ────────────────────
 BASE_HIDDEN = [
@@ -43,10 +43,10 @@ BASE_HIDDEN = [
     'api', 'api.main', *router_modules,
     # Database
     'database', 'database.db', 'database.models',
-    # Core
-    'core', 'core.config', 'core.env', 'core.env.config',
-    'core.platform', 'core.platform.system',
-    'core.log_config', 'core.observability',
+    # Core engines
+    'core_engines', 'core_engines.config', 'core_engines.env', 'core_engines.env.config',
+    'core_engines.platform', 'core_engines.platform.system',
+    'core_engines.log_config', 'core_engines.observability',
     *core_packages,
     # Web server
     'uvicorn', 'uvicorn.logging', 'uvicorn.loops', 'uvicorn.loops.auto',
@@ -56,7 +56,7 @@ BASE_HIDDEN = [
     'httpx', 'sniffio', 'h11', 'anyio',
     # Desktop UI
     'webview', 'pystray', 'PIL', 'PIL.Image', 'PIL.ImageDraw',
-    'plyer', 'plyer.notification',
+    'plyer', 'plyer.facades.notification', 'plyer.platforms.win.notification',
     # Config / serialization
     'dotenv', 'pydantic',
     # Database ORM

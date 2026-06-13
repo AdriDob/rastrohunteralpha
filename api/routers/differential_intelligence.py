@@ -18,7 +18,7 @@ from core_engines.engine.snapshot import (
     VerdictSnapshot,
     AttackSurfaceSnapshot,
 )
-from core_engines.engines import DifferentialIntelligenceEngine
+from core_engines.differential_intelligence import DifferentialIntelligenceEngine
 from core_engines.evidence.graph import EvidenceGraph
 from core_engines.engine.unified_scoring import score as unified_score
 from database import db, models

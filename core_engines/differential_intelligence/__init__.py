@@ -1,8 +1,8 @@
 """
-core.engines — Analytical engines for cross-cutting pipeline intelligence.
+core_engines.differential_intelligence — Analytical engines for cross-cutting pipeline intelligence.
 """
 
-from core_engines.engines.differential_intelligence_engine import (
+from core_engines.differential_intelligence.differential_intelligence_engine import (
     DifferentialBundle,
     DifferentialFinding,
     DifferentialIntelligenceEngine,
