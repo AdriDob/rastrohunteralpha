@@ -25,6 +25,7 @@ Rastro es una herramienta local-first para cazadores de bugs que necesitan:
 ✅ ~48 oportunidades auto-descubiertas en startup vía 5 providers
 **Stats**: 
 ✅ Nuevo endpoint `/api/stats` con conteos en tiempo real
+
 **Desktop**: 
 ✅ Build configurado para Windows 11 (PyInstaller)
 
