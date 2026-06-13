@@ -16,7 +16,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(os.getcwd()).resolve()
 FRONTEND_DIST = str(PROJECT_ROOT / "frontend" / "dist")
 IS_WINDOWS = sys.platform.startswith("win")
-ICON_PATH = str(PROJECT_ROOT / "desktop" / "build" / "icons" / "rastro.ico")
+ICON_PATH = str(PROJECT_ROOT / "installer" / "icons" / "rastro.ico")
 UPX_AVAILABLE = os.getenv("UPX_PATH") is not None or bool(shutil.which("upx"))
 
 # ── Collect all router modules (automatically discovered) ──────────────
