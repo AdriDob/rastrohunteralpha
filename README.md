@@ -1,161 +1,183 @@
-# Rastro — Inteligencia de Superficie de Ataque
+<p align="center">
+  <img src="https://img.shields.io/badge/version-1.0.0-7c3aed?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/tests-122%20passing-22c55e?style=for-the-badge" alt="Tests">
+  <img src="https://img.shields.io/badge/build-0%20errors-22c55e?style=for-the-badge" alt="Build">
+  <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-7c3aed?style=for-the-badge" alt="Platform">
+  <img src="https://img.shields.io/badge/license-Proprietary-ef4444?style=for-the-badge" alt="License">
+</p>
 
-Sistema semi-autónomo de recon y priorización para bug bounty.
-Motor de inteligencia centralizado con scoring determinista, reducción de ruido
-y reportes basados en snapshots.
+<h1 align="center">🕵️ Rastro</h1>
+<p align="center"><em>Private Investigation Operating System</em></p>
 
-## ¿Qué es Rastro?
+<p align="center">
+  Rastro es un sistema operativo privado de investigación para analistas de bug bounty<br>
+  y attack surface intelligence. Corre 100% local, sin dependencia cloud.
+</p>
 
-Rastro es una herramienta local-first para cazadores de bugs que necesitan:
+---
 
-- Descubrir y catalogar endpoints de alto valor (APIs, GraphQL, paneles admin, multi-tenant)
-- Puntuar objetivos con heurísticas deterministas (sin ML)
-- Validar hallazgos con un pipeline de verificación
-- Tener todo corriendo localmente, sin depender de servicios cloud
+## Demo Flow
 
-## Estado actual
+```
+Input Target ──→ Recon ──→ Scoring ──→ Graph ──→ Evidence ──→ Verdict ──→ Report
 
-**Backend**: 
-✅ Funcional (15/15 endpoints críticos → HTTP 200, 0 endpoints con 500)
-**Frontend**: 
-✅ Compila (Vite + React, ~1s build)
-**Base de datos**: 
-✅ SQLite con datos seed (5 targets, 50 endpoints, 8 findings, 54 verdicts, 5 targets_intel)
-**Oportunidades**: 
-✅ ~48 oportunidades auto-descubiertas en startup vía 5 providers
-**Stats**: 
-✅ Nuevo endpoint `/api/stats` con conteos en tiempo real
-
-**Desktop**: 
-✅ Build configurado para Windows 11 (PyInstaller)
-
-## Requisitos
-
-| Dependencia | Requerido | Notas |
-|-------------|-----------|-------| ---
-| Python 3.10+ | Sí | |  Actualizaremos!
-| FastAPI / Uvicorn | Sí | Backend |
-| SQLAlchemy | Sí | ORM |
-| Node.js 18+ | Para frontend | Build de producción |
-| subfinder | Opcional | Descubrimiento de subdominios |
-| httpx | Opcional | HTTP probing |
-| katana | Opcional | NO INSTALADO actualmente |
-| Ollama | Opcional | Resúmenes AI |
-
-## Cómo arrancar (desarrollo)
-
-```bash
-# Backend
-cd /home/adrie/projects/Rastro
-source .venv/bin/activate
-python -m uvicorn api.main:app --reload --host 127.0.0.1 --port 8000
-
-# Frontend (otra terminal)
-cd frontend
-npm run dev
-
-# O todo junto (desktop mode)
-python desktop/main_desktop.py --dev
+    1              2           3           4           5            6           7
+  name/domain   subfinder   unified_    hot_path    validation   confirmed   HackerOne-
+                httpx       scoring     detection   replayer     /rejected   formatted
+                katana      classify    clustering  + rules      + conf.     report
+                wayback                             + gate       score
 ```
 
-### URLs
+1. **Input**: Bug bounty target (domain or URL)
+2. **Recon**: Subfinder → httpx → katana → waybackurls → endpoint parser
+3. **Scoring**: Deterministic heuristic scoring per endpoint (no ML)
+4. **Graph**: Hot path detection + attack surface clustering
+5. **Evidence**: Replay + rule engine + confidence scoring + gate admission
+6. **Verdict**: Confirmed / Rejected / Inconclusive with confidence score
+7. **Report**: HackerOne JSON, Bugcrowd HTML, or Markdown export
 
-| Servicio | URL |
-|----------|-----|
+---
+
+## Quick Start
+
+```bash
+# Production (desktop mode)
+python desktop/main_desktop.py
+
+# Development
+cd frontend && npm run dev   # Terminal 1
+uvicorn api.main:app --reload --host 127.0.0.1 --port 8000   # Terminal 2
+```
+
+| Service | URL |
+|---------|-----|
 | API | http://127.0.0.1:8000 |
 | Frontend (dev) | http://localhost:5173 |
-| Health check | http://127.0.0.1:8000/api/health |
+| API docs | http://127.0.0.1:8000/api/docs |
 
-## Cómo hacer el build para Windows
+---
+
+## Features
+
+| Layer | Capabilities |
+|-------|-------------|
+| **Auth & Security** | JWT middleware, rate limiter (token bucket), license system (HMAC-SHA256), hardware fingerprint |
+| **Discovery** | Subfinder, httpx, katana, waybackurls — async pipeline with 30min scheduler |
+| **Scoring** | Deterministic `unified_scoring()` with LRU cache, 15+ heuristic signals |
+| **Graph** | Hot path detection, attack surface clustering, differential intelligence |
+| **Validation** | Replayer → rules engine → confidence scoring → gate admission |
+| **Reporting** | HackerOne JSON, Bugcrowd HTML, Markdown, CVSS v3 severity |
+| **AI Layer** | Ollama (Qwen2.5-Coder) + OpenAI-compatible + local rule-based fallback |
+| **Investigation Narrator** | 7 auto-interpretation functions: state, narrative, attack path, bounty potential, daily briefing |
+| **UX** | React 19 + Vite 8 + Tailwind 4 + framer-motion; Command Palette (Ctrl+K), AI Copilot, onboarding tour |
+| **Desktop** | pywebview 6 + pystray tray + PyInstaller; auto-updater with SHA-256 rollback |
+| **Packaging** | Windows (PyInstaller + NSIS), Linux (PyInstaller + AppImage), auto-updater via GitHub Releases |
+
+---
+
+## Architecture
+
+```
+Middleware: CORSMiddleware → RateLimitMiddleware → AuthMiddleware
+Backend:    FastAPI + 37 routers / 183 routes + SQLAlchemy + SQLite
+Frontend:   React 19 + TypeScript + Vite 8 + 24 pages
+Desktop:    pywebview + pystray + PyInstaller (single process)
+```
+
+Key modules: `core_engines/` — recon, scoring, graph, evidence, verdict, report, AI, auth, license, platform.
+
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the full breakdown.
+
+---
+
+## Project Structure
+
+<details>
+<summary>Click to expand</summary>
+
+```
+.
+├── api/                    # FastAPI backend
+│   ├── main.py             # App entrypoint + 25-step startup
+│   ├── middleware/          # CORS → RateLimit → Auth
+│   ├── routers/            # 37 routers, 183 routes
+│   └── services/           # Data access layer
+├── core_engines/            # Core intelligence
+│   ├── engine/             # Scoring + classification
+│   ├── recon/              # Discovery pipeline
+│   ├── validation/         # Replay → rules → gate
+│   ├── evidence/           # Evidence graph + store
+│   ├── analysis/           # Graph builder + clustering
+│   ├── reporting/          # Report generation + export
+│   ├── ai/                 # Conversational AI (Ollama/OpenAI)
+│   ├── assistant/          # Investigation Narrator
+│   ├── license/            # HMAC-SHA256 licensing
+│   ├── auth/               # JWT auth manager
+│   ├── gateway/            # Rate limiter, router, version
+│   ├── platform/           # OS abstraction layer
+│   └── ...                 # 30+ modules total
+├── frontend/               # React + TypeScript + Vite
+│   └── src/                # 24 pages, 20 components
+├── desktop/                # Desktop app entrypoint
+│   ├── main_desktop.py     # 13-step boot sequence
+│   ├── updater.py          # Auto-updater + rollback
+│   └── serve_frontend.py   # Static file serving
+├── installer/              # Windows installer scripts
+│   ├── install_windows.ps1
+│   ├── uninstall_windows.ps1
+│   └── install_windows.nsi # NSIS installer
+├── scripts/
+│   ├── build_linux.sh      # PyInstaller build
+│   ├── build_windows.ps1   # Windows build
+│   └── build_appimage.sh   # AppImage build
+├── database/
+│   ├── models.py           # 15 SQLAlchemy models
+│   └── rastro.db           # SQLite database
+├── tests/                  # 122 tests (security + API + tools)
+├── docs/
+│   └── android_build.md    # Android Capacitor guide
+└── Rastro.spec             # PyInstaller configuration
+```
+</details>
+
+---
+
+## Downloads
+
+| Platform | Format | How to Get |
+|----------|--------|------------|
+| Windows 10/11 | `.exe` + NSIS installer | GitHub Releases (CI build) |
+| Linux (x86_64) | PyInstaller bundle | `scripts/build_linux.sh` |
+| Linux (x86_64) | `.AppImage` | `scripts/build_appimage.sh` |
+| Android | APK | See `docs/android_build.md` |
 
 ```bash
-# 1. Compilar frontend
-cd frontend && npm run build && cd ..
+# Linux — run directly
+./dist/Rastro/Rastro
 
-# 2. En Windows, ejecutar como administrador:
-# powershell -File scripts/build_windows.ps1
+# Linux — AppImage (portable single file)
+./dist/Rastro-1.0.0-x86_64.AppImage
+
+# Windows — double-click installer
+Rastro_Setup_1.0.0.exe
 ```
 
-## Qué funciona hoy
+---
 
-- CRUD completo de targets, endpoints, findings
-- Pipeline de validación con veredictos y evidencia
-- Motor de scoring determinista (unified_scoring)
-- Motor de clasificación de endpoints
-- Daily briefing con oportunidades priorizadas
-- Attack surface analysis
-- Sistema de oportunidades (48 después de refresh)
-- Dashboard de overview con métricas
-- Health check de sistema
-- Notificaciones internas
-- Estado del asistente e inteligencia
+## System Requirements
 
-## Qué está en desarrollo
+- **OS**: Windows 10/11, Linux (x86_64), macOS (experimental)
+- **Python**: 3.10+ (3.14 recommended)
+- **RAM**: 512 MB minimum, 2 GB recommended
+- **Disk**: 500 MB for installation
+- **Optional tools**: subfinder, httpx, katana (Go binaries)
 
-- Integración total con frontend React (hoy apunta a puerto 5173)
-- Pipeline de recon automático (hoy es bajo demanda)
-- Más providers de oportunidades en startup
-- Pruebas automatizadas
-- Reportes exportables (PDF/CSV)
+---
 
-## API endpoints principales
+## License
 
-| Endpoint | Descripción |
-|----------|-------------|
-| `GET /api/health` | Health check |
-| `GET /api/stats` | Estadísticas de la DB (targets, endpoints, findings, etc.) |
-| `GET /api/targets` | Listar targets |
-| `GET /api/endpoints` | Listar endpoints |
-| `GET /api/findings` | Listar findings |
-| `GET /api/verdicts` | Listar veredictos |
-| `GET /api/evidence` | Listar evidencia |
-| `GET /api/daily/briefing` | Briefing diario con oportunidades, risk alerts y quick wins |
-| `GET /api/opportunities` | Oportunidades (basadas en pipeline DB) |
-| `GET /api/opportunity/top` | Top oportunidades del engine de inteligencia |
-| `GET /api/overview` | Vista general |
-| `GET /api/attack-surface` | Superficie de ataque |
-| `GET /api/pipeline` | Estado del pipeline |
-| `POST /api/scans` | Lanzar scan |
-| `POST /api/opportunity/refresh` | Refrescar oportunidades |
-| `GET /api/system/health` | Salud del sistema |
+Proprietary — internal use. Redistribution prohibited without authorization.
 
-## Estructura del proyecto
+---
 
-```
-Rastro/
-├── api/
-│   ├── main.py              ← Backend principal (FastAPI)
-│   ├── routers/             ← 35 routers endpoint
-│   └── services/
-│       └── data_service.py  ← Capa de acceso a datos
-├── core/
-│   ├── engine/              ← Scoring y clasificación
-│   ├── recon/               ← Pipeline de descubrimiento
-│   ├── validation/          ← Pipeline de validación
-│   ├── opportunity/         ← Inteligencia de oportunidades
-│   ├── orchestrator/        ← Orquestación
-│   ├── memory/              ← Memoria del sistema
-│   ├── notifications/       ← Notificaciones
-│   └── ...
-├── database/
-│   ├── db.py                ← Conexión SQLAlchemy
-│   ├── models.py            ← Modelos de datos
-│   └── rastro.db            ← Base de datos SQLite
-├── desktop/
-│   ├── main_desktop.py      ← Entrypoint desktop
-│   └── serve_frontend.py    ← Servir frontend
-├── frontend/
-│   └── src/                 ← React + TypeScript (Vite)
-├── scripts/
-│   ├── bootstrap.py         ← Inicializar DB
-│   └── build_windows.ps1    ← Build para Windows
-├── main.py                  ← Backend secundario (standalone)
-├── Rastro.spec              ← PyInstaller spec
-├── PLAN.md                  ← Plan operativo
-├── RUNTIME_GAPS.md          ← Gaps de runtime
-└── ARCHITECTURE.md          ← Arquitectura
-```
-
-## Licencia
-
-Herramienta interna — no para redistribución.
+<p align="center"><em>Built with 🕵️ for serious researchers</em></p>
