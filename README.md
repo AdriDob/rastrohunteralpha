@@ -26,7 +26,7 @@ Rastro es una herramienta local-first para cazadores de bugs que necesitan:
 
 | Dependencia | Requerido | Notas |
 |-------------|-----------|-------|
-| Python 3.10+ | Sí | |
+| Python 3.10+ | Sí | |  Actualizaremos
 | FastAPI / Uvicorn | Sí | Backend |
 | SQLAlchemy | Sí | ORM |
 | Node.js 18+ | Para frontend | Build de producción |
