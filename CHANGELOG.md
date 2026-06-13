@@ -1,5 +1,17 @@
 # Changelog
 
+## v1.0.0 (2026-06-13)
+- First stable release
+- Windows desktop packaging: pywebview + PyInstaller + installer
+- CI/CD: test on push/PR, build Windows+Linux on tag
+- Single entrypoint `run.py` with dev/frozen path bootstrap
+- CORS hardened for desktop mode
+- VERSION file as single source of truth
+- Documentation: INSTALL.md (troubleshooting), PRODUCT.md, CHANGELOG.md
+- Build scripts: build_frontend.sh, build_linux.sh, build_windows.ps1
+- Release automation: scripts/release.py
+- 111 tests passing, 0 TS errors
+
 ## v0.3.0 (2026-06-13)
 - AI Copilot contextual (sugerencias por ruta, Briefing + Bounty)
 - Investigation Narrator layer (7 endpoints)
