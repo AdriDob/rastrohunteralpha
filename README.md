@@ -15,18 +15,24 @@ Rastro es una herramienta local-first para cazadores de bugs que necesitan:
 
 ## Estado actual
 
-**Backend**: ✅ Funcional (15/15 endpoints críticos → HTTP 200, 0 endpoints con 500)
-**Frontend**: ✅ Compila (Vite + React, ~1s build)
-**Base de datos**: ✅ SQLite con datos seed (5 targets, 50 endpoints, 8 findings, 54 verdicts, 5 targets_intel)
-**Oportunidades**: ✅ ~48 oportunidades auto-descubiertas en startup vía 5 providers
-**Stats**: ✅ Nuevo endpoint `/api/stats` con conteos en tiempo real
-**Desktop**: ✅ Build configurado para Windows 11 (PyInstaller)
+**Backend**: 
+✅ Funcional (15/15 endpoints críticos → HTTP 200, 0 endpoints con 500)
+**Frontend**: 
+✅ Compila (Vite + React, ~1s build)
+**Base de datos**: 
+✅ SQLite con datos seed (5 targets, 50 endpoints, 8 findings, 54 verdicts, 5 targets_intel)
+**Oportunidades**: 
+✅ ~48 oportunidades auto-descubiertas en startup vía 5 providers
+**Stats**: 
+✅ Nuevo endpoint `/api/stats` con conteos en tiempo real
+**Desktop**: 
+✅ Build configurado para Windows 11 (PyInstaller)
 
 ## Requisitos
 
 | Dependencia | Requerido | Notas |
 |-------------|-----------|-------|
-| Python 3.10+ | Sí | |  Actualizaremos
+| Python 3.10+ | Sí | |  Actualizaremos!
 | FastAPI / Uvicorn | Sí | Backend |
 | SQLAlchemy | Sí | ORM |
 | Node.js 18+ | Para frontend | Build de producción |
