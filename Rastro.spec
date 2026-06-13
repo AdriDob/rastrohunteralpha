@@ -69,6 +69,8 @@ a = Analysis(
     binaries=[],
     datas=[
         (FRONTEND_DIST, 'frontend_dist'),
+        (str(PROJECT_ROOT / "installer" / "uninstall_windows.ps1"), '.'),
+        (str(PROJECT_ROOT / "VERSION"), '.'),
     ],
     hiddenimports=BASE_HIDDEN,
     hookspath=[],

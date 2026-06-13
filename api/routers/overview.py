@@ -28,12 +28,13 @@ def get_overview():
             models.Verdict.status == "confirmed"
         ).count()
 
-        # Risk/vector distribution — load only needed columns, score in batch
+        # Risk/vector distribution — deduplicate by (path, method) to minimise scoring calls
         high_signal = 0
         total_risk = 0.0
         risk_buckets: Dict[str, int] = {"critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0}
         vector_dist: Dict[str, int] = {}
         endpoint_target_ids: Dict[int, int] = {}
+        _score_cache: Dict[Tuple[str, str], Dict[str, Any]] = {}
 
         for ep in session.query(models.Endpoint.path, models.Endpoint.method, models.Endpoint.params, models.Endpoint.target_id, models.Endpoint.id).all():
             ep_params = {}
@@ -42,7 +43,10 @@ def get_overview():
                     ep_params = json.loads(ep.params)
                 except (json.JSONDecodeError, ValueError):
                     pass
-            s = unified_score(ep.path, ep.method or "GET", ep_params)
+            key = (ep.path or "/", ep.method or "GET")
+            if key not in _score_cache:
+                _score_cache[key] = unified_score(*key, ep_params)
+            s = _score_cache[key]
             rs = s.get("risk_score", 0)
             total_risk += rs
             endpoint_target_ids[ep.id] = ep.target_id

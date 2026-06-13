@@ -67,3 +67,18 @@ def get_confidence_single(item_type: str, item_id: int):
 def get_review_queue(limit: int = Query(100, ge=1, le=500)):
     queue = build_review_queue(limit=limit)
     return queue.to_dict()
+
+
+@router.get("/update-check")
+def check_update():
+    from desktop.updater import check_for_updates, _current_version
+    release = check_for_updates()
+    if release is None:
+        return {"available": False, "current_version": _current_version()}
+    return {
+        "available": True,
+        "version": release.version,
+        "download_url": release.download_url,
+        "release_notes_url": release.release_notes_url,
+        "current_version": _current_version(),
+    }

@@ -47,6 +47,7 @@ from api.routers import (
     orchestrator,
     identity,
     execution,
+    license,
 )
 
 from core_engines.log_config import setup_logging
@@ -181,6 +182,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Rate limiting — counts all requests (incl. failed auth) to prevent brute-force
+from api.middleware.rate_limit_middleware import RateLimitMiddleware
+app.add_middleware(RateLimitMiddleware)
+
+# Auth enforcement — rejects unauthenticated requests on protected paths
+from api.middleware.auth_middleware import AuthMiddleware
+app.add_middleware(AuthMiddleware)
+
 app.include_router(targets.router)
 app.include_router(endpoints.router)
 app.include_router(findings.router)
@@ -216,6 +225,7 @@ app.include_router(daily.router)
 app.include_router(orchestrator.router)
 app.include_router(identity.router)
 app.include_router(execution.router)
+app.include_router(license.router)
 
 
 APP_VERSION = "0.4.0"

@@ -26,6 +26,18 @@ function getAuthHeaders(): Record<string, string> {
 export async function fetchJson<T>(path: string, opts?: RequestInit): Promise<T> {
   const headers = { ...getAuthHeaders(), ...(opts?.headers || {}) } as Record<string, string>;
   const res = await fetch(`${BASE}${path}`, { ...opts, headers });
+
+  if (res.status === 401) {
+    sessionStorage.removeItem('rastro-token');
+    window.location.href = '/';
+    throw new Error('Session expired');
+  }
+
+  if (res.status === 403) {
+    window.location.href = '/activate';
+    throw new Error('License required');
+  }
+
   if (!res.ok) throw new Error(`API ${res.status}: ${res.statusText}`);
   return res.json();
 }

@@ -34,6 +34,13 @@ if (Test-Path $DEST) {
 New-Item -ItemType Directory -Path $DEST -Force | Out-Null
 Copy-Item "$SOURCE\*" $DEST -Recurse -Force
 
+# Also copy the uninstaller
+$uninstallSource = Join-Path $PSScriptRoot "uninstall_windows.ps1"
+if (Test-Path $uninstallSource) {
+    Copy-Item $uninstallSource $DEST -Force
+    Write-Host "  ✓ Uninstaller copied" -ForegroundColor Green
+}
+
 # ── Verify ───────────────────────────────────────────────────────────
 if (-not (Test-Path $EXE)) {
     Write-Host "✗ Installation failed: $EXE not found" -ForegroundColor Red
@@ -79,6 +86,20 @@ if ($choice -eq "y" -or $choice -eq "Y") {
     $shortcut3.Save()
     Write-Host "  ✓ Autostart shortcut created" -ForegroundColor Green
 }
+
+# ── Add/Remove Programs entry ──────────────────────────────────────
+$uninstallKey = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\Rastro"
+$uninstallScript = Join-Path $DEST "uninstall_windows.ps1"
+
+New-Item -Path $uninstallKey -Force | Out-Null
+Set-ItemProperty -Path $uninstallKey -Name "DisplayName" -Value "Rastro Investigation OS"
+Set-ItemProperty -Path $uninstallKey -Name "DisplayVersion" -Value "1.0.0"
+Set-ItemProperty -Path $uninstallKey -Name "Publisher" -Value "Rastro"
+Set-ItemProperty -Path $uninstallKey -Name "UninstallString" -Value "powershell -ExecutionPolicy Bypass `"$uninstallScript`""
+Set-ItemProperty -Path $uninstallKey -Name "DisplayIcon" -Value "`"$EXE`""
+Set-ItemProperty -Path $uninstallKey -Name "InstallLocation" -Value "`"$DEST`""
+
+Write-Host "  ✓ Add/Remove Programs entry created" -ForegroundColor Green
 
 Write-Host "=== Installation complete ===" -ForegroundColor Cyan
 Write-Host "  Run: $EXE"

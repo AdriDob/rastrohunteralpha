@@ -9,7 +9,17 @@ import pytest
 def client():
     from fastapi.testclient import TestClient
     from api.main import app
-    return TestClient(app)
+    from core_engines.license.validator import generate_license
+    c = TestClient(app)
+    # Activate a license first
+    lic = generate_license(expiry_days=365)
+    c.post("/api/license/activate", json={"key": lic})
+    # Authenticate once for the whole module
+    resp = c.post("/api/auth/login", json={"device_id": "pytest-device"})
+    if resp.status_code == 200:
+        token = resp.json()["data"]["token"]
+        c.headers.update({"Authorization": f"Bearer {token}"})
+    return c
 
 
 class TestHealth:

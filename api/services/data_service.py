@@ -391,8 +391,12 @@ def get_attack_surfaces() -> Dict[str, List[Dict[str, Any]]]:
     try:
         endpoints = session.query(models.Endpoint).all()
         groups = {}
+        _score_cache: Dict[Tuple[str, str], Dict[str, Any]] = {}
         for ep in endpoints:
-            s = _score_endpoint(ep)
+            cache_key = (ep.path or "/", ep.method or "GET")
+            if cache_key not in _score_cache:
+                _score_cache[cache_key] = _score_endpoint(ep)
+            s = _score_cache[cache_key]
             surfaces = s.get("attack_surface", [])
             if not surfaces:
                 surfaces = ["general"]
@@ -676,10 +680,14 @@ def get_digest() -> Dict[str, Any]:
     try:
         entries = []
         endpoints = session.query(models.Endpoint).all()
+        _score_cache: Dict[str, Dict[str, Any]] = {}
         for ep in endpoints:
             safe_path = str(ep.path or "/")
             safe_method = str(ep.method or "GET")
-            result = unified_score(safe_path, safe_method, ep.parsed_params)
+            cache_key = f"{safe_method}:{safe_path}"
+            if cache_key not in _score_cache:
+                _score_cache[cache_key] = unified_score(safe_path, safe_method, ep.parsed_params)
+            result = _score_cache[cache_key]
             entries.append({
                 "id": ep.id,
                 "target_id": ep.target_id,

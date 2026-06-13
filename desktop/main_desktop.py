@@ -362,6 +362,15 @@ def main() -> None:
     _lifecycle(_API, "Starting API server")
     from api.main import app as api_app
 
+    # ── Check for rollback after failed update ───────────────────────
+    from desktop.updater import check_and_rollback_if_needed, mark_update_success
+    if check_and_rollback_if_needed():
+        _lifecycle(_BOOT, "Rolled back to previous version after failed update")
+    # Will be cleared after a successful boot
+    threading.Thread(target=lambda: (
+        time.sleep(15), mark_update_success()
+    ), daemon=True).start()
+
     # Mount frontend static assets on the same app
     _mount_frontend(api_app)
 
@@ -379,6 +388,16 @@ def main() -> None:
         _lifecycle(_HEALTHY, "Health check timed out")
         sys.exit(1)
     _lifecycle(_HEALTHY, "Backend healthy on port %d", port)
+
+    # ── Background update check ──────────────────────────────────────
+    def _background_update_check():
+        from desktop.updater import check_for_updates
+        release = check_for_updates()
+        if release:
+            _lifecycle(_BOOT, "Update available: v%s (current: v%s)",
+                       release.version, "1.0.0")
+            # In a real desktop app, this would trigger a notification
+    threading.Thread(target=_background_update_check, daemon=True).start()
 
     # ── UI mode: desktop window or browser ──────────────────────────
     tray = None

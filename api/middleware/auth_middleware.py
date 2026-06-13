@@ -1,0 +1,65 @@
+import re
+from typing import Set
+
+from fastapi import Request
+from fastapi.responses import JSONResponse
+from starlette.middleware.base import BaseHTTPMiddleware
+
+from core_engines.auth.session_validator import get_session_validator
+from core_engines.license import is_license_valid
+
+# Paths that do NOT require authentication
+PUBLIC_PATHS: Set[str] = {
+    "/api/health",
+    "/api/version",
+    "/api/docs",
+    "/api/openapi.json",
+    "/api/redoc",
+}
+
+# Prefixes that do NOT require authentication
+PUBLIC_PREFIXES: Set[str] = {
+    "/api/auth",
+    "/api/license",
+}
+
+
+class AuthMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request: Request, call_next):
+        path = request.url.path
+
+        if path in PUBLIC_PATHS:
+            return await call_next(request)
+
+        if any(path.startswith(p) for p in PUBLIC_PREFIXES):
+            return await call_next(request)
+
+        auth_header = request.headers.get("Authorization", "")
+        token = auth_header.removeprefix("Bearer ").strip()
+
+        if not token:
+            return JSONResponse(
+                status_code=401,
+                content={"error": "Authorization header required"},
+            )
+
+        validator = get_session_validator()
+        result = validator.validate(token)
+
+        if not result.valid:
+            return JSONResponse(
+                status_code=401,
+                content={"error": result.reason or "Invalid or expired token"},
+            )
+
+        # License check — skip for public/auth/license paths
+        valid_license, _ = is_license_valid()
+        if not valid_license and path not in PUBLIC_PATHS and not any(
+            path.startswith(p) for p in PUBLIC_PREFIXES
+        ):
+            return JSONResponse(
+                status_code=403,
+                content={"error": "License required", "detail": "Activate at /api/license/activate"},
+            )
+
+        return await call_next(request)

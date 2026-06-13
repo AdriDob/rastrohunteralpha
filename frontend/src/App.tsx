@@ -7,11 +7,14 @@ import { StateContinuityProvider } from './lib/stateContinuity';
 import { GlobalErrorBoundaryUI } from './components/ui/GlobalErrorBoundaryUI';
 import Layout from './components/layout/Layout';
 import BootScreen from './components/BootScreen';
+import WelcomeWizard from './components/onboarding/WelcomeWizard';
+import TourOverlay from './components/onboarding/TourOverlay';
 import { I18nContext, getTranslations } from './lib/i18n';
 import type { Language } from './lib/i18n';
 import { ThemeContext, getTheme, applyTheme, detective_dark, aurora_light } from './lib/theme';
 
 const MissionControl = lazy(() => import('./pages/MissionControl'));
+const Activation = lazy(() => import('./pages/Activation'));
 const DailyMode = lazy(() => import('./pages/DailyMode'));
 const ActionsView = lazy(() => import('./pages/ActionsView'));
 const InsightsView = lazy(() => import('./pages/InsightsView'));
@@ -165,6 +168,26 @@ export default function App() {
     return <BootScreen onComplete={handleBootComplete} />;
   }
 
+  const [showOnboarding, setShowOnboarding] = useState(
+    () => localStorage.getItem('rastro-onboarding-complete') !== 'true'
+  );
+  const [showTour, setShowTour] = useState(
+    () => localStorage.getItem('rastro-tour-complete') !== 'true'
+  );
+
+  if (showOnboarding) {
+    return (
+      <WelcomeWizard onComplete={() => {
+        setShowOnboarding(false);
+        setShowTour(true);
+      }} />
+    );
+  }
+
+  if (showTour) {
+    return <TourOverlay onComplete={() => setShowTour(false)} />;
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeContext.Provider value={themeValue}>
@@ -174,6 +197,7 @@ export default function App() {
               <BrowserRouter>
                 <AppInitializer />
                 <Routes>
+                  <Route path="/activate" element={<Suspense fallback={fallback}><Activation /></Suspense>} />
                   <Route element={<Layout />}>
                     {/* Mission Hub */}
                     <Route path="/" element={<Suspense fallback={fallback}><MissionControl /></Suspense>} />
