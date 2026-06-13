@@ -1,14 +1,14 @@
-from core.validation.confidence import ConfidenceScorer, ConfidenceScore
-from core.validation.gate import ReportGate, Verdict
-from core.validation.loop_engine import ValidationLoopEngine
-from core.validation.replayer import (
+from core_engines.validation.confidence import ConfidenceScorer, ConfidenceScore
+from core_engines.validation.gate import ReportGate, Verdict
+from core_engines.validation.loop_engine import ValidationLoopEngine
+from core_engines.validation.replayer import (
     AuthContext,
     ComparisonResult,
     RequestReplayer,
     RequestSpec,
     ResponseRecord,
 )
-from core.validation.rules import RuleResult, ValidationReport, ValidationRuleSet
+from core_engines.validation.rules import RuleResult, ValidationReport, ValidationRuleSet
 
 __all__ = [
     "AuthContext",

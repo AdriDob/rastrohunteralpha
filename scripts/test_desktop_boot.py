@@ -64,7 +64,7 @@ def section(title: str) -> None:
 def test_path_resolution() -> None:
     section("1. Path Resolution")
 
-    from core.platform.system import (
+    from core_engines.platform.system import (
         is_frozen, get_project_root, get_frontend_dist_dir,
         get_data_dir, get_config_dir,
     )
@@ -153,7 +153,7 @@ def test_main_desktop_entry() -> None:
 def test_frontend_detection() -> None:
     section("3. Frontend Detection")
 
-    from core.platform.system import get_frontend_dist_dir
+    from core_engines.platform.system import get_frontend_dist_dir
     dist_dir = get_frontend_dist_dir()
     check("Frontend dist dir ends with frontend/dist or frontend_dist",
           str(dist_dir).endswith(("frontend/dist", "frontend_dist")))
@@ -218,7 +218,7 @@ def test_settings_and_autostart() -> None:
 def test_platform_abstraction() -> None:
     section("6. Platform Abstraction")
 
-    from core.platform.system import (
+    from core_engines.platform.system import (
         get_platform, Platform, is_windows, is_linux, is_macos, is_frozen,
         PlatformInfo, get_platform_info,
     )

@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Set
 
-from core.execution.poc_generator import TestScenario
-from core.validation.gate import Verdict
+from core_engines.execution.poc_generator import TestScenario
+from core_engines.validation.gate import Verdict
 
 
 @dataclass

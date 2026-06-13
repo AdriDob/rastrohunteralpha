@@ -8,8 +8,8 @@ from fastapi import APIRouter, Query
 from sqlalchemy import cast, Float, func as sa_func
 
 from database import db, models
-from core.engine.unified_scoring import score as unified_score, score_target as unified_score_target
-from core.targets.models import TargetIntel
+from core_engines.engine.unified_scoring import score as unified_score, score_target as unified_score_target
+from core_engines.targets.models import TargetIntel
 
 router = APIRouter(prefix="/api", tags=["overview"])
 
@@ -297,7 +297,7 @@ def get_system_health():
             },
         }
 
-        from core.system_health import collect_health
+        from core_engines.system_health import collect_health
         try:
             detailed = collect_health()
             result["detailed"] = detailed.to_dict()

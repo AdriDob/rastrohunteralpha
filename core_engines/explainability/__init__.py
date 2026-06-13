@@ -1,11 +1,11 @@
 """Explainability — every system decision is transparent and auditable."""
 
-from core.explainability.explanation_engine import (
+from core_engines.explainability.explanation_engine import (
     ExplanationEngine,
     get_explanation_engine,
     Explanation,
 )
-from core.explainability.decision_trace import (
+from core_engines.explainability.decision_trace import (
     DecisionTrace,
     TraceStep,
     get_decision_trace,

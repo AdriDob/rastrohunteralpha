@@ -12,7 +12,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional
 
-from core.contracts import EventProtocol
+from core_engines.contracts import EventProtocol
 
 LOG = logging.getLogger("rastro.intelligence.event_system")
 

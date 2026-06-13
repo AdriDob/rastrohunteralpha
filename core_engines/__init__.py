@@ -8,17 +8,17 @@ Sub-packages:
   ... (existing engines remain unchanged)
 """
 
-from core.contracts import Artifact, Bundle
-from core.artifacts import (
+from core_engines.contracts import Artifact, Bundle
+from core_engines.artifacts import (
     PipelineArtifact, EvidenceGraphArtifact, ScreenshotArtifact,
     DifferentialArtifact, QuickWinsArtifact, ExecutionPlanArtifact,
     AIInsightArtifact, AttackSurfaceArtifact, ROIArtifact, HypothesisArtifact,
 )
-from core.intelligence import (
+from core_engines.intelligence import (
     DependencyGraph, EventSystem, ArtifactCache, AntiDriftEnforcer,
     UnifiedOrchestrator, get_orchestrator,
 )
-from core.opportunity import (
+from core_engines.opportunity import (
     Opportunity, OpportunitySource, OpportunityCategory,
     OpportunityScore, OpportunitySnapshot, OpportunityRecommendations,
     OpportunityEngine, get_engine,

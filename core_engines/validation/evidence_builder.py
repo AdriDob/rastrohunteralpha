@@ -1,7 +1,7 @@
 import json
 from typing import Any, Dict, List
 
-from core.validation.replayer import ComparisonResult, RequestSpec
+from core_engines.validation.replayer import ComparisonResult, RequestSpec
 
 
 class EvidenceBuilder:

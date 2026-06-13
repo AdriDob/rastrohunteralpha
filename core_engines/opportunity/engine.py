@@ -12,7 +12,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
-from core.opportunity.models import (
+from core_engines.opportunity.models import (
     EVHCalculation,
     EVHRating,
     Opportunity,
@@ -23,16 +23,16 @@ from core.opportunity.models import (
     ScoreBreakdown,
     IdentityVaultEntry,
 )
-from core.opportunity.providers import BaseProvider, get_providers
-from core.opportunity.scoring import score_opportunity as score_legacy
-from core.opportunity.scoring2 import (
+from core_engines.opportunity.providers import BaseProvider, get_providers
+from core_engines.opportunity.scoring import score_opportunity as score_legacy
+from core_engines.opportunity.scoring2 import (
     compute_layered_score,
     _score_to_priority,
     compute_evh,
 )
-from core.opportunity.recommendations import generate_recommendations
-from core.opportunity.history import get_history_manager
-from core.observability import timer, record
+from core_engines.opportunity.recommendations import generate_recommendations
+from core_engines.opportunity.history import get_history_manager
+from core_engines.observability import timer, record
 
 logger = logging.getLogger("rastro.opportunity.engine")
 

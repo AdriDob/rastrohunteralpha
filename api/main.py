@@ -2,14 +2,15 @@ import asyncio
 import logging
 import os
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
 
 from database import db
-from core.observability import get_metrics, reset_metrics
-from core.intelligence.adaptive_memory import get_memory
+from core_engines.observability import get_metrics, reset_metrics
+from core_engines.intelligence.adaptive_memory import get_memory
 from api.routers import (
     targets,
     endpoints,
@@ -48,7 +49,7 @@ from api.routers import (
     execution,
 )
 
-from core.log_config import setup_logging
+from core_engines.log_config import setup_logging
 setup_logging()
 
 logger = logging.getLogger("rastro.api")
@@ -59,8 +60,8 @@ async def lifespan(app: FastAPI):
     logger.info("Database initialized")
 
     # Initialize event bus and system state
-    from core.events.event_bus import get_event_bus
-    from core.system_state import get_system_state
+    from core_engines.events.event_bus import get_event_bus
+    from core_engines.system_state import get_system_state
     bus = get_event_bus()
     state = get_system_state()
     state.register_service("backend")
@@ -73,65 +74,65 @@ async def lifespan(app: FastAPI):
     logger.info("Event bus and system state initialized")
 
     # Check product behavior rules
-    from core.product_rules import enforce_on_startup
+    from core_engines.product_rules import enforce_on_startup
     enforce_on_startup()
     logger.info("Product behavior rules checked")
 
     # Initialize identity system
-    from core.identity.identity_manager import get_identity_manager
+    from core_engines.identity.identity_manager import get_identity_manager
     identity = get_identity_manager()
     identity.ensure_identity()
     logger.info("Identity system initialized: %s", identity.get_identity().user_id)
 
     # Initialize orchestrator
-    from core.orchestrator.assistant_orchestrator import get_orchestrator
+    from core_engines.orchestrator.assistant_orchestrator import get_orchestrator
     orchestrator = get_orchestrator()
     orchestrator.suppress_noise_items(threshold=0.15)
     logger.info("Assistant orchestrator initialized")
 
     # Initialize execution layer
-    from core.actions.execution_tracker import get_execution_tracker
+    from core_engines.actions.execution_tracker import get_execution_tracker
     tracker = get_execution_tracker()
     logger.info("Execution tracker initialized")
 
-    from core.accountability.outcome_tracker import get_outcome_tracker
+    from core_engines.accountability.outcome_tracker import get_outcome_tracker
     outcome = get_outcome_tracker()
     logger.info("Outcome tracker initialized")
 
-    from core.accountability.system_scorecard import get_system_scorecard
+    from core_engines.accountability.system_scorecard import get_system_scorecard
     scorecard = get_system_scorecard()
     scorecard.generate()
     logger.info("System scorecard initialized")
 
-    from core.explainability.explanation_engine import get_explanation_engine
+    from core_engines.explainability.explanation_engine import get_explanation_engine
     engine = get_explanation_engine()
     logger.info("Explanation engine initialized")
 
-    from core.explainability.decision_trace import get_decision_trace
+    from core_engines.explainability.decision_trace import get_decision_trace
     trace = get_decision_trace()
     logger.info("Decision trace collector initialized")
 
-    from core.memory.memory_store import get_memory_store
+    from core_engines.memory.memory_store import get_memory_store
     store = get_memory_store()
     logger.info("Memory store initialized")
 
-    from core.memory.decision_memory import get_decision_memory
+    from core_engines.memory.decision_memory import get_decision_memory
     dm = get_decision_memory()
     logger.info("Decision memory initialized")
 
-    from core.memory.insight_archive import get_insight_archive
+    from core_engines.memory.insight_archive import get_insight_archive
     archive = get_insight_archive()
     logger.info("Insight archive initialized")
 
     # Consume memory into priority engine
-    from core.intelligence.priority_engine import get_priority_engine
+    from core_engines.intelligence.priority_engine import get_priority_engine
     pe = get_priority_engine()
     result = pe.consume_memory()
     logger.info("Priority engine memory consumption: %s", result.get("status", "unknown"))
 
     # Discover opportunities on startup
     try:
-        from core.opportunity import get_engine
+        from core_engines.opportunity import get_engine
         opp_engine = get_engine()
         opp_count = len(opp_engine.discover_all())
         logger.info("Opportunity engine initialized with %d opportunities", opp_count)
@@ -159,11 +160,22 @@ async def lifespan(app: FastAPI):
 
     yield
 
-app = FastAPI(title="Rastro API", version="0.3", lifespan=lifespan)
+# Read version from VERSION file (single source of truth)
+_VERSION_FILE = Path(__file__).resolve().parent.parent / "VERSION"
+_APP_VERSION = _VERSION_FILE.read_text().strip() if _VERSION_FILE.is_file() else "0.0.0"
 
+app = FastAPI(title="Rastro API", version=_APP_VERSION, lifespan=lifespan)
+
+# Production: restrict to local origins + pywebview app:// protocol.
+# Dev mode (RASTRO_DESKTOP not set) also keeps * for hot-reload.
+_allow_all = os.environ.get("RASTRO_DESKTOP") != "1"
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"] if _allow_all else [
+        "http://127.0.0.1:8000",
+        "http://localhost:8000",
+        "app://",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -274,10 +286,10 @@ async def metrics():
     lines.append(f'rastro_intelligence{{stat="snapshots_created"}} {state.get("total_snapshots_created", 0)}')
     lines.append(f'rastro_intelligence{{stat="analysis_time_ms"}} {state.get("total_analysis_time_ms", 0.0)}')
 
-    from core.timeline import build_timeline
-    from core.replay import list_replay_targets
-    from core.confidence import audit_verdicts
-    from core.review_queue import build_review_queue
+    from core_engines.timeline import build_timeline
+    from core_engines.replay import list_replay_targets
+    from core_engines.confidence import audit_verdicts
+    from core_engines.review_queue import build_review_queue
     try:
         tl = build_timeline(limit=1)
         timeline_count = tl.to_dict().get("total_events", 0)
@@ -298,7 +310,7 @@ async def metrics():
 
     # ── Opportunity Intelligence metrics ────────────────────────────
     try:
-        from core.opportunity import get_engine
+        from core_engines.opportunity import get_engine
         engine = get_engine()
         opp_metrics = engine.get_metrics()
         lines.append('# HELP rastro_opportunity Opportunity intelligence layer metrics')
@@ -315,7 +327,7 @@ async def metrics():
 
     # ── Execution Layer metrics ─────────────────────────────────────
     try:
-        from core.actions.execution_tracker import get_execution_tracker
+        from core_engines.actions.execution_tracker import get_execution_tracker
         et = get_execution_tracker()
         estats = et.get_stats()
         lines.append('# HELP rastro_execution Execution layer metrics')
@@ -327,7 +339,7 @@ async def metrics():
             lines.append(f'rastro_execution{{stat="avg_duration_ms",type="{safe_t}"}} {astats.get("avg_duration", 0)}')
             lines.append(f'rastro_execution{{stat="errors",type="{safe_t}"}} {astats.get("errors", 0)}')
 
-        from core.accountability.system_scorecard import get_system_scorecard
+        from core_engines.accountability.system_scorecard import get_system_scorecard
         sc = get_system_scorecard()
         latest = sc.get_latest()
         if latest:
@@ -336,15 +348,15 @@ async def metrics():
             lines.append(f'rastro_execution{{stat="active_decisions"}} {latest.get("active_decisions", 0)}')
             lines.append(f'rastro_execution{{stat="memory_usage"}} {latest.get("memory_usage", 0)}')
 
-        from core.memory.insight_archive import get_insight_archive
+        from core_engines.memory.insight_archive import get_insight_archive
         ia = get_insight_archive()
         lines.append(f'rastro_execution{{stat="insights_total"}} {ia.total_count()}')
 
-        from core.explainability.explanation_engine import get_explanation_engine
+        from core_engines.explainability.explanation_engine import get_explanation_engine
         ee = get_explanation_engine()
         lines.append(f'rastro_execution{{stat="explanations"}} {ee.count()}')
 
-        from core.explainability.decision_trace import get_decision_trace
+        from core_engines.explainability.decision_trace import get_decision_trace
         dt = get_decision_trace()
         lines.append(f'rastro_execution{{stat="decision_traces"}} {dt.count()}')
     except Exception as exc:

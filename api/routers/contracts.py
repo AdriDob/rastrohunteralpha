@@ -10,20 +10,20 @@ from typing import Any, Dict, List
 
 from fastapi import APIRouter
 
-from core.contracts.normalizers import (
+from core_engines.contracts.normalizers import (
     normalize_target,
     normalize_opportunity,
     normalize_endpoint,
     normalize_finding,
     normalize_evidence,
 )
-from core.contracts.validator import (
+from core_engines.contracts.validator import (
     EXPECTED_FIELDS,
     validate_contract,
     validate_paginated_response,
     build_debug_report,
 )
-from core.contracts.wrapper import wrap_paginated, wrap_list
+from core_engines.contracts.wrapper import wrap_paginated, wrap_list
 
 logger = logging.getLogger("rastro.api.contracts")
 
@@ -60,7 +60,7 @@ async def contracts_debug():
 
     Shows expected schema vs actual backend response for every contract.
     """
-    from core.contracts.validator import build_debug_report
+    from core_engines.contracts.validator import build_debug_report
 
     report = build_debug_report()
 

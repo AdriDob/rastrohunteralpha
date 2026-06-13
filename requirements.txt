@@ -1,7 +1,7 @@
 python-dotenv>=1.0.0
 fastapi>=0.95.0
 uvicorn[standard]>=0.22.0
-streamlit>=1.30.0
+# streamlit>=1.30.0  -- removed: no Streamlit dashboard, uses React frontend
 httpx>=0.24.0
 sqlalchemy>=2.0.0
 pydantic>=2.2.0

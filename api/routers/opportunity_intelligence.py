@@ -18,8 +18,8 @@ from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
 
-from core.opportunity import get_engine
-from core.identity_vault import get_identity_vault
+from core_engines.opportunity import get_engine
+from core_engines.identity_vault import get_identity_vault
 
 logger = logging.getLogger("rastro.opportunity.api")
 

@@ -60,7 +60,7 @@ class ScanScheduler:
             session.close()
 
     async def _scan_target(self, target: models.Target, session):
-        from core.orchestrator.scan_service import launch_scan
+        from core_engines.orchestrator.scan_service import launch_scan
 
         mode = os.environ.get("RASTRO_SCAN_MODE", "FAST")
         await launch_scan(

@@ -159,6 +159,40 @@ class TestOpportunities:
         assert "metrics" in data or "opportunities_total" in data
 
 
+class TestCreateTarget:
+    def test_create_target(self, client):
+        resp = client.post("/api/targets", json={"name": "test-target", "domain": "test.example.com"})
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "id" in data
+        assert data["name"] == "test-target"
+
+    def test_create_and_fetch(self, client):
+        create = client.post("/api/targets", json={"name": "create-fetch-test"})
+        assert create.status_code == 200
+        tid = create.json()["id"]
+        fetch = client.get(f"/api/targets/{tid}")
+        assert fetch.status_code == 200
+        assert fetch.json()["name"] == "create-fetch-test"
+
+    def test_create_endpoint(self, client):
+        resp = client.post("/api/endpoints", json={"target_id": 1, "path": "/api/test", "method": "GET"})
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "id" in data
+        assert data["path"] == "/api/test"
+
+    def test_create_finding(self, client):
+        resp = client.post("/api/findings", json={
+            "target_id": 1, "endpoint_id": 1,
+            "title": "test finding", "severity": "medium",
+        })
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "id" in data
+        assert data["title"] == "test finding"
+
+
 class TestStats:
     def test_stats(self, client):
         resp = client.get("/api/stats")

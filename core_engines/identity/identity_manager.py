@@ -13,8 +13,8 @@ import uuid
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from core.identity.device_registry import DeviceRegistry
-from core.identity.session_store import SessionStore
+from core_engines.identity.device_registry import DeviceRegistry
+from core_engines.identity.session_store import SessionStore
 
 logger = logging.getLogger("rastro.identity")
 

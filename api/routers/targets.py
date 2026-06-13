@@ -46,8 +46,8 @@ def get_target_summary(target_id: int):
     t = get_target(target_id)
     if not t:
         raise HTTPException(status_code=404, detail="Target not found")
-    from core.engine.unified_classifier import classify as unified_classify
-    from core.engine.unified_scoring import score_target as unified_score_target
+    from core_engines.engine.unified_classifier import classify as unified_classify
+    from core_engines.engine.unified_scoring import score_target as unified_score_target
     session = db.SessionLocal()
     try:
         endpoints_raw = session.query(models.Endpoint).filter(models.Endpoint.target_id == target_id).all()

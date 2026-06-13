@@ -13,10 +13,10 @@ Modules:
   guardrails         → Architectural enforcement
 """
 
-from core.engine.unified_scoring import score, score_target, generate_suggestions
-from core.engine.unified_classifier import classify, synthesize_target_meta
-from core.engine.snapshot import PipelineSnapshot, from_pipeline_output
-from core.engine.hypothesis import HypothesisEngine, Hypothesis, AttackQueue, VulnerabilityType
+from core_engines.engine.unified_scoring import score, score_target, generate_suggestions
+from core_engines.engine.unified_classifier import classify, synthesize_target_meta
+from core_engines.engine.snapshot import PipelineSnapshot, from_pipeline_output
+from core_engines.engine.hypothesis import HypothesisEngine, Hypothesis, AttackQueue, VulnerabilityType
 
 __all__ = [
     "score",

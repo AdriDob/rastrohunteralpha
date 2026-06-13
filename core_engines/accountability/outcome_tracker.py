@@ -65,7 +65,7 @@ class OutcomeTracker:
 
     def _archive(self, entry: OutcomeEntry) -> None:
         try:
-            from core.memory.insight_archive import get_insight_archive, Insight
+            from core_engines.memory.insight_archive import get_insight_archive, Insight
             archive = get_insight_archive()
             insight = Insight(
                 id=f"outcome-{entry.action_id}-{int(entry.timestamp)}",

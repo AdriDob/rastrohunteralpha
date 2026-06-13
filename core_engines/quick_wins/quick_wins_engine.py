@@ -20,7 +20,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from core.quick_wins.models import (
+from core_engines.quick_wins.models import (
     FastExploitPath,
     ImmediateActionEndpoint,
     LowEffortHighRoi,

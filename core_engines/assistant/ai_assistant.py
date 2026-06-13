@@ -16,15 +16,15 @@ from datetime import datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from database import db, models
-from core.engine.unified_scoring import score as unified_score, score_target as unified_score_target
-from core.evidence.graph import EvidenceGraph
-from core.evidence.store import EvidenceStore
-from core.reporting.report_engine import ReportEngine, FinalReport, ProgramData
-from core.reporting.severity import risk_to_severity, severity_score, confidence_to_label
-from core.validation.gate import Verdict
-from core.validation.rules import ValidationReport, RuleResult
-from core.validation.confidence import ConfidenceScore
-from core.opportunity.engine import get_engine as get_opportunity_engine
+from core_engines.engine.unified_scoring import score as unified_score, score_target as unified_score_target
+from core_engines.evidence.graph import EvidenceGraph
+from core_engines.evidence.store import EvidenceStore
+from core_engines.reporting.report_engine import ReportEngine, FinalReport, ProgramData
+from core_engines.reporting.severity import risk_to_severity, severity_score, confidence_to_label
+from core_engines.validation.gate import Verdict
+from core_engines.validation.rules import ValidationReport, RuleResult
+from core_engines.validation.confidence import ConfidenceScore
+from core_engines.opportunity.engine import get_engine as get_opportunity_engine
 
 logger = logging.getLogger("rastro.assistant.narrator")
 

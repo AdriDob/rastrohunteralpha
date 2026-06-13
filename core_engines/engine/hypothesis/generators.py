@@ -11,7 +11,7 @@ import re
 import hashlib
 from typing import Any, Dict, List, Optional, Set
 
-from core.engine.hypothesis.models import (
+from core_engines.engine.hypothesis.models import (
     Hypothesis,
     HypothesisSource,
     VulnerabilityType,

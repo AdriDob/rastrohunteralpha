@@ -3,9 +3,9 @@ from __future__ import annotations
 from typing import Any, Dict, List, Optional, Tuple
 
 from database import db, models
-from core.targets.models import TargetIntel
-from core.engine.unified_scoring import score as unified_score
-from core.engine.unified_scoring import score_target as unified_score_target
+from core_engines.targets.models import TargetIntel
+from core_engines.engine.unified_scoring import score as unified_score
+from core_engines.engine.unified_scoring import score_target as unified_score_target
 
 SEVERITY_PAYOUT = {
     "critical": 25000,

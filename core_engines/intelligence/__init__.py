@@ -7,17 +7,17 @@ Sub-packages:
                   trend_detector, recommendation_engine, learning_snapshot
 """
 
-from core.intelligence.dependency_graph import DependencyGraph
-from core.intelligence.event_system import EventSystem
-from core.intelligence.cache import ArtifactCache
-from core.intelligence.anti_drift import AntiDriftEnforcer
-from core.intelligence.unified_orchestrator import UnifiedOrchestrator, get_orchestrator
-from core.intelligence.adaptive_memory import AdaptiveMemory, get_memory, reset_memory
-from core.intelligence.pattern_registry import PatternRegistry, PatternStats, get_registry, reset_registry
-from core.intelligence.historical_analyzer import HistoricalSummary, analyze_historical_data
-from core.intelligence.trend_detector import TrendReport, TrendSignal, detect_trends
-from core.intelligence.recommendation_engine import RecommendationBundle, generate_recommendations
-from core.intelligence.learning_snapshot import LearningSnapshot, generate_snapshot
+from core_engines.intelligence.dependency_graph import DependencyGraph
+from core_engines.intelligence.event_system import EventSystem
+from core_engines.intelligence.cache import ArtifactCache
+from core_engines.intelligence.anti_drift import AntiDriftEnforcer
+from core_engines.intelligence.unified_orchestrator import UnifiedOrchestrator, get_orchestrator
+from core_engines.intelligence.adaptive_memory import AdaptiveMemory, get_memory, reset_memory
+from core_engines.intelligence.pattern_registry import PatternRegistry, PatternStats, get_registry, reset_registry
+from core_engines.intelligence.historical_analyzer import HistoricalSummary, analyze_historical_data
+from core_engines.intelligence.trend_detector import TrendReport, TrendSignal, detect_trends
+from core_engines.intelligence.recommendation_engine import RecommendationBundle, generate_recommendations
+from core_engines.intelligence.learning_snapshot import LearningSnapshot, generate_snapshot
 
 __all__ = [
     "DependencyGraph", "EventSystem", "ArtifactCache", "AntiDriftEnforcer",

@@ -10,7 +10,7 @@ import logging
 import re
 from typing import List, Optional, Set
 
-from core.opportunity.models import Opportunity, OpportunityScore
+from core_engines.opportunity.models import Opportunity, OpportunityScore
 
 logger = logging.getLogger("rastro.opportunity.scoring")
 

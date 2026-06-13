@@ -27,17 +27,17 @@ _CACHE_KEY = "briefing"
 
 
 def _get_engine():
-    from core.opportunity import get_engine as _get_engine
+    from core_engines.opportunity import get_engine as _get_engine
     return _get_engine()
 
 
 def _get_priority():
-    from core.intelligence.priority_engine import get_priority_engine as _get_priority
+    from core_engines.intelligence.priority_engine import get_priority_engine as _get_priority
     return _get_priority()
 
 
 def _get_orchestrator():
-    from core.orchestrator.assistant_orchestrator import get_orchestrator as _get_orch
+    from core_engines.orchestrator.assistant_orchestrator import get_orchestrator as _get_orch
     return _get_orch()
 
 
@@ -60,7 +60,7 @@ async def daily_briefing():
         system_health = _get_system_health()
         insight = _build_assistant_insight(priority, opp_engine)
 
-        from core.ux.info_filter import reduce_briefing
+        from core_engines.ux.info_filter import reduce_briefing
 
         daily_summary = {
             "opportunities": top_opps,
@@ -130,7 +130,7 @@ async def refresh_briefing():
 
 
 def _top_opportunities(engine, limit: int = 2) -> list:
-    from core.ux.info_filter import truncate
+    from core_engines.ux.info_filter import truncate
     opportunities = engine.get_all()
     scored = []
     for o in opportunities:
@@ -194,7 +194,7 @@ def _get_quick_wins(limit: int = 1) -> list:
 
 def _get_system_health() -> dict:
     try:
-        from core.system_state import get_system_state
+        from core_engines.system_state import get_system_state
         state = get_system_state()
         summary = state.get_summary()
         return {
@@ -207,7 +207,7 @@ def _get_system_health() -> dict:
 
 
 def _build_assistant_insight(priority, opp_engine) -> dict:
-    from core.ux.info_filter import truncate
+    from core_engines.ux.info_filter import truncate
     top = priority.get_top(1)
     metrics = opp_engine.get_metrics()
     total = metrics.get("opportunities_total", 0)

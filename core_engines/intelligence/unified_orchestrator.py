@@ -14,12 +14,12 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, List, Optional
 
-from core.contracts import ArtifactProtocol, InvalidationPolicy
-from core.intelligence.cache import ArtifactCache, get_cache
-from core.intelligence.dependency_graph import DependencyGraph
-from core.intelligence.event_system import EventSystem, get_event_system
-from core.intelligence.anti_drift import AntiDriftEnforcer, get_enforcer
-from core.intelligence.observability import ObservabilityCollector, get_observability
+from core_engines.contracts import ArtifactProtocol, InvalidationPolicy
+from core_engines.intelligence.cache import ArtifactCache, get_cache
+from core_engines.intelligence.dependency_graph import DependencyGraph
+from core_engines.intelligence.event_system import EventSystem, get_event_system
+from core_engines.intelligence.anti_drift import AntiDriftEnforcer, get_enforcer
+from core_engines.intelligence.observability import ObservabilityCollector, get_observability
 
 LOG = logging.getLogger("rastro.intelligence.orchestrator")
 

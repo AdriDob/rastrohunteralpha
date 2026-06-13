@@ -50,7 +50,7 @@ class AssistantOrchestrator:
         self._suppressed: Dict[str, float] = {}
 
     def recommend_next_action(self, top_n: int = 3) -> List[OrchestratorDecision]:
-        from core.intelligence.priority_engine import get_priority_engine
+        from core_engines.intelligence.priority_engine import get_priority_engine
         engine = get_priority_engine()
         ranked = engine.get_ranked(limit=top_n + 5)
         decisions: List[OrchestratorDecision] = []
@@ -83,7 +83,7 @@ class AssistantOrchestrator:
         }
 
     def highlight_ui_elements(self) -> List[Dict[str, Any]]:
-        from core.intelligence.priority_engine import get_priority_engine
+        from core_engines.intelligence.priority_engine import get_priority_engine
         engine = get_priority_engine()
         top = engine.get_top(3)
         return [
@@ -99,7 +99,7 @@ class AssistantOrchestrator:
         ]
 
     def suppress_noise_items(self, threshold: float = 0.15) -> int:
-        from core.intelligence.priority_engine import get_priority_engine
+        from core_engines.intelligence.priority_engine import get_priority_engine
         engine = get_priority_engine()
         ranked = engine.get_ranked(limit=100)
         count = 0
@@ -112,7 +112,7 @@ class AssistantOrchestrator:
         return count
 
     def trigger_discovery_refresh(self) -> Optional[OrchestratorDecision]:
-        from core.intelligence.learning_loop import get_learning_loop
+        from core_engines.intelligence.learning_loop import get_learning_loop
         loop = get_learning_loop()
         success_rate = loop.get_success_rate("open_opportunity")
         if success_rate < 0.3:

@@ -11,7 +11,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from core.opportunity.models import Opportunity, OpportunitySnapshot
+from core_engines.opportunity.models import Opportunity, OpportunitySnapshot
 
 logger = logging.getLogger("rastro.opportunity.history")
 

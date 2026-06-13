@@ -3,8 +3,8 @@ import threading
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from core.validation.gate import Verdict
-from core.validation.replayer import ComparisonResult
+from core_engines.validation.gate import Verdict
+from core_engines.validation.replayer import ComparisonResult
 
 
 class EvidenceGraph:

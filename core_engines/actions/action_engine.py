@@ -153,7 +153,7 @@ class ActionEngine:
         error: Optional[str],
     ) -> None:
         try:
-            from core.actions.execution_tracker import get_execution_tracker
+            from core_engines.actions.execution_tracker import get_execution_tracker
             tracker = get_execution_tracker()
             tracker.record_execution(
                 action_id=action.id,
@@ -170,7 +170,7 @@ class ActionEngine:
             logger.debug("Execution tracking error: %s", exc)
 
     def execute_by_priority(self, action_id: str, priority_payload: Dict[str, Any]) -> Dict[str, Any]:
-        from core.intelligence.priority_engine import get_priority_engine
+        from core_engines.intelligence.priority_engine import get_priority_engine
         engine = get_priority_engine()
 
         action = self._actions.get(action_id)
@@ -197,7 +197,7 @@ class ActionEngine:
             "by_type": type_counts,
         }
         try:
-            from core.actions.execution_tracker import get_execution_tracker
+            from core_engines.actions.execution_tracker import get_execution_tracker
             tracker = get_execution_tracker()
             stats["execution_tracker"] = tracker.get_stats()
         except Exception:

@@ -5,7 +5,7 @@ Visual evidence translation layer.
 Converts pipeline evidence into structured visual representations.
 """
 
-from core.screenshot.engine import (
+from core_engines.screenshot.engine import (
     AnnotationItem,
     ScreenshotBundle,
     ScreenshotEngine,

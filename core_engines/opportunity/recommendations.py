@@ -9,7 +9,7 @@ import logging
 from datetime import datetime, timezone
 from typing import List
 
-from core.opportunity.models import Opportunity, OpportunityRecommendations
+from core_engines.opportunity.models import Opportunity, OpportunityRecommendations
 
 logger = logging.getLogger("rastro.opportunity.recommendations")
 

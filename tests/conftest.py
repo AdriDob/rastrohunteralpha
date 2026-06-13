@@ -21,7 +21,7 @@ def go_bin() -> Path:
 @pytest.fixture
 def recon_tools(go_bin: Path) -> dict[str, Path | None]:
     """Resolve all recon tool paths."""
-    from core.recon.tools import _resolve_tool
+    from core_engines.recon.tools import _resolve_tool
     return {
         "subfinder": _resolve_tool("subfinder"),
         "katana": _resolve_tool("katana"),

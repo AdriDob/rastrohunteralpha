@@ -18,7 +18,7 @@ import json
 import logging
 from typing import Any, Dict, List, Optional
 
-from core.engine.hypothesis.models import Hypothesis, VulnerabilityType, HypothesisSource
+from core_engines.engine.hypothesis.models import Hypothesis, VulnerabilityType, HypothesisSource
 
 LOG = logging.getLogger("rastro.hypothesis.llm")
 

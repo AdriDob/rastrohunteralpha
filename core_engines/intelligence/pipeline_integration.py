@@ -16,7 +16,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, List, Optional
 
-from core.artifacts import (
+from core_engines.artifacts import (
     PipelineArtifact,
     EvidenceGraphArtifact,
     AttackSurfaceArtifact,
@@ -28,8 +28,8 @@ from core.artifacts import (
     AIInsightArtifact,
     ExecutionPlanArtifact,
 )
-from core.intelligence.unified_orchestrator import get_orchestrator
-from core.intelligence.event_system import get_event_system
+from core_engines.intelligence.unified_orchestrator import get_orchestrator
+from core_engines.intelligence.event_system import get_event_system
 
 LOG = logging.getLogger("rastro.intelligence.integration")
 
@@ -46,7 +46,7 @@ class PipelineIntegration:
         """Register the PipelineSnapshot as a canonical artifact."""
         snapshot = pipeline_result.get("snapshot")
         if snapshot is None:
-            from core.engine.snapshot import from_pipeline_output
+            from core_engines.engine.snapshot import from_pipeline_output
             snapshot = from_pipeline_output(pipeline_result)
         artifact = PipelineArtifact.from_snapshot(snapshot)
         orch = get_orchestrator()
@@ -58,7 +58,7 @@ class PipelineIntegration:
     @staticmethod
     def register_attack_surface(surface_map) -> AttackSurfaceArtifact:
         """Register the attack surface mapping as a canonical artifact."""
-        from core.engine.risk_model import AttackSurfaceMap
+        from core_engines.engine.risk_model import AttackSurfaceMap
         artifact = AttackSurfaceArtifact.from_surface_map(surface_map)
         orch = get_orchestrator()
         orch.compute("AttackSurfaceArtifact", "AttackSurfaceMapper", artifact)

@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from core.execution.request_mutator import RequestMutator
-from core.validation.replayer import AuthContext, RequestSpec
+from core_engines.execution.request_mutator import RequestMutator
+from core_engines.validation.replayer import AuthContext, RequestSpec
 
 
 @dataclass

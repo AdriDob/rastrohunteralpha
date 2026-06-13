@@ -17,8 +17,8 @@ Key components:
   llm — optional LLM reasoning enrichment (NOT scanning)
 """
 
-from core.engine.hypothesis.engine import HypothesisEngine
-from core.engine.hypothesis.models import (
+from core_engines.engine.hypothesis.engine import HypothesisEngine
+from core_engines.engine.hypothesis.models import (
     AttackQueue,
     Hypothesis,
     HypothesisEngineOutput,

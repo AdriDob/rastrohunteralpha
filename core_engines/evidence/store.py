@@ -2,8 +2,8 @@ import json
 import logging
 from typing import Any, Dict, List, Optional
 
-from core.validation.gate import Verdict
-from core.validation.replayer import ComparisonResult
+from core_engines.validation.gate import Verdict
+from core_engines.validation.replayer import ComparisonResult
 from database import models
 from database.db import SessionLocal
 

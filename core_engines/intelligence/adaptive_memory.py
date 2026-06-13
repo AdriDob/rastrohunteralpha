@@ -9,15 +9,15 @@ from database.db import SessionLocal
 
 LOG = logging.getLogger("rastro.intelligence.memory")
 
-from core.intelligence.pattern_registry import PatternRegistry, get_registry
-from core.intelligence.historical_analyzer import (
+from core_engines.intelligence.pattern_registry import PatternRegistry, get_registry
+from core_engines.intelligence.historical_analyzer import (
     HistoricalSummary, analyze_historical_data,
 )
-from core.intelligence.trend_detector import TrendReport, detect_trends
-from core.intelligence.recommendation_engine import (
+from core_engines.intelligence.trend_detector import TrendReport, detect_trends
+from core_engines.intelligence.recommendation_engine import (
     RecommendationBundle, generate_recommendations,
 )
-from core.intelligence.learning_snapshot import (
+from core_engines.intelligence.learning_snapshot import (
     LearningSnapshot, generate_snapshot,
 )
 

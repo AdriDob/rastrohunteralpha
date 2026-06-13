@@ -27,7 +27,7 @@ from typing import Optional
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from core.platform.system import get_frontend_dist_dir
+from core_engines.platform.system import get_frontend_dist_dir
 
 logger = logging.getLogger("rastro.frontend_server")
 

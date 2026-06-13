@@ -16,8 +16,8 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from core.targets.hunter import Hunter
-from core.engine.roi_model import apply_roi_to_priority
+from core_engines.targets.hunter import Hunter
+from core_engines.engine.roi_model import apply_roi_to_priority
 
 LOG = logging.getLogger("rastro.discovery")
 

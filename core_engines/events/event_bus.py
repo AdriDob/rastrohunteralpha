@@ -94,7 +94,7 @@ class EventBus:
 
         # Route through priority engine for ranking
         try:
-            from core.intelligence.priority_engine import get_priority_engine
+            from core_engines.intelligence.priority_engine import get_priority_engine
             engine = get_priority_engine()
             if event_type.startswith("opportunity"):
                 engine.ingest_opportunity({"source": "opportunity", **payload})

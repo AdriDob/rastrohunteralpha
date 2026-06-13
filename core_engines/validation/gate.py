@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
 from typing import Dict, List, Literal
 
-from core.validation.confidence import ConfidenceScore
-from core.validation.rules import ValidationReport
+from core_engines.validation.confidence import ConfidenceScore
+from core_engines.validation.rules import ValidationReport
 
 
 @dataclass

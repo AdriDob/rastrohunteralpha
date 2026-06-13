@@ -4,9 +4,9 @@ from typing import List, Dict, Optional
 import requests
 
 from database.db import SessionLocal, init_db
-from core.targets import parser, filters
-from core.engine.unified_scoring import score_target as unified_score_target
-from core.targets.models import TargetIntel, Scope
+from core_engines.targets import parser, filters
+from core_engines.engine.unified_scoring import score_target as unified_score_target
+from core_engines.targets.models import TargetIntel, Scope
 
 LOG = logging.getLogger("rastro.targets.hunter")
 

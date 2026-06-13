@@ -17,16 +17,16 @@ from typing import Any, Dict, List, Optional
 
 import pytest
 
-from core.actions.action_engine import ActionEngine, get_action_engine, Action
-from core.actions.execution_tracker import get_execution_tracker
-from core.accountability.outcome_tracker import get_outcome_tracker, OutcomeEntry
-from core.accountability.system_scorecard import get_system_scorecard
-from core.explainability.explanation_engine import get_explanation_engine
-from core.explainability.decision_trace import get_decision_trace
-from core.intelligence.priority_engine import get_priority_engine, PrioritizedAction
-from core.memory.decision_memory import get_decision_memory, Decision
-from core.memory.insight_archive import get_insight_archive, Insight
-from core.memory.memory_store import get_memory_store
+from core_engines.actions.action_engine import ActionEngine, get_action_engine, Action
+from core_engines.actions.execution_tracker import get_execution_tracker
+from core_engines.accountability.outcome_tracker import get_outcome_tracker, OutcomeEntry
+from core_engines.accountability.system_scorecard import get_system_scorecard
+from core_engines.explainability.explanation_engine import get_explanation_engine
+from core_engines.explainability.decision_trace import get_decision_trace
+from core_engines.intelligence.priority_engine import get_priority_engine, PrioritizedAction
+from core_engines.memory.decision_memory import get_decision_memory, Decision
+from core_engines.memory.insight_archive import get_insight_archive, Insight
+from core_engines.memory.memory_store import get_memory_store
 
 
 @pytest.fixture(autouse=True)

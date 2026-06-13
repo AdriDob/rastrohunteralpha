@@ -11,7 +11,7 @@ def attack_decision(
     limit: int = Query(500, ge=1, le=2000),
 ):
     from database import db, models
-    from core.attack import AttackDecisionEngine
+    from core_engines.attack import AttackDecisionEngine
 
     engine = AttackDecisionEngine()
     session = db.SessionLocal()

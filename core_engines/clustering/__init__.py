@@ -1,6 +1,6 @@
 """Clustering utilities for Rastro."""
 
-from core.clustering.clusterer import Clusterer
+from core_engines.clustering.clusterer import Clusterer
 
 __all__ = [
     "Clusterer",

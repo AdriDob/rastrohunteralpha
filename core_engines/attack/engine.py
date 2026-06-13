@@ -1,7 +1,7 @@
 import re
 from typing import Any, Dict, Iterable, List
 
-from core.engine.unified_scoring import score as unified_score, generate_suggestions as unified_suggestions
+from core_engines.engine.unified_scoring import score as unified_score, generate_suggestions as unified_suggestions
 
 OBJECT_REFERENCE_TOKENS = [
     "user_id",

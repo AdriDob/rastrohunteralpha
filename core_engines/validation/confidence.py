@@ -1,8 +1,8 @@
 from dataclasses import dataclass, field
 from typing import Any, Dict, List
 
-from core.validation.replayer import ComparisonResult
-from core.validation.rules import ValidationReport
+from core_engines.validation.replayer import ComparisonResult
+from core_engines.validation.rules import ValidationReport
 
 
 WEIGHTS = {

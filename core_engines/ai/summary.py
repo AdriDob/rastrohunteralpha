@@ -8,10 +8,10 @@ from __future__ import annotations
 
 from typing import Any, Dict
 
-from core.ai.context_builder import build_full_context
-from core.ai.insights import generate_insights, get_top_insight
-from core.ai.recommendations import get_best_recommendation
-from core.ai.provider import get_provider
+from core_engines.ai.context_builder import build_full_context
+from core_engines.ai.insights import generate_insights, get_top_insight
+from core_engines.ai.recommendations import get_best_recommendation
+from core_engines.ai.provider import get_provider
 
 
 def daily_summary() -> Dict[str, Any]:

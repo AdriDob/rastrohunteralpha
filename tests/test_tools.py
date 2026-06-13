@@ -14,7 +14,7 @@ class TestToolResolution:
         assert go_bin.is_dir(), f"Go bin directory not found: {go_bin}"
 
     def test_httpx_resolves_to_go_binary(self):
-        from core.recon.tools import _resolve_tool
+        from core_engines.recon.tools import _resolve_tool
         resolved = _resolve_tool("httpx")
         assert resolved is not None, "httpx not found"
         go_bin = Path.home() / "go" / "bin" / "httpx"
@@ -23,28 +23,28 @@ class TestToolResolution:
         )
 
     def test_katana_resolves_to_go_binary(self):
-        from core.recon.tools import _resolve_tool
+        from core_engines.recon.tools import _resolve_tool
         resolved = _resolve_tool("katana")
         assert resolved is not None, "katana not found"
         go_bin = Path.home() / "go" / "bin" / "katana"
         assert Path(resolved) == go_bin
 
     def test_subfinder_resolves_to_go_binary(self):
-        from core.recon.tools import _resolve_tool
+        from core_engines.recon.tools import _resolve_tool
         resolved = _resolve_tool("subfinder")
         assert resolved is not None, "subfinder not found"
         go_bin = Path.home() / "go" / "bin" / "subfinder"
         assert Path(resolved) == go_bin
 
     def test_check_tool_available(self):
-        from core.recon.tools import check_tool_available
+        from core_engines.recon.tools import check_tool_available
         assert check_tool_available("subfinder") is True
         assert check_tool_available("katana") is True
         assert check_tool_available("httpx") is True
 
     def test_go_httpx_version(self):
         """Verify the Go httpx responds (vs Python httpx which has different CLI)."""
-        from core.recon.tools import _resolve_tool
+        from core_engines.recon.tools import _resolve_tool
         binary = _resolve_tool("httpx")
         result = subprocess.run(
             [binary, "-version"], capture_output=True, text=True, timeout=10
@@ -53,7 +53,7 @@ class TestToolResolution:
         assert "httpx" in output or "projectdiscovery" in output or "version" in output
 
     def test_katana_version(self):
-        from core.recon.tools import _resolve_tool
+        from core_engines.recon.tools import _resolve_tool
         binary = _resolve_tool("katana")
         result = subprocess.run(
             [binary, "-version"], capture_output=True, text=True, timeout=10
@@ -67,7 +67,7 @@ class TestRunnerIntegration:
 
     def test_runner_instantiation(self):
         from pathlib import Path
-        from core.recon.runner import ReconRunner
+        from core_engines.recon.runner import ReconRunner
         runner = ReconRunner(Path("/tmp/test-runner"))
         assert runner.subfinder._binary is not None
         assert runner.katana._binary is not None
@@ -77,7 +77,7 @@ class TestRunnerIntegration:
         assert "go/bin" in runner.httpx._binary
 
     def test_tools_module_import(self):
-        from core.recon.tools import (
+        from core_engines.recon.tools import (
             TOOL_CHECKS, CRITICAL_TOOLS, OPTIONAL_TOOLS,
             check_tool_available, verify_recon_tools, validate_mode_compatibility,
             _resolve_tool,

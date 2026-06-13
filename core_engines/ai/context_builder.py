@@ -11,11 +11,11 @@ from datetime import datetime, timedelta
 from typing import Any, Dict, List, Optional
 
 from database import db, models
-from core.engine.snapshot import EndpointSnapshot, PipelineSnapshot, TargetSnapshot
-from core.engine.unified_scoring import score as unified_score, score_target as unified_score_target
-from core.evidence.graph import EvidenceGraph
-from core.quick_wins.quick_wins_engine import QuickWinsEngine
-from core.targets.models import TargetIntel
+from core_engines.engine.snapshot import EndpointSnapshot, PipelineSnapshot, TargetSnapshot
+from core_engines.engine.unified_scoring import score as unified_score, score_target as unified_score_target
+from core_engines.evidence.graph import EvidenceGraph
+from core_engines.quick_wins.quick_wins_engine import QuickWinsEngine
+from core_engines.targets.models import TargetIntel
 
 
 def build_full_context() -> Dict[str, Any]:

@@ -19,7 +19,7 @@ class ScanRequest(BaseModel):
 
 @router.post("")
 async def launch_scan(request: ScanRequest):
-    from core.orchestrator.scan_service import launch_scan as service_launch_scan
+    from core_engines.orchestrator.scan_service import launch_scan as service_launch_scan
     from database import db
     session = db.SessionLocal()
     try:

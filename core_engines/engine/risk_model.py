@@ -2,7 +2,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Set, Tuple
 
-from core.engine.unified_scoring import score, score_target
+from core_engines.engine.unified_scoring import score, score_target
 
 UUID_PATTERN = re.compile(
     r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"

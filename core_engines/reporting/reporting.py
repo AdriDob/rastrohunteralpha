@@ -1,6 +1,6 @@
 from typing import Any, Dict, List, Optional
 
-from core.validation.gate import Verdict
+from core_engines.validation.gate import Verdict
 
 
 class ValidationError(Exception):

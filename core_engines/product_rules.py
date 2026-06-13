@@ -165,7 +165,7 @@ def _check_decision_engine() -> Optional[str]:
 @rule("execution-tracker-active", "Execution tracker must be available to record actions")
 def _check_execution_tracker() -> Optional[str]:
     try:
-        from core.actions.execution_tracker import get_execution_tracker
+        from core_engines.actions.execution_tracker import get_execution_tracker
         tracker = get_execution_tracker()
         if tracker is None:
             return "Execution tracker not initialized"
@@ -177,7 +177,7 @@ def _check_execution_tracker() -> Optional[str]:
 @rule("explainability-available", "Every decision must be explainable on request")
 def _check_explainability() -> Optional[str]:
     try:
-        from core.explainability.explanation_engine import get_explanation_engine
+        from core_engines.explainability.explanation_engine import get_explanation_engine
         engine = get_explanation_engine()
         if engine is None:
             return "Explanation engine not initialized"
@@ -189,7 +189,7 @@ def _check_explainability() -> Optional[str]:
 @rule("accountability-enabled", "Outcome tracking must be enabled for accountability")
 def _check_accountability() -> Optional[str]:
     try:
-        from core.accountability.outcome_tracker import get_outcome_tracker
+        from core_engines.accountability.outcome_tracker import get_outcome_tracker
         tracker = get_outcome_tracker()
         if tracker is None:
             return "Outcome tracker not initialized"
@@ -201,7 +201,7 @@ def _check_accountability() -> Optional[str]:
 @rule("scorecard-reachable", "System scorecard must be reachable for health monitoring")
 def _check_scorecard() -> Optional[str]:
     try:
-        from core.accountability.system_scorecard import get_system_scorecard
+        from core_engines.accountability.system_scorecard import get_system_scorecard
         scorecard = get_system_scorecard()
         latest = scorecard.get_latest()
         if latest is None:
@@ -214,7 +214,7 @@ def _check_scorecard() -> Optional[str]:
 @rule("decision-memory-persistent", "Decision memory must persist across restarts")
 def _check_decision_memory() -> Optional[str]:
     try:
-        from core.memory.decision_memory import get_decision_memory
+        from core_engines.memory.decision_memory import get_decision_memory
         memory = get_decision_memory()
         if memory is None:
             return "Decision memory not initialized"
@@ -226,7 +226,7 @@ def _check_decision_memory() -> Optional[str]:
 @rule("insight-archival-enabled", "All insights must be archived for traceability")
 def _check_insight_archive() -> Optional[str]:
     try:
-        from core.memory.insight_archive import get_insight_archive
+        from core_engines.memory.insight_archive import get_insight_archive
         archive = get_insight_archive()
         if archive is None:
             return "Insight archive not initialized"
@@ -249,7 +249,7 @@ def _check_execution_api() -> Optional[str]:
 @rule("priority-memory-consume", "Priority engine must consume decision memory for weight adjustment")
 def _check_priority_memory() -> Optional[str]:
     try:
-        from core.intelligence.priority_engine import get_priority_engine
+        from core_engines.intelligence.priority_engine import get_priority_engine
         engine = get_priority_engine()
         result = engine.consume_memory()
         if result.get("status") == "error":

@@ -12,7 +12,7 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 
-from core.intelligence.unified_orchestrator import get_orchestrator
+from core_engines.intelligence.unified_orchestrator import get_orchestrator
 
 LOG = logging.getLogger("rastro.api.canonical")
 
@@ -104,7 +104,7 @@ async def get_events(
     event_type: Optional[str] = Query(None, description="Filter by event type"),
 ):
     """Get the event history."""
-    from core.intelligence.event_system import get_event_system
+    from core_engines.intelligence.event_system import get_event_system
     es = get_event_system()
     return {"events": es.get_events(event_type)}
 
@@ -119,6 +119,6 @@ async def get_metrics():
 @router.get("/anti-drift")
 async def get_anti_drift_report():
     """Get anti-drift violation report."""
-    from core.intelligence.anti_drift import get_enforcer
+    from core_engines.intelligence.anti_drift import get_enforcer
     enforcer = get_enforcer()
     return enforcer.report()

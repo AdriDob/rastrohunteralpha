@@ -1,3 +1,3 @@
-from core.ai.assistant import ScanAssistant
+from core_engines.ai.assistant import ScanAssistant
 
 __all__ = ["ScanAssistant"]

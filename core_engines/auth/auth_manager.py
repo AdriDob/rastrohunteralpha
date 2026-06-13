@@ -6,15 +6,15 @@ import logging
 import time
 from typing import Any, Dict, List, Optional, Tuple
 
-from core.auth.auth import (
+from core_engines.auth.auth import (
     create_session_token,
     create_refresh_token,
     verify_token,
     verify_session,
     TOKEN_TTL,
 )
-from core.auth.session import get_session_store, SessionStore
-from core.auth.token_service import get_token_service, TokenService
+from core_engines.auth.session import get_session_store, SessionStore
+from core_engines.auth.token_service import get_token_service, TokenService
 
 logger = logging.getLogger("rastro.auth.manager")
 

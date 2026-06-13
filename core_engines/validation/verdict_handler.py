@@ -4,8 +4,8 @@ from typing import Any, Dict, List, Optional
 
 from sqlalchemy.orm import Session
 
-from core.reporting.severity import risk_to_severity
-from core.validation.gate import Verdict
+from core_engines.reporting.severity import risk_to_severity
+from core_engines.validation.gate import Verdict
 from database import models
 
 LOG = logging.getLogger("rastro.validation.verdict_handler")

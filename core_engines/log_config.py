@@ -8,8 +8,10 @@ def setup_logging(level: Optional[str] = None, json_output: bool = False) -> Non
     fmt = "%(asctime)s | %(name)s | %(levelname)-5s | %(message)s"
     if json_output:
         fmt = '{"time":"%(asctime)s","logger":"%(name)s","level":"%(levelname)s","message":"%(message)s"}'
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(logging.Formatter(fmt, datefmt="%Y-%m-%d %H:%M:%S"))
     root = logging.getLogger("rastro")
-    root.addHandler(handler)
+    # Avoid duplicate handlers when desktop/_setup_logging already configured us
+    if not root.handlers:
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(logging.Formatter(fmt, datefmt="%Y-%m-%d %H:%M:%S"))
+        root.addHandler(handler)
     root.setLevel(level or "INFO")

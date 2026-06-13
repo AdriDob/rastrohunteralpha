@@ -5,7 +5,7 @@ from pathlib import Path
 from typing import Iterable
 from urllib.parse import urlparse
 
-from core.engine.unified_scoring import score as unified_score
+from core_engines.engine.unified_scoring import score as unified_score
 
 AUTH_SMELLS = [
     "org_id",

@@ -2,8 +2,8 @@ from typing import Optional
 
 from fastapi import APIRouter, Query, Request
 
-from core.notifications.hub import get_hub, NOTIFICATION_TYPES
-from core.gateway.schemas import ok, error
+from core_engines.notifications.hub import get_hub, NOTIFICATION_TYPES
+from core_engines.gateway.schemas import ok, error
 
 router = APIRouter(prefix="/api/notifications", tags=["notifications"])
 

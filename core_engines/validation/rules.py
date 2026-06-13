@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from typing import Dict, List
 
-from core.validation.replayer import ComparisonResult
+from core_engines.validation.replayer import ComparisonResult
 
 
 CRITICAL_SENSITIVE_FIELDS = {

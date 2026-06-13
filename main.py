@@ -6,14 +6,14 @@ from fastapi import Depends, FastAPI, HTTPException
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
-from core.engine.unified_scoring import score as unified_score, score_target as unified_score_target
-from core.engine.unified_classifier import classify as unified_classify
-from core.attack import AttackDecisionEngine
-from core.validation.loop_engine import ValidationLoopEngine
-from core.validation.evidence_builder import EvidenceBuilder
-from core.validation.verdict_handler import VerdictHandler
-from core.validation.replayer import AuthContext, RequestSpec
-from core.reporting.reporting import ReportGenerator, ValidationError, ConfidenceThresholdError
+from core_engines.engine.unified_scoring import score as unified_score, score_target as unified_score_target
+from core_engines.engine.unified_classifier import classify as unified_classify
+from core_engines.attack import AttackDecisionEngine
+from core_engines.validation.loop_engine import ValidationLoopEngine
+from core_engines.validation.evidence_builder import EvidenceBuilder
+from core_engines.validation.verdict_handler import VerdictHandler
+from core_engines.validation.replayer import AuthContext, RequestSpec
+from core_engines.reporting.reporting import ReportGenerator, ValidationError, ConfidenceThresholdError
 from database import db, models
 
 # Configure logging
@@ -260,7 +260,7 @@ async def list_findings(session: Session = Depends(get_db)):
 
 @app.post("/scans")
 async def launch_scan(target: TargetCreate, session: Session = Depends(get_db)):
-    from core.orchestrator.scan_service import launch_scan as service_launch_scan
+    from core_engines.orchestrator.scan_service import launch_scan as service_launch_scan
     return await service_launch_scan(
         target_name=target.name,
         target_domain=target.domain,
@@ -741,7 +741,7 @@ async def replay_evidence_attempt(
         raise HTTPException(status_code=404, detail="Evidence attempt not found")
     
     # Replay the request
-    from core.validation.replayer import RequestReplayer, AuthContext, RequestSpec
+    from core_engines.validation.replayer import RequestReplayer, AuthContext, RequestSpec
     import json
     
     try:

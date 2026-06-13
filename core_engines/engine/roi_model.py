@@ -15,7 +15,7 @@ import math
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Tuple
 
-from core.engine.hypothesis.models import Hypothesis, VulnerabilityType
+from core_engines.engine.hypothesis.models import Hypothesis, VulnerabilityType
 
 # ── Constants ────────────────────────────────────────────────────────
 
@@ -328,7 +328,7 @@ def apply_roi_to_priority(
 
 # ── Lazy import to avoid circular dependency at module level ─────────
 
-from core.engine.hypothesis.models import HypothesisScore
+from core_engines.engine.hypothesis.models import HypothesisScore
 
 __all__ = [
     "ROIScore",

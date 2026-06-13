@@ -1,7 +1,7 @@
 """Endpoint intelligence and analysis tools."""
 
-from core.analysis.analyzer import EndpointAnalyzer
-from core.analysis.investigation_graph import (
+from core_engines.analysis.analyzer import EndpointAnalyzer
+from core_engines.analysis.investigation_graph import (
     InvestigationGraphBuilder,
     NodeExtractor,
     RelationshipDetector,
@@ -11,7 +11,7 @@ from core.analysis.investigation_graph import (
     Cluster,
     HotPath,
 )
-from core.analysis.noise_reduction import NoiseReductionEngine, NoiseConfig, NoiseReport
+from core_engines.analysis.noise_reduction import NoiseReductionEngine, NoiseConfig, NoiseReport
 
 __all__ = [
     "EndpointAnalyzer",

@@ -59,7 +59,7 @@ class LearningLoop:
     # ── PROCESS phase ─────────────────────────────────────────────────
 
     def process_through_priority(self, payload: Dict[str, Any]) -> List[Dict[str, Any]]:
-        from core.intelligence.priority_engine import get_priority_engine
+        from core_engines.intelligence.priority_engine import get_priority_engine
         engine = get_priority_engine()
 
         source = payload.get("source", "unknown")

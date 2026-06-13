@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
-from core.gateway.schemas import ok
-from core.orchestrator.assistant_orchestrator import get_orchestrator
+from core_engines.gateway.schemas import ok
+from core_engines.orchestrator.assistant_orchestrator import get_orchestrator
 
 router = APIRouter(prefix="/api/orchestrator", tags=["orchestrator"])
 

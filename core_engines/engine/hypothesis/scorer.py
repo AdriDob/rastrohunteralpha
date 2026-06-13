@@ -9,8 +9,8 @@ from __future__ import annotations
 import math
 from typing import Dict, List, Optional
 
-from core.engine.hypothesis.models import Hypothesis, HypothesisScore, VulnerabilityType
-from core.engine.roi_model import ROIScore, calculate_roi, apply_roi_to_priority
+from core_engines.engine.hypothesis.models import Hypothesis, HypothesisScore, VulnerabilityType
+from core_engines.engine.roi_model import ROIScore, calculate_roi, apply_roi_to_priority
 
 
 LIKELIHOOD_WEIGHTS = {

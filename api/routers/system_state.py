@@ -8,9 +8,9 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Query
 
-from core.system_state import get_system_state
-from core.events.event_bus import get_event_bus
-from core.contracts.wrapper import wrap_list
+from core_engines.system_state import get_system_state
+from core_engines.events.event_bus import get_event_bus
+from core_engines.contracts.wrapper import wrap_list
 
 router = APIRouter(prefix="/api/system", tags=["system"])
 

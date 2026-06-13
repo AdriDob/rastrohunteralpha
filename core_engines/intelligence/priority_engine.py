@@ -216,7 +216,7 @@ class PriorityEngine:
         if not enabled:
             return {"status": "skipped", "reason": "memory consumption disabled"}
         try:
-            from core.memory.decision_memory import get_decision_memory
+            from core_engines.memory.decision_memory import get_decision_memory
             memory = get_decision_memory()
             successes = 0
             failures = 0
@@ -240,7 +240,7 @@ class PriorityEngine:
             return {"status": "error", "error": str(exc)}
 
     def get_consumption_stats(self) -> Dict[str, Any]:
-        from core.memory.decision_memory import get_decision_memory
+        from core_engines.memory.decision_memory import get_decision_memory
         memory = get_decision_memory()
         return {
             "total_decisions": memory.count_decisions(),

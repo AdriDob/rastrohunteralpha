@@ -1,7 +1,7 @@
 import re
 from typing import Any, Dict, Iterable, List, Optional
 
-from core.engine.unified_scoring import score
+from core_engines.engine.unified_scoring import score
 
 
 UUID_PATTERN = re.compile(

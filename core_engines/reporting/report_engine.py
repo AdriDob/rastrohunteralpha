@@ -1,10 +1,10 @@
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from core.evidence.store import EvidenceStore
-from core.reporting.export_formats import ExportFormats
-from core.reporting.severity import cvss_vector, risk_to_severity, severity_score
-from core.validation.gate import Verdict
+from core_engines.evidence.store import EvidenceStore
+from core_engines.reporting.export_formats import ExportFormats
+from core_engines.reporting.severity import cvss_vector, risk_to_severity, severity_score
+from core_engines.validation.gate import Verdict
 
 
 @dataclass
@@ -45,7 +45,7 @@ class ReportEngine:
         endpoint_data: Optional[Dict[str, Any]] = None,
         evidence_list: Optional[List[Dict[str, Any]]] = None,
     ) -> Optional[FinalReport]:
-        from core.validation.gate import ReportGate
+        from core_engines.validation.gate import ReportGate
         if not ReportGate().admit(verdict):
             return None
 

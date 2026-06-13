@@ -10,7 +10,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, List, Optional, Set
 
-from core.contracts import DependencyGraphProtocol
+from core_engines.contracts import DependencyGraphProtocol
 
 LOG = logging.getLogger("rastro.intelligence.dependency_graph")
 

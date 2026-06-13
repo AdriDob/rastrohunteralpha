@@ -10,9 +10,9 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from core.auth.session import get_session_store, SessionStore
-from core.sync.manager import get_sync_manager, SyncManager
-from core.notifications.hub import get_hub, NotificationHub, Notification
+from core_engines.auth.session import get_session_store, SessionStore
+from core_engines.sync.manager import get_sync_manager, SyncManager
+from core_engines.notifications.hub import get_hub, NotificationHub, Notification
 
 logger = logging.getLogger("rastro.unification")
 

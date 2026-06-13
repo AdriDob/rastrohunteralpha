@@ -13,7 +13,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from core.opportunity.models import Opportunity, OpportunitySource, OpportunityProviderInfo
+from core_engines.opportunity.models import Opportunity, OpportunitySource, OpportunityProviderInfo
 
 logger = logging.getLogger("rastro.opportunity.providers")
 

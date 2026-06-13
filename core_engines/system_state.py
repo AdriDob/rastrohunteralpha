@@ -16,7 +16,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, Dict, List, Optional
 
-from core.events.event_bus import get_event_bus
+from core_engines.events.event_bus import get_event_bus
 
 SYSTEM_STATE_BOOTING = "BOOTING"
 SYSTEM_STATE_READY = "READY"

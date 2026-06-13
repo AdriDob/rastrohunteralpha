@@ -10,8 +10,8 @@ from __future__ import annotations
 from typing import Any, Dict, List
 
 from database import db, models
-from core.engine.unified_scoring import score as unified_score, score_target as unified_score_target
-from core.engine.unified_scoring import generate_suggestions
+from core_engines.engine.unified_scoring import score as unified_score, score_target as unified_score_target
+from core_engines.engine.unified_scoring import generate_suggestions
 
 
 def generate_recommendations() -> List[Dict[str, Any]]:

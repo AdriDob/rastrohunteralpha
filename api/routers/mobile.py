@@ -3,9 +3,9 @@ from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Query, Request
 
-from core.opportunity import get_engine
-from core.gateway.schemas import ok, error
-from core.notifications.push import get_push_router
+from core_engines.opportunity import get_engine
+from core_engines.gateway.schemas import ok, error
+from core_engines.notifications.push import get_push_router
 from database import db
 
 router = APIRouter(prefix="/api/mobile", tags=["mobile"])
@@ -178,7 +178,7 @@ async def mobile_summary():
 
 def _get_system_status() -> str:
     try:
-        from core.system_state import get_system_state
+        from core_engines.system_state import get_system_state
         state = get_system_state()
         return state.get_summary().get("system_state", "UNKNOWN")
     except Exception:

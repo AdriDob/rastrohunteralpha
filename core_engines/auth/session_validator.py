@@ -6,8 +6,8 @@ import logging
 import time
 from typing import Any, Dict, List, Optional, Tuple
 
-from core.auth.auth import verify_session, verify_token
-from core.auth.session import get_session_store
+from core_engines.auth.auth import verify_session, verify_token
+from core_engines.auth.session import get_session_store
 
 logger = logging.getLogger("rastro.auth.session_validator")
 

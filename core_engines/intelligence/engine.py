@@ -14,7 +14,7 @@ from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional, Set
 
-from core.ai.assistant import ScanAssistant
+from core_engines.ai.assistant import ScanAssistant
 
 LOG = logging.getLogger("rastro.intelligence")
 

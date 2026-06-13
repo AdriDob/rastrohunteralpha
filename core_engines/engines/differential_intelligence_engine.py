@@ -15,7 +15,7 @@ import logging
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from core.engine.extraction import (
+from core_engines.engine.extraction import (
     extract_endpoints,
     extract_hot_paths as _extract_hot_paths_shared,
     extract_verdict_map as _extract_verdict_map_shared,

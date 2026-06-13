@@ -62,8 +62,8 @@ def collect_health() -> SystemHealthSummary:
     session = SessionLocal()
     try:
         from database.models import Target, Endpoint, Finding, Verdict, Evidence, ScanRun
-        from core.observability import get_metrics
-        from core.intelligence.adaptive_memory import get_memory
+        from core_engines.observability import get_metrics
+        from core_engines.intelligence.adaptive_memory import get_memory
 
         summary = SystemHealthSummary()
 

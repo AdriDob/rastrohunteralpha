@@ -10,8 +10,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from core.contracts import Bundle
-from core.evidence.graph import EvidenceGraph as _EvidenceGraph
+from core_engines.contracts import Bundle
+from core_engines.evidence.graph import EvidenceGraph as _EvidenceGraph
 
 
 @dataclass

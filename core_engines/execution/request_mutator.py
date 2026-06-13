@@ -2,7 +2,7 @@ import copy
 import re
 from typing import Any, Dict, List, Optional, Tuple
 
-from core.validation.replayer import AuthContext, RequestSpec
+from core_engines.validation.replayer import AuthContext, RequestSpec
 
 PARAM_PATTERN = re.compile(r"\{(\w+)\}")
 

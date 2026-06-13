@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List
 
-from core.ai.context_builder import build_full_context
+from core_engines.ai.context_builder import build_full_context
 
 
 def generate_insights() -> List[Dict[str, Any]]:

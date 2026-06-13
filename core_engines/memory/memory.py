@@ -4,8 +4,8 @@ from typing import Any, Dict, List, Optional
 
 from database.db import SessionLocal
 from database.models import MemoryRecord
-from core.memory.pattern_extractor import PatternExtractor
-from core.memory.learning_scorer import LearningScorer, ConfidenceBooster, PayoutEstimator
+from core_engines.memory.pattern_extractor import PatternExtractor
+from core_engines.memory.learning_scorer import LearningScorer, ConfidenceBooster, PayoutEstimator
 
 
 class MemoryPatternLibrary:

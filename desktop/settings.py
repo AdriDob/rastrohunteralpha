@@ -52,7 +52,7 @@ DEFAULT_SETTINGS: Dict[str, Any] = {
 
 
 def _get_config_path() -> Path:
-    from core.platform.system import get_config_dir
+    from core_engines.platform.system import get_config_dir
     return get_config_dir()
 
 

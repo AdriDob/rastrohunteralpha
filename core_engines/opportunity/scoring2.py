@@ -14,7 +14,7 @@ import re
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Set
 
-from core.opportunity.models import (
+from core_engines.opportunity.models import (
     EVHCalculation,
     EVHRating,
     Opportunity,

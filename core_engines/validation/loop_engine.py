@@ -1,10 +1,10 @@
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional
 
-from core.validation.confidence import ConfidenceScorer
-from core.validation.gate import ReportGate, Verdict
-from core.validation.replayer import AuthContext, ComparisonResult, RequestReplayer, RequestSpec
-from core.validation.rules import ValidationReport, ValidationRuleSet
+from core_engines.validation.confidence import ConfidenceScorer
+from core_engines.validation.gate import ReportGate, Verdict
+from core_engines.validation.replayer import AuthContext, ComparisonResult, RequestReplayer, RequestSpec
+from core_engines.validation.rules import ValidationReport, ValidationRuleSet
 
 
 DEFAULT_CONCURRENCY = 5

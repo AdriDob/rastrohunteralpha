@@ -1,24 +1,24 @@
 import logging
 from typing import Any, Dict, List, Optional
 
-from core.ai.assistant import ScanAssistant
-from core.analysis.investigation_graph import InvestigationGraphBuilder
-from core.engine.unified_scoring import score as unified_score
-from core.analysis.noise_reduction import NoiseReductionEngine
-from core.attack.engine import AttackDecisionEngine
-from core.evidence.graph import EvidenceGraph
-from core.evidence.store import EvidenceStore
-from core.execution.differential_engine import DifferentialEngine
-from core.execution.gap_analyzer import GapAnalyzer
-from core.execution.poc_generator import PoCGenerator
-from core.memory.identity_graph import IdentityGraph
-from core.reporting.report_engine import ProgramData, ReportEngine
-from core.engine.priority_rebalancer import PriorityRebalancer
-from core.engine.risk_model import AttackSurfaceMapper, ROIEstimator
-from core.engine.hypothesis.engine import HypothesisEngine
-from core.engine.snapshot import PipelineSnapshot, from_pipeline_output
-from core.validation.gate import Verdict
-from core.observability import timer
+from core_engines.ai.assistant import ScanAssistant
+from core_engines.analysis.investigation_graph import InvestigationGraphBuilder
+from core_engines.engine.unified_scoring import score as unified_score
+from core_engines.analysis.noise_reduction import NoiseReductionEngine
+from core_engines.attack.engine import AttackDecisionEngine
+from core_engines.evidence.graph import EvidenceGraph
+from core_engines.evidence.store import EvidenceStore
+from core_engines.execution.differential_engine import DifferentialEngine
+from core_engines.execution.gap_analyzer import GapAnalyzer
+from core_engines.execution.poc_generator import PoCGenerator
+from core_engines.memory.identity_graph import IdentityGraph
+from core_engines.reporting.report_engine import ProgramData, ReportEngine
+from core_engines.engine.priority_rebalancer import PriorityRebalancer
+from core_engines.engine.risk_model import AttackSurfaceMapper, ROIEstimator
+from core_engines.engine.hypothesis.engine import HypothesisEngine
+from core_engines.engine.snapshot import PipelineSnapshot, from_pipeline_output
+from core_engines.validation.gate import Verdict
+from core_engines.observability import timer
 
 LOG = logging.getLogger("rastro.pipeline")
 

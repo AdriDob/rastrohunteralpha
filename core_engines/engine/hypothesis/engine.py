@@ -13,17 +13,17 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, List, Optional, Tuple
 
-from core.engine.hypothesis.models import (
+from core_engines.engine.hypothesis.models import (
     AttackQueue,
     Hypothesis,
     HypothesisEngineOutput,
     HypothesisSource,
     VulnerabilityType,
 )
-from core.engine.hypothesis.generators import generate_hypotheses
-from core.engine.hypothesis.scorer import score_hypothesis, reorder_attack_queue
-from core.engine.hypothesis.memory import HypothesisMemory
-from core.engine.hypothesis.llm import enrich_reasoning, detect_gaps, refine_priority
+from core_engines.engine.hypothesis.generators import generate_hypotheses
+from core_engines.engine.hypothesis.scorer import score_hypothesis, reorder_attack_queue
+from core_engines.engine.hypothesis.memory import HypothesisMemory
+from core_engines.engine.hypothesis.llm import enrich_reasoning, detect_gaps, refine_priority
 
 LOG = logging.getLogger("rastro.hypothesis")
 

@@ -9,7 +9,7 @@ from urllib.parse import urlparse
 
 import requests
 
-from core.validation.hardening import (
+from core_engines.validation.hardening import (
     AdaptiveRetryStrategy,
     NetworkBehaviorDetector,
 )

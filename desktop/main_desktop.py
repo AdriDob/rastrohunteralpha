@@ -171,7 +171,7 @@ def _wait_for_health(host: str, port: int, timeout: float = 30.0) -> bool:
 def _mount_frontend(app) -> bool:
     from pathlib import Path
     import logging
-    from core.platform.system import get_frontend_dist_dir
+    from core_engines.platform.system import get_frontend_dist_dir
     from fastapi.responses import FileResponse, JSONResponse
 
     dist_dir: Path = get_frontend_dist_dir()
@@ -231,16 +231,25 @@ def _init_settings() -> int:
 def _open_desktop_window(host: str, port: int) -> None:
     url = f"http://{host}:{port}"
     _lifecycle(_BROWSER, "Opening desktop window → %s", url)
-    window = webview.create_window(
-        "Rastro Investigation OS",
-        url=url,
-        width=1400,
-        height=900,
-        resizable=True,
-        min_size=(1024, 600),
-    )
-    window.closed += lambda: _lifecycle(_SHUTDOWN, "Desktop window closed")
-    webview.start(storage_path=None)
+    try:
+        window = webview.create_window(
+            "Rastro Investigation OS",
+            url=url,
+            width=1400,
+            height=900,
+            resizable=True,
+            min_size=(1024, 600),
+        )
+        window.closed += lambda: _lifecycle(_SHUTDOWN, "Desktop window closed")
+        webview.start(storage_path=None)
+    except Exception as exc:
+        _lifecycle(_BROWSER, "Desktop window failed (%s), falling back to browser", exc)
+        _open_browser(port)
+        import signal as _sig
+        _shutdown: threading.Event = threading.Event()
+        _sig.signal(_sig.SIGINT, lambda *_: _shutdown.set())
+        _sig.signal(_sig.SIGTERM, lambda *_: _shutdown.set())
+        _shutdown.wait()
 
 
 def _open_browser(port: int) -> None:

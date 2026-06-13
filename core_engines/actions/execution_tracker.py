@@ -118,8 +118,8 @@ class ExecutionTracker:
 
     def _archive_to_memory(self, record: ExecutionRecord) -> None:
         try:
-            from core.memory.decision_memory import get_decision_memory
-            from core.memory.decision_memory import Decision
+            from core_engines.memory.decision_memory import get_decision_memory
+            from core_engines.memory.decision_memory import Decision
             memory = get_decision_memory()
             decision = Decision(
                 id=f"exec-{record.action_id}-{int(record.timestamp)}",

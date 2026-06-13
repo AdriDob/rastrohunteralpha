@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Request
 
-from core.gateway.schemas import ok, error
-from core.identity.identity_manager import get_identity_manager
+from core_engines.gateway.schemas import ok, error
+from core_engines.identity.identity_manager import get_identity_manager
 
 router = APIRouter(prefix="/api/identity", tags=["identity"])
 

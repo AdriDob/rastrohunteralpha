@@ -9,7 +9,7 @@ from typing import Optional
 
 from fastapi import APIRouter, HTTPException
 
-from core.engine.snapshot import (
+from core_engines.engine.snapshot import (
     EndpointSnapshot,
     HotPathSnapshot,
     PipelineSnapshot,
@@ -17,9 +17,9 @@ from core.engine.snapshot import (
     TargetSnapshot,
     VerdictSnapshot,
 )
-from core.evidence.graph import EvidenceGraph
-from core.quick_wins.quick_wins_engine import QuickWinsEngine
-from core.engine.unified_scoring import score as unified_score
+from core_engines.evidence.graph import EvidenceGraph
+from core_engines.quick_wins.quick_wins_engine import QuickWinsEngine
+from core_engines.engine.unified_scoring import score as unified_score
 from database import db, models
 
 router = APIRouter(prefix="/api/quick-wins", tags=["quick_wins"])

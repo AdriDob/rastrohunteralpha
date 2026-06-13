@@ -11,7 +11,7 @@ import logging
 from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
 
-from core.contracts import ArtifactProtocol, CacheProtocol, InvalidationPolicy
+from core_engines.contracts import ArtifactProtocol, CacheProtocol, InvalidationPolicy
 
 LOG = logging.getLogger("rastro.intelligence.cache")
 

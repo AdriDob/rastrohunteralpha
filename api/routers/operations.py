@@ -39,7 +39,7 @@ def _build_morning_brief() -> Dict[str, Any]:
         top_targets = session.query(models.Target).order_by(models.Target.created_at.desc()).limit(5).all()
         top_roi_target = None
         if top_targets:
-            from core.engine.unified_scoring import score_target as unified_score_target
+            from core_engines.engine.unified_scoring import score_target as unified_score_target
             scored = []
             for t in top_targets:
                 ep_count = session.query(models.Endpoint).filter(models.Endpoint.target_id == t.id).count()
@@ -55,8 +55,8 @@ def _build_morning_brief() -> Dict[str, Any]:
         pending_reports = session.query(models.Finding).count()
         quick_wins_count = 0
         try:
-            from core.quick_wins.quick_wins_engine import QuickWinsEngine
-            from core.engine.snapshot import PipelineSnapshot
+            from core_engines.quick_wins.quick_wins_engine import QuickWinsEngine
+            from core_engines.engine.snapshot import PipelineSnapshot
             engine = QuickWinsEngine()
             report = engine.evaluate(PipelineSnapshot(status="completed", target=None, endpoints=[], hot_paths=[], verdicts=[], reports=[], coverage_score=0.0, timestamp=now.isoformat()))
             quick_wins_count = report.total_opportunities
@@ -404,7 +404,7 @@ def operational_metrics():
         avg_time = 0.0
         avg_report_time = 0.0
         try:
-            from core.confidence import audit_verdicts
+            from core_engines.confidence import audit_verdicts
             conf_report = audit_verdicts(limit=200)
 
             confidence_dist = {
@@ -457,35 +457,35 @@ def system_self_test():
         results.append({"component": "api", "status": "error", "detail": str(e)})
 
     try:
-        from core.engine.unified_scoring import score
+        from core_engines.engine.unified_scoring import score
         results.append({"component": "pipeline_scoring", "status": "ok", "detail": "Unified scoring loaded"})
     except Exception as e:
         all_ok = False
         results.append({"component": "pipeline_scoring", "status": "error", "detail": str(e)})
 
     try:
-        from core.evidence.store import EvidenceStore
+        from core_engines.evidence.store import EvidenceStore
         results.append({"component": "evidence", "status": "ok", "detail": "Evidence store loaded"})
     except Exception as e:
         all_ok = False
         results.append({"component": "evidence", "status": "error", "detail": str(e)})
 
     try:
-        from core.validation.verdict_handler import VerdictHandler
+        from core_engines.validation.verdict_handler import VerdictHandler
         results.append({"component": "verdicts", "status": "ok", "detail": "Verdict handler loaded"})
     except Exception as e:
         all_ok = False
         results.append({"component": "verdicts", "status": "error", "detail": str(e)})
 
     try:
-        from core.reporting.reporting import ReportGenerator
+        from core_engines.reporting.reporting import ReportGenerator
         results.append({"component": "reports", "status": "ok", "detail": "Report generator loaded"})
     except Exception as e:
         all_ok = False
         results.append({"component": "reports", "status": "error", "detail": str(e)})
 
     try:
-        from core.ai.assistant import get_assistant
+        from core_engines.ai.assistant import get_assistant
         assistant = get_assistant()
         results.append({"component": "ai_assistant", "status": "ok", "detail": "AI Assistant loaded"})
     except Exception as e:
@@ -493,28 +493,28 @@ def system_self_test():
         results.append({"component": "ai_assistant", "status": "error", "detail": str(e)})
 
     try:
-        from core.quick_wins.quick_wins_engine import QuickWinsEngine
+        from core_engines.quick_wins.quick_wins_engine import QuickWinsEngine
         results.append({"component": "quick_wins", "status": "ok", "detail": "Quick Wins engine loaded"})
     except Exception as e:
         all_ok = False
         results.append({"component": "quick_wins", "status": "error", "detail": str(e)})
 
     try:
-        from core.replay import build_replay
+        from core_engines.replay import build_replay
         results.append({"component": "replay", "status": "ok", "detail": "Replay engine loaded"})
     except Exception as e:
         all_ok = False
         results.append({"component": "replay", "status": "error", "detail": str(e)})
 
     try:
-        from core.screenshot.engine import ScreenshotEngine
+        from core_engines.screenshot.engine import ScreenshotEngine
         results.append({"component": "screenshot", "status": "ok", "detail": "Screenshot engine loaded"})
     except Exception as e:
         all_ok = False
         results.append({"component": "screenshot", "status": "error", "detail": str(e)})
 
     try:
-        from core.intelligence.adaptive_memory import get_memory
+        from core_engines.intelligence.adaptive_memory import get_memory
         memory = get_memory()
         results.append({"component": "adaptive_intelligence", "status": "ok", "detail": "Adaptive intelligence loaded"})
     except Exception as e:
@@ -522,7 +522,7 @@ def system_self_test():
         results.append({"component": "adaptive_intelligence", "status": "error", "detail": str(e)})
 
     try:
-        from core.timeline import build_timeline
+        from core_engines.timeline import build_timeline
         tl = build_timeline(limit=1)
         results.append({"component": "timeline", "status": "ok", "detail": f"Timeline built ({tl.total_events} events)"})
     except Exception as e:

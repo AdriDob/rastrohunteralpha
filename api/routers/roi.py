@@ -7,8 +7,8 @@ from fastapi import APIRouter, HTTPException
 from api.schemas.models import ROIDetailOut, TargetROIOut
 from api.services.data_service import _get_session, _score_endpoint
 from database import models
-from core.engine.hypothesis import HypothesisEngine
-from core.engine.hypothesis.models import Hypothesis, HypothesisScore, VulnerabilityType
+from core_engines.engine.hypothesis import HypothesisEngine
+from core_engines.engine.hypothesis.models import Hypothesis, HypothesisScore, VulnerabilityType
 
 router = APIRouter(prefix="/api/roi", tags=["roi"])
 

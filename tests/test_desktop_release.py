@@ -33,7 +33,7 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent
 
 class TestEnvConfig:
     def test_import(self):
-        from core.env.config import EnvConfig, get_config
+        from core_engines.env.config import EnvConfig, get_config
         cfg = get_config()
         assert cfg.port == 8000
         assert cfg.host == "127.0.0.1"
@@ -45,9 +45,9 @@ class TestEnvConfig:
         monkeypatch.setenv("RASTRO_DEBUG", "1")
         # Reload by re-importing (reset module state)
         import importlib
-        from core import env as env_module
+        from core_engines import env as env_module
         importlib.reload(env_module.config)
-        from core.env.config import get_config
+        from core_engines.env.config import get_config
         cfg = get_config()
         assert cfg.port == 9090
         assert cfg.desktop is True
@@ -215,12 +215,12 @@ class TestCoreEnvConfig:
         assert (PROJECT_DIR / "core" / "env" / "config.py").is_file()
 
     def test_config_dir_default(self):
-        from core.env.config import EnvConfig
+        from core_engines.env.config import EnvConfig
         cfg = EnvConfig()
         assert "rastro" in str(cfg.config_dir)
 
     def test_data_dir_default(self):
-        from core.env.config import EnvConfig
+        from core_engines.env.config import EnvConfig
         cfg = EnvConfig()
         assert "rastro" in str(cfg.data_dir)
 

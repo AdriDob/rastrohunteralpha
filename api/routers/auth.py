@@ -2,10 +2,10 @@ from typing import Optional
 
 from fastapi import APIRouter, Request, Query, Header
 
-from core.auth.auth_manager import get_auth_manager
-from core.auth.session_validator import get_session_validator
-from core.gateway.rate_limit import get_rate_limiter
-from core.gateway.schemas import ok, error
+from core_engines.auth.auth_manager import get_auth_manager
+from core_engines.auth.session_validator import get_session_validator
+from core_engines.gateway.rate_limit import get_rate_limiter
+from core_engines.gateway.schemas import ok, error
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 limiter = get_rate_limiter()

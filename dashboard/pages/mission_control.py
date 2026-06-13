@@ -36,8 +36,8 @@ except ImportError:
     go = None
 
 from database import db, models
-from core.engine.unified_scoring import score as unified_score, generate_suggestions
-from core.engine.risk_model import AttackSurfaceMapper, NoiseReductionLayer
+from core_engines.engine.unified_scoring import score as unified_score, generate_suggestions
+from core_engines.engine.risk_model import AttackSurfaceMapper, NoiseReductionLayer
 
 
 def _api_get(url: str) -> Optional[Dict[str, Any]]:

@@ -165,7 +165,7 @@ def _rank_attack_vector(path: str, params: Optional[Dict[str, Any]]) -> str:
 _score_cache: Dict[Tuple[str, str, str], Dict[str, Any]] = {}
 
 try:
-    from core.config import get_config
+    from core_engines.config import get_config
     _MAX_CACHE = get_config().cache_size
 except Exception:
     _MAX_CACHE = 4096

@@ -34,11 +34,11 @@ class ValidateHotPathRequest(BaseModel):
 @router.post("/validate")
 def validate_and_report(request: ValidateHotPathRequest):
     from database import db, models
-    from core.validation.loop_engine import ValidationLoopEngine
-    from core.validation.replayer import AuthContext, RequestSpec
-    from core.validation.verdict_handler import VerdictHandler
-    from core.validation.evidence_builder import EvidenceBuilder
-    from core.reporting.reporting import ReportGenerator
+    from core_engines.validation.loop_engine import ValidationLoopEngine
+    from core_engines.validation.replayer import AuthContext, RequestSpec
+    from core_engines.validation.verdict_handler import VerdictHandler
+    from core_engines.validation.evidence_builder import EvidenceBuilder
+    from core_engines.reporting.reporting import ReportGenerator
 
     import logging
     logger = logging.getLogger("rastro.api.validation")

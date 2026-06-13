@@ -3,8 +3,8 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import PlainTextResponse
 
-from core.intelligence.adaptive_memory import get_memory
-from core.intelligence.export import (
+from core_engines.intelligence.adaptive_memory import get_memory
+from core_engines.intelligence.export import (
     export_history, export_trends, export_recommendations, export_snapshots,
 )
 

@@ -1,13 +1,13 @@
 from fastapi import APIRouter
 
-from core.actions.execution_tracker import get_execution_tracker
-from core.actions.action_engine import get_action_engine
-from core.accountability.system_scorecard import get_system_scorecard
-from core.accountability.outcome_tracker import get_outcome_tracker
-from core.explainability.explanation_engine import get_explanation_engine
-from core.explainability.decision_trace import get_decision_trace
-from core.memory.decision_memory import get_decision_memory
-from core.memory.insight_archive import get_insight_archive
+from core_engines.actions.execution_tracker import get_execution_tracker
+from core_engines.actions.action_engine import get_action_engine
+from core_engines.accountability.system_scorecard import get_system_scorecard
+from core_engines.accountability.outcome_tracker import get_outcome_tracker
+from core_engines.explainability.explanation_engine import get_explanation_engine
+from core_engines.explainability.decision_trace import get_decision_trace
+from core_engines.memory.decision_memory import get_decision_memory
+from core_engines.memory.insight_archive import get_insight_archive
 
 router = APIRouter(prefix="/api/execution", tags=["execution"])
 

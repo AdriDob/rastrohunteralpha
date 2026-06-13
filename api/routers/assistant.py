@@ -12,8 +12,8 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
-from core.ai.assistant import get_assistant
-from core.assistant.ai_assistant import get_narrator
+from core_engines.ai.assistant import get_assistant
+from core_engines.assistant.ai_assistant import get_narrator
 
 router = APIRouter(prefix="/api/assistant", tags=["assistant"])
 

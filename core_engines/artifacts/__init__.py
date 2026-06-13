@@ -6,16 +6,16 @@ Every engine produces exactly one artifact type.
 All consumers read from artifacts only.
 """
 
-from core.artifacts.pipeline import (PipelineArtifact,)
-from core.artifacts.evidence import (EvidenceGraphArtifact,)
-from core.artifacts.screenshot import (ScreenshotArtifact,)
-from core.artifacts.differential import (DifferentialArtifact,)
-from core.artifacts.quick_wins import (QuickWinsArtifact,)
-from core.artifacts.execution import (ExecutionPlanArtifact,)
-from core.artifacts.ai_insights import (AIInsightArtifact,)
-from core.artifacts.attack_surface import (AttackSurfaceArtifact,)
-from core.artifacts.roi import (ROIArtifact,)
-from core.artifacts.hypothesis import (HypothesisArtifact,)
+from core_engines.artifacts.pipeline import (PipelineArtifact,)
+from core_engines.artifacts.evidence import (EvidenceGraphArtifact,)
+from core_engines.artifacts.screenshot import (ScreenshotArtifact,)
+from core_engines.artifacts.differential import (DifferentialArtifact,)
+from core_engines.artifacts.quick_wins import (QuickWinsArtifact,)
+from core_engines.artifacts.execution import (ExecutionPlanArtifact,)
+from core_engines.artifacts.ai_insights import (AIInsightArtifact,)
+from core_engines.artifacts.attack_surface import (AttackSurfaceArtifact,)
+from core_engines.artifacts.roi import (ROIArtifact,)
+from core_engines.artifacts.hypothesis import (HypothesisArtifact,)
 
 __all__ = [
     "PipelineArtifact",

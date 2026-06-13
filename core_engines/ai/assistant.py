@@ -10,16 +10,16 @@ from __future__ import annotations
 import logging
 from typing import Any, Dict, List, Optional
 
-from core.ai.context_builder import build_full_context
-from core.ai.insights import generate_insights, get_top_insight
-from core.ai.recommendations import generate_recommendations, get_best_recommendation
-from core.ai.advisor import answer_query
-from core.ai.summary import daily_summary, system_status
-from core.ai.memory import get_memory, save_interaction, get_recent_interactions
-from core.ai.provider import get_provider
-from core.evidence.graph import EvidenceGraph
-from core.reporting.report_engine import FinalReport, ReportEngine
-from core.reporting.severity import confidence_to_label, risk_to_severity
+from core_engines.ai.context_builder import build_full_context
+from core_engines.ai.insights import generate_insights, get_top_insight
+from core_engines.ai.recommendations import generate_recommendations, get_best_recommendation
+from core_engines.ai.advisor import answer_query
+from core_engines.ai.summary import daily_summary, system_status
+from core_engines.ai.memory import get_memory, save_interaction, get_recent_interactions
+from core_engines.ai.provider import get_provider
+from core_engines.evidence.graph import EvidenceGraph
+from core_engines.reporting.report_engine import FinalReport, ReportEngine
+from core_engines.reporting.severity import confidence_to_label, risk_to_severity
 
 logger = logging.getLogger("rastro.ai.assistant")
 
@@ -243,7 +243,7 @@ class ScanAssistant:
         if differential_bundle is None:
             return "## Differential Intelligence\n\nNo differential data available."
 
-        from core.engines import DifferentialBundle
+        from core_engines.engines import DifferentialBundle
         if not isinstance(differential_bundle, DifferentialBundle):
             return "## Differential Intelligence\n\nInvalid differential data."
 

@@ -28,8 +28,8 @@ except ImportError:
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.append(str(ROOT))
 
-from core.engine.unified_scoring import score as unified_score, score_target as unified_score_target, generate_suggestions
-from core.targets.models import TargetIntel
+from core_engines.engine.unified_scoring import score as unified_score, score_target as unified_score_target, generate_suggestions
+from core_engines.targets.models import TargetIntel
 from database import db, models
 
 st.set_page_config(page_title="Rastro", layout="wide", initial_sidebar_state="expanded")
@@ -672,7 +672,7 @@ elif _current_page == "attack_surfaces":
                 s = unified_score(ep.path, ep.method or "GET", ep.parsed_params)
                 if s["actionable"]:
                     scored.append({"path": ep.path, "method": ep.method, "risk_score": s["risk_score"], "signals": s.get("signals", []), "attack_surface": s.get("attack_surface", []), "labels": s.get("labels", []), "vector": s.get("vector", ""), "potential_idor": s.get("potential_idor", False)})
-            from core.engine.risk_model import AttackSurfaceMapper
+            from core_engines.engine.risk_model import AttackSurfaceMapper
             mapper = AttackSurfaceMapper()
             surface = mapper.map(scored)
             col1, col2 = st.columns(2)
@@ -694,7 +694,7 @@ elif _current_page == "attack_surfaces":
                     st.markdown(f"- `{ep['method']} {ep['path']}` — score {ep['risk_score']}")
             st.divider()
             with st.expander("Noise Reduction — discarded endpoints"):
-                from core.engine.risk_model import NoiseReductionLayer
+                from core_engines.engine.risk_model import NoiseReductionLayer
                 nrl = NoiseReductionLayer()
                 all_scored = []
                 for ep in endpoints:

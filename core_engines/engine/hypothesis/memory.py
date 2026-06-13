@@ -11,9 +11,9 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from core.engine.hypothesis.models import Hypothesis, VulnerabilityType
-from core.memory.pattern_extractor import PatternExtractor
-from core.memory.memory import MemoryPatternLibrary
+from core_engines.engine.hypothesis.models import Hypothesis, VulnerabilityType
+from core_engines.memory.pattern_extractor import PatternExtractor
+from core_engines.memory.memory import MemoryPatternLibrary
 
 
 class HypothesisMemory:

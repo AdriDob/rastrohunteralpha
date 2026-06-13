@@ -1,7 +1,7 @@
 from typing import Dict, Iterable, Any
 
-from core.engine.unified_scoring import score as unified_score
-from core.engine.unified_classifier import classify as unified_classify, synthesize_target_meta as unified_synthesize
+from core_engines.engine.unified_scoring import score as unified_score
+from core_engines.engine.unified_classifier import classify as unified_classify, synthesize_target_meta as unified_synthesize
 
 
 class EndpointAnalyzer:

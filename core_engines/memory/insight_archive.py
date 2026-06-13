@@ -8,7 +8,7 @@ import time
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
-from core.memory.memory_store import get_memory_store, MemoryStore
+from core_engines.memory.memory_store import get_memory_store, MemoryStore
 
 logger = logging.getLogger("rastro.memory.insight")
 

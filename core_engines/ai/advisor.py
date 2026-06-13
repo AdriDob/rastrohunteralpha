@@ -9,10 +9,10 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from core.ai.context_builder import build_full_context
-from core.ai.insights import generate_insights
-from core.ai.recommendations import generate_recommendations
-from core.ai.provider import get_provider
+from core_engines.ai.context_builder import build_full_context
+from core_engines.ai.insights import generate_insights
+from core_engines.ai.recommendations import generate_recommendations
+from core_engines.ai.provider import get_provider
 
 
 def answer_query(query: str) -> Dict[str, Any]:

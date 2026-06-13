@@ -2,14 +2,14 @@ from pathlib import Path
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from database import models
-from core.recon.runner import ReconRunner
+from core_engines.recon.runner import ReconRunner
 
 async def launch_scan(target_name: str, target_domain: str, target_mode: str, session: Session):
     import asyncio
     import json
     import logging
     from datetime import datetime, timezone
-    from core.recon.tools import verify_recon_tools, validate_mode_compatibility
+    from core_engines.recon.tools import verify_recon_tools, validate_mode_compatibility
 
     logger = logging.getLogger("rastro.main")
 

@@ -92,7 +92,7 @@ class PushRouter:
     """Maps internal events to push payloads and routes via NotificationHub."""
 
     def __init__(self, hub=None):
-        from core.notifications.hub import get_hub
+        from core_engines.notifications.hub import get_hub
         self._hub = hub or get_hub()
         self._subscribers: Dict[str, List[str]] = {}
         self._vapid_public_key: Optional[str] = None

@@ -60,7 +60,7 @@ class SystemScorecard:
         )
 
         try:
-            from core.actions.execution_tracker import get_execution_tracker
+            from core_engines.actions.execution_tracker import get_execution_tracker
             tracker = get_execution_tracker()
             stats = tracker.get_stats()
             by_type = stats.get("by_type", {})
@@ -86,7 +86,7 @@ class SystemScorecard:
             logger.debug("Failed to collect execution stats: %s", exc)
 
         try:
-            from core.accountability.outcome_tracker import get_outcome_tracker
+            from core_engines.accountability.outcome_tracker import get_outcome_tracker
             o_tracker = get_outcome_tracker()
             summary = o_tracker.get_summary()
             metrics.success_rate = summary.get("success_rate", 0.5)
@@ -94,14 +94,14 @@ class SystemScorecard:
             logger.debug("Failed to collect outcome stats: %s", exc)
 
         try:
-            from core.intelligence.priority_engine import get_priority_engine
+            from core_engines.intelligence.priority_engine import get_priority_engine
             engine = get_priority_engine()
             metrics.active_decisions = engine.count()
         except Exception as exc:
             logger.debug("Failed to collect priority stats: %s", exc)
 
         try:
-            from core.memory.insight_archive import get_insight_archive
+            from core_engines.memory.insight_archive import get_insight_archive
             archive = get_insight_archive()
             metrics.memory_usage = archive.total_count()
         except Exception as exc:

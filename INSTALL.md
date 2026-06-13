@@ -143,3 +143,51 @@ python -m pytest tests/ -v
 sudo apt install python3 python3-venv nodejs npm golang
 pip install -r requirements.txt
 ```
+
+---
+
+## Solución de problemas
+
+### `webview` no arranca / error de GTK
+```bash
+# Linux: instalar dependencias de pywebview
+sudo apt install libgtk-3-dev libwebkit2gtk-4.1-dev
+
+# Fallback: usar modo navegador
+python run.py --browser
+```
+
+### Puerto 8000 ocupado
+Rastro elige automáticamente el puerto configurado. Si querés usar otro:
+```bash
+# En settings.json (AppData/Rastro o ~/.rastro):
+# {"backend_port": 8001}
+```
+
+### Frontend build falla
+```bash
+cd frontend
+rm -rf node_modules dist
+npm install
+npm run build
+```
+
+### Go tools (subfinder/katana/httpx) no encontradas
+```bash
+go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
+go install -v github.com/projectdiscovery/katana/cmd/katana@latest
+go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest
+# Asegurate que ~/go/bin esté en PATH
+```
+
+### WebView2 no disponible (Windows 10)
+- Descargar e instalar desde: https://developer.microsoft.com/en-us/microsoft-edge/webview2/
+- O usar `python run.py --browser` como fallback
+
+### Database corruption
+```bash
+# Rastro usa SQLite en database/rastro.db.
+# Si se corrompe, eliminarlo y reiniciar (se recrea automáticamente):
+rm database/rastro.db   # Linux
+del %LOCALAPPDATA%\Rastro\database\rastro.db   # Windows
+```

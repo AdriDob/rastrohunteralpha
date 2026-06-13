@@ -46,7 +46,7 @@ def main():
 
     # === Phase 2: Recon tools ===
     print("\n── Recon tools ──")
-    from core.recon.tools import _resolve_tool, check_tool_available
+    from core_engines.recon.tools import _resolve_tool, check_tool_available
 
     for tool in ["subfinder", "katana", "httpx"]:
         resolved = _resolve_tool(tool)

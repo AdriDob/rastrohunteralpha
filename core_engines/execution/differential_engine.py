@@ -1,12 +1,12 @@
 import logging
 from typing import Any, Dict, List, Optional
 
-from core.execution.poc_generator import PoCGenerator, TestScenario
-from core.validation.confidence import ConfidenceScorer
-from core.validation.gate import Verdict
-from core.validation.loop_engine import ValidationLoopEngine
-from core.validation.replayer import RequestReplayer
-from core.validation.rules import ValidationRuleSet
+from core_engines.execution.poc_generator import PoCGenerator, TestScenario
+from core_engines.validation.confidence import ConfidenceScorer
+from core_engines.validation.gate import Verdict
+from core_engines.validation.loop_engine import ValidationLoopEngine
+from core_engines.validation.replayer import RequestReplayer
+from core_engines.validation.rules import ValidationRuleSet
 
 LOG = logging.getLogger("rastro.execution.differential")
 
