@@ -1,0 +1,25 @@
+{
+	"appId": "ai.rastro.app",
+	"appName": "Rastro",
+	"webDir": "frontend/dist",
+	"server": {
+		"androidScheme": "https",
+		"cleartext": false
+	},
+	"android": {
+		"backgroundColor": "#0d0f17"
+	},
+	"plugins": {
+		"PushNotifications": {
+			"presentationOptions": [
+				"badge",
+				"sound",
+				"alert"
+			]
+		},
+		"SplashScreen": {
+			"backgroundColor": "#0d0f17",
+			"showSpinner": false
+		}
+	}
+}

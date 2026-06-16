@@ -3,71 +3,19 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { useStore } from '../../lib/store';
 import { useTheme } from '../../lib/theme';
 import { useI18n } from '../../lib/i18n';
+import type { Translations } from '../../lib/i18n';
 import NotificationsDropdown from '../NotificationsDropdown';
 
 interface NavItem {
   to: string;
-  label: string;
+  labelKey: keyof Translations;
   icon: string;
 }
 
 interface NavSection {
-  title: string;
+  titleKey: keyof Translations;
   items: NavItem[];
 }
-
-const navSections: NavSection[] = [
-  {
-    title: 'Mission',
-    items: [
-      { to: '/', label: 'Mission Control', icon: '◈' },
-      { to: '/daily', label: 'Daily Briefing', icon: '🌅' },
-    ],
-  },
-  {
-    title: 'Recon',
-    items: [
-      { to: '/surface', label: 'Attack Surface', icon: '◉' },
-      { to: '/hotpaths', label: 'Hot Paths', icon: '⚡' },
-      { to: '/target/:id', label: 'Target Detail', icon: '🎯' },
-    ],
-  },
-  {
-    title: 'Findings',
-    items: [
-      { to: '/evidence', label: 'Evidence Center', icon: '📋' },
-      { to: '/screenshots', label: 'Screenshots', icon: '🖼️' },
-      { to: '/pipeline', label: 'Pipeline', icon: '▤' },
-    ],
-  },
-  {
-    title: 'Analysis',
-    items: [
-      { to: '/insights', label: 'Insights', icon: '◎' },
-      { to: '/hypothesis', label: 'Hypotheses', icon: '⟐' },
-      { to: '/differential', label: 'Differential', icon: 'Δ' },
-      { to: '/confidence', label: 'Confidence', icon: '📊' },
-      { to: '/replay', label: 'Replay', icon: '🔄' },
-    ],
-  },
-  {
-    title: 'Operations',
-    items: [
-      { to: '/actions', label: 'Actions', icon: '▶' },
-      { to: '/operations', label: 'Operations', icon: '⚙' },
-      { to: '/tasks', label: 'Tasks', icon: '✓' },
-      { to: '/history', label: 'History', icon: '☰' },
-    ],
-  },
-  {
-    title: 'Intelligence',
-    items: [
-      { to: '/intelligence', label: 'AI Intelligence', icon: '🧠' },
-      { to: '/radar', label: 'Opportunity Radar', icon: '◎' },
-      { to: '/reports', label: 'Reports', icon: '📄' },
-    ],
-  },
-];
 
 const collapsedWidth = 56;
 const expandedWidth = 200;
@@ -80,8 +28,95 @@ const btnSmallStyle: React.CSSProperties = {
 export function DesktopSidebar({ isExpanded }: { isExpanded: boolean }) {
   const { toggleSidebar, recentInvestigations, favoriteTargets, assistantOpen, setAssistantOpen } = useStore();
   const { theme, setTheme } = useTheme();
-  const { lang, setLang } = useI18n();
+  const { t, lang, setLang } = useI18n();
   const navigate = useNavigate();
+
+  const navSections: (NavSection & { submenus?: { labelKey: keyof Translations; icon: string; items: NavItem[] }[] })[] = [
+    {
+      titleKey: 'nav_mission',
+      items: [
+        { to: '/', labelKey: 'mission_control', icon: '◈' },
+        { to: '/investigations', labelKey: 'investigations', icon: '◈' },
+        { to: '/daily', labelKey: 'daily_briefing', icon: '🌅' },
+      ],
+    },
+    {
+      titleKey: 'nav_findings',
+      items: [
+        { to: '/pipeline', labelKey: 'pipeline', icon: '▤' },
+        { to: '/hypothesis', labelKey: 'hypotheses', icon: '⟐' },
+      ],
+      submenus: [
+        {
+          labelKey: 'evidence_center' as keyof Translations,
+          icon: '📋',
+          items: [
+            { to: '/evidence', labelKey: 'evidence_center', icon: '📋' },
+            { to: '/replay', labelKey: 'replay_center', icon: '🔄' },
+            { to: '/screenshots', labelKey: 'screenshots', icon: '🖼️' },
+          ],
+        },
+        {
+          labelKey: 'attack_surface' as keyof Translations,
+          icon: '◉',
+          items: [
+            { to: '/surface', labelKey: 'attack_surface', icon: '◉' },
+            { to: '/hotpaths', labelKey: 'hot_paths', icon: '⚡' },
+          ],
+        },
+      ],
+    },
+    {
+      titleKey: 'nav_analysis',
+      items: [
+        { to: '/insights', labelKey: 'key_insights', icon: '◎' },
+      ],
+      submenus: [
+        {
+          labelKey: 'confidence_dashboard' as keyof Translations,
+          icon: '📊',
+          items: [
+            { to: '/confidence', labelKey: 'confidence_dashboard', icon: '📊' },
+            { to: '/differential', labelKey: 'differential', icon: 'Δ' },
+          ],
+        },
+        {
+          labelKey: 'ai_intelligence' as keyof Translations,
+          icon: '🧠',
+          items: [
+            { to: '/intelligence', labelKey: 'ai_intelligence', icon: '🧠' },
+            { to: '/personal-intelligence', labelKey: 'personal_intelligence', icon: '📊' },
+          ],
+        },
+      ],
+    },
+    {
+      titleKey: 'nav_operations',
+      items: [
+        { to: '/actions', labelKey: 'actions_view', icon: '▶' },
+      ],
+      submenus: [
+        {
+          labelKey: 'operations_dashboard' as keyof Translations,
+          icon: '⚙',
+          items: [
+            { to: '/operations', labelKey: 'operations_dashboard', icon: '⚙' },
+            { to: '/tasks', labelKey: 'task_queue', icon: '✓' },
+            { to: '/history', labelKey: 'history_view', icon: '☰' },
+          ],
+        },
+      ],
+    },
+    {
+      titleKey: 'nav_intelligence',
+      items: [
+        { to: '/radar', labelKey: 'opportunity_radar', icon: '◎' },
+        { to: '/reports', labelKey: 'report_center', icon: '📄' },
+        { to: '/project-dashboard', labelKey: 'project_dashboard', icon: '◈' },
+        { to: '/settings', labelKey: 'settings', icon: '⚙' },
+      ],
+    },
+  ];
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
   const [navFilter, setNavFilter] = useState('');
 
@@ -170,13 +205,17 @@ export function DesktopSidebar({ isExpanded }: { isExpanded: boolean }) {
         )}
 
         {navSections.map(section => {
-          const filteredItems = section.items.filter(i => filterMatches(i.label));
-          if (navFilter.trim() && filteredItems.length === 0) return null;
+          const sectionLabel = t[section.titleKey];
+          const filteredItems = section.items.filter(i => filterMatches(t[i.labelKey]));
+          const hasVisibleSubmenus = section.submenus?.some(sm =>
+            sm.items.some(i => filterMatches(t[i.labelKey]))
+          );
+          if (navFilter.trim() && filteredItems.length === 0 && !hasVisibleSubmenus) return null;
           return (
-            <div key={section.title}>
+            <div key={section.titleKey}>
               {isExpanded && (
                 <div
-                  onClick={() => toggleSection(section.title)}
+                  onClick={() => toggleSection(section.titleKey)}
                   style={{
                     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
                     padding: '6px 10px', cursor: 'pointer', userSelect: 'none',
@@ -184,38 +223,85 @@ export function DesktopSidebar({ isExpanded }: { isExpanded: boolean }) {
                   }}
                 >
                   <span style={{ fontSize: 9, fontWeight: 700, color: '#4a4f63', textTransform: 'uppercase', letterSpacing: 1 }}>
-                    {section.title}
+                    {sectionLabel}
                   </span>
-                  <span style={{ fontSize: 9, color: '#4a4f63', transform: collapsedSections.has(section.title) ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.12s' }}>▼</span>
+                  <span style={{ fontSize: 9, color: '#4a4f63', transform: collapsedSections.has(section.titleKey) ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.12s' }}>▼</span>
                 </div>
               )}
 
-              {!collapsedSections.has(section.title) && filteredItems.map(({ to, label, icon }) => (
-                <NavLink
-                  key={to}
-                  to={to}
-                  end={to === '/'}
-                  style={({ isActive }) => ({
-                    display: 'flex', flexDirection: 'column', gap: 1,
-                    padding: isExpanded ? '7px 10px' : '10px 0',
-                    alignItems: isExpanded ? 'stretch' : 'center',
-                    borderRadius: 6,
-                    color: isActive ? '#fff' : '#7c8299',
-                    background: isActive ? '#7c3aed' : 'transparent',
-                    textDecoration: 'none', transition: 'all 0.12s ease',
-                    whiteSpace: 'nowrap',
-                    minHeight: 36,
-                    marginBottom: 1,
+              {!collapsedSections.has(section.titleKey) && (
+                <>
+                  {filteredItems.map(({ to, labelKey, icon }) => (
+                    <NavLink
+                      key={to}
+                      to={to}
+                      end={to === '/'}
+                      style={({ isActive }) => ({
+                        display: 'flex', flexDirection: 'column', gap: 1,
+                        padding: isExpanded ? '7px 10px' : '10px 0',
+                        alignItems: isExpanded ? 'stretch' : 'center',
+                        borderRadius: 6,
+                        color: isActive ? '#fff' : '#7c8299',
+                        background: isActive ? '#7c3aed' : 'transparent',
+                        textDecoration: 'none', transition: 'all 0.12s ease',
+                        whiteSpace: 'nowrap',
+                        minHeight: 36,
+                        marginBottom: 1,
+                      })}
+                      onMouseEnter={e => { if (!(e.currentTarget as HTMLElement).style.background) e.currentTarget.style.background = '#252836'; }}
+                      onMouseLeave={e => { if (!(e.currentTarget as HTMLElement).style.background) e.currentTarget.style.background = 'transparent'; }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                        <span style={{ fontSize: 14, flexShrink: 0 }}>{icon}</span>
+                        {isExpanded && <span style={{ fontSize: 12, fontWeight: 600 }}>{t[labelKey]}</span>}
+                      </div>
+                    </NavLink>
+                  ))}
+                  {/* Submenus */}
+                  {isExpanded && section.submenus?.map(sm => {
+                    const filteredSm = sm.items.filter(i => filterMatches(t[i.labelKey]));
+                    if (navFilter.trim() && filteredSm.length === 0) return null;
+                    const subKey = `${section.titleKey}_${sm.labelKey}`;
+                    const isCollapsed = collapsedSections.has(subKey);
+                    return (
+                      <div key={subKey} style={{ marginLeft: 8 }}>
+                        <div
+                          onClick={() => toggleSection(subKey)}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: 6,
+                            padding: '5px 10px', cursor: 'pointer', borderRadius: 4,
+                            fontSize: 10, color: '#4a4f63', fontWeight: 600,
+                          }}
+                        >
+                          <span style={{ fontSize: 12 }}>{sm.icon}</span>
+                          <span style={{ flex: 1 }}>{t[sm.labelKey]}</span>
+                          <span style={{ fontSize: 8, transform: isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)', transition: 'transform 0.12s' }}>▼</span>
+                        </div>
+                        {!isCollapsed && filteredSm.map(({ to, labelKey, icon }) => (
+                          <NavLink
+                            key={to}
+                            to={to}
+                            style={({ isActive }) => ({
+                              display: 'flex', alignItems: 'center', gap: 8,
+                              padding: '5px 10px', marginLeft: 4,
+                              borderRadius: 4, fontSize: 11,
+                              color: isActive ? '#fff' : '#7c8299',
+                              background: isActive ? '#7c3aed' : 'transparent',
+                              textDecoration: 'none', transition: 'all 0.12s ease',
+                              whiteSpace: 'nowrap',
+                            })}
+                            onMouseEnter={e => { if (!(e.currentTarget as HTMLElement).style.background) e.currentTarget.style.background = '#252836'; }}
+                            onMouseLeave={e => { if (!(e.currentTarget as HTMLElement).style.background) e.currentTarget.style.background = 'transparent'; }}
+                          >
+                            <span style={{ fontSize: 12 }}>{icon}</span>
+                            <span>{t[labelKey]}</span>
+                          </NavLink>
+                        ))}
+                      </div>
+                    );
                   })}
-                  onMouseEnter={e => { if (!(e.currentTarget as HTMLElement).style.background) e.currentTarget.style.background = '#252836'; }}
-                  onMouseLeave={e => { if (!(e.currentTarget as HTMLElement).style.background) e.currentTarget.style.background = 'transparent'; }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                    <span style={{ fontSize: 14, flexShrink: 0 }}>{icon}</span>
-                    {isExpanded && <span style={{ fontSize: 12, fontWeight: 600 }}>{label}</span>}
-                  </div>
-                </NavLink>
-              ))}
+                </>
+              )}
             </div>
           );
         })}
@@ -314,12 +400,13 @@ export function DesktopSidebar({ isExpanded }: { isExpanded: boolean }) {
 }
 
 export function MobileBottomBar() {
+  const { t } = useI18n();
   const mainTabs: NavItem[] = [
-    { to: '/', label: 'Mission', icon: '◈' },
-    { to: '/actions', label: 'Actions', icon: '▶' },
-    { to: '/insights', label: 'Insights', icon: '◎' },
-    { to: '/history', label: 'History', icon: '☰' },
-    { to: '/radar', label: 'Radar', icon: '◎' },
+    { to: '/', labelKey: 'mission_control', icon: '◈' },
+    { to: '/investigations', labelKey: 'investigations', icon: '◈' },
+    { to: '/evidence', labelKey: 'evidence_center', icon: '📋' },
+    { to: '/reports', labelKey: 'report_center', icon: '📄' },
+    { to: '/settings', labelKey: 'settings', icon: '⚙' },
   ];
 
   return (
@@ -328,7 +415,7 @@ export function MobileBottomBar() {
       background: '#1a1d29', borderTop: '1px solid #2a2e3d',
       flexShrink: 0,
     }}>
-      {mainTabs.map(({ to, label, icon }) => (
+      {mainTabs.map(({ to, labelKey, icon }) => (
         <NavLink
           key={to}
           to={to}
@@ -343,7 +430,7 @@ export function MobileBottomBar() {
           })}
         >
           <span style={{ fontSize: 18 }}>{icon}</span>
-          <span>{label}</span>
+          <span>{t[labelKey]}</span>
         </NavLink>
       ))}
     </nav>

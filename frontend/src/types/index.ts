@@ -52,6 +52,10 @@ export interface Evidence {
   consistent: boolean;
   curl_command: string | null;
   body_diff_ratio: number;
+  request_body: string | null;
+  response_body: string | null;
+  request_headers: string | null;
+  response_headers: string | null;
 }
 
 export interface Opportunity {
@@ -933,6 +937,10 @@ export interface EvidenceDTO {
   requestUrl: string;
   responseStatus: number;
   consistent: boolean;
+  requestBody?: string;
+  responseBody?: string;
+  requestHeaders?: string;
+  responseHeaders?: string;
 }
 
 export interface OverviewDTO {
@@ -1302,4 +1310,171 @@ export interface SystemIntelligenceReport {
     reason: string;
   };
 }
+
+// ── Report types ──
+
+export interface ReportItem {
+  id: number;
+  format: string;
+  summary: string;
+  severity: string;
+  finding_ids: number[];
+  created_at: string | null;
+}
+
+export interface ReportFull {
+  id: number;
+  investigation_id: number | null;
+  format: string;
+  content: Record<string, unknown> | null;
+  finding_ids: number[];
+  created_at: string | null;
+}
+
+// ── IDOR result types ──
+
+export interface IDORResultItem {
+  parameter: string;
+  original_value: string;
+  probe_value: string;
+  baseline_status: number;
+  probe_status: number;
+  body_diff_ratio: number;
+  sensitive_fields_leaked: string[];
+  verdict: string;
+  reason: string;
+}
+
+export interface IDORScanResponse {
+  total_tests: number;
+  vulnerable: IDORResultItem[];
+  blocked: IDORResultItem[];
+  inconclusive: IDORResultItem[];
+  elapsed_ms: number;
+  summary: string;
+}
+
+// ── Validation result types ──
+
+export interface VerdictDetail {
+  id: number;
+  status: string;
+  confidence: number;
+  label: string;
+  risk_score: number;
+  summary: string | null;
+  curl_command: string | null;
+  detection_engine: string | null;
+}
+
+export interface ValidationResult {
+  verdict: VerdictDetail;
+  evidence: Evidence[];
+  validated: boolean;
+  report?: Record<string, unknown>;
+  report_error?: string;
+}
+
+// ── Phase 0: Identity & Investigation types ──
+
+export interface TargetIdentity {
+  id: number;
+  target_id: number;
+  label: string;
+  auth_type: string;
+  is_baseline: boolean;
+  is_active: boolean;
+  session_valid: boolean;
+  session_expires_at: string | null;
+  created_at: string | null;
+}
+
+export interface TargetIdentityCreate {
+  label: string;
+  auth_type: string;
+  username?: string;
+  password?: string;
+  token?: string;
+  api_key?: string;
+  cookies?: Record<string, string>;
+  login_url?: string;
+  login_params?: Record<string, unknown>;
+  is_baseline?: boolean;
+}
+
+export interface TargetSessionStatus {
+  identity_id: number;
+  is_valid: boolean;
+  expires_at: string | null;
+  last_refresh_at: string | null;
+  failure_count: number;
+}
+
+export interface Investigation {
+  id: number;
+  target_id: number;
+  target_name: string;
+  name: string;
+  status: string;
+  pipeline_state: Record<string, unknown>;
+  notes: string | null;
+  tags: string[];
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+export interface ValidationRun {
+  id: number;
+  investigation_id: number | null;
+  endpoint_id: number;
+  identity_baseline_id: number | null;
+  identity_probe_id: number | null;
+  status: string;
+  verdict_id: number | null;
+  started_at: string | null;
+  finished_at: string | null;
+}
+
+// ── Investigation types ──
+
+export interface InvestigationCreatePayload {
+  target_id: number;
+  name: string;
+  notes?: string;
+  tags?: string[];
+}
+
+export interface InvestigationUpdatePayload {
+  name?: string;
+  status?: string;
+  notes?: string;
+  tags?: string[];
+  pipeline_state?: Record<string, unknown>;
+}
+
+export interface PipelineTimelineEvent {
+  stage: string;
+  status: string;
+  label: string;
+  timestamp: string | null;
+}
+
+export interface InvestigationDashboard {
+  investigation: Investigation;
+  stats: {
+    endpoints: number;
+    findings: number;
+    findings_by_severity: Record<string, number>;
+    verdicts: number;
+    confirmed_verdicts: number;
+  };
+  pipeline: {
+    stages: Record<string, number>;
+    timeline: PipelineTimelineEvent[];
+    overall_confidence: number;
+    progress_pct: number;
+  };
+}
+
+// ── Report types ──
 

@@ -2,6 +2,44 @@
 
 ---
 
+## Android (APK)
+
+### Requisitos
+- Linux o macOS
+- Node.js 18+
+- Java 17 o 21 (JDK)
+- Android SDK (o usar `--install-sdk`)
+
+### Compilar APK
+
+```bash
+# 1. Clonar
+git clone https://github.com/tu-usuario/rastro.git
+cd rastro
+
+# 2. Compilar frontend + APK
+./mobile/build_apk.sh
+
+# Si no tenés Android SDK instalado:
+./mobile/build_apk.sh --install-sdk
+
+# APK generado en:
+#   android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+### Instalar en dispositivo
+```bash
+adb install android/app/build/outputs/apk/debug/app-debug.apk
+```
+
+### Notas
+- El APK se conecta al backend del desktop via API REST.
+- Necesitás el desktop corriendo para funcionalidad completa.
+- La app móvil tiene su propio login (no comparte sesión con desktop).
+- Para release firmado: `./mobile/build_apk.sh --release` (requiere keystore).
+
+---
+
 ## Windows (ejecutable portátil)
 
 ### Requisitos

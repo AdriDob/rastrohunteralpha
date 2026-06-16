@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import { useStore } from '../lib/store';
+import { createInvestigation } from '../lib/api';
 import type { OpportunityItem, Target, ScoreBreakdown, EVHData } from '../types';
 
 interface MissionData {
@@ -24,12 +26,28 @@ interface Props {
 function MissionCard({ data }: { data: MissionData }) {
   const navigate = useNavigate();
   const { setSelectedTarget, addRecentInvestigation } = useStore();
+  const [creating, setCreating] = useState(false);
 
-  const handleStart = () => {
+  const handleStart = async () => {
     if (data.target) {
+      setCreating(true);
       setSelectedTarget(data.target.id);
-      addRecentInvestigation(data.target.id, data.target.name);
-      navigate(`/target/${data.target.id}`);
+      try {
+        const invName = data.opportunity
+          ? `${data.opportunity.name} Investigation`
+          : `${data.target.name} Investigation`;
+        const inv = await createInvestigation({
+          target_id: data.target.id,
+          name: invName,
+          notes: `Auto-created from ${data.opportunity?.category || 'target'} priority mission.`,
+        });
+        addRecentInvestigation(data.target.id, data.target.name);
+        navigate(`/investigation/${inv.id}`);
+      } catch {
+        navigate(`/target/${data.target.id}`);
+      } finally {
+        setCreating(false);
+      }
     } else if (data.opportunity?.public_url) {
       window.open(data.opportunity.public_url, '_blank');
     }
@@ -108,15 +126,16 @@ function MissionCard({ data }: { data: MissionData }) {
 
       <button
         onClick={handleStart}
+        disabled={creating}
         style={{
-          padding: '12px 24px', borderRadius: 8, border: 'none', cursor: 'pointer',
+          padding: '12px 24px', borderRadius: 8, border: 'none', cursor: creating ? 'wait' : 'pointer',
           fontSize: 14, fontWeight: 700, color: '#fff',
-          background: '#7c3aed', transition: 'all 0.15s', width: '100%',
+          background: creating ? '#4a1d96' : '#7c3aed', transition: 'all 0.15s', width: '100%',
         }}
-        onMouseEnter={e => { e.currentTarget.style.background = '#6d28d9'; }}
-        onMouseLeave={e => { e.currentTarget.style.background = '#7c3aed'; }}
+        onMouseEnter={e => { if (!creating) e.currentTarget.style.background = '#6d28d9'; }}
+        onMouseLeave={e => { if (!creating) e.currentTarget.style.background = '#7c3aed'; }}
       >
-        {data.recommendedAction}
+        {creating ? 'Creating Investigation…' : data.recommendedAction}
       </button>
     </div>
   );

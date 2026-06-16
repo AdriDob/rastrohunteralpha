@@ -1,35 +1,41 @@
 # ROADMAP — RASTRO INVESTIGATION OS
-**Versión:** 1.0.0
+**Versión:** 1.3.0
 **Fecha:** Junio 2026
 **Visión:** Sistema Operativo Privado de Investigación para analistas de bug bounty y attack surface intelligence.
 
 ## 1. Estado Actual Real del Sistema
 
-Rastro — **producción-ready con hardening completo**:
+Rastro — **estable con pipeline integrado, Android scaffold, sidebar unificada**:
 
-- **Backend**: FastAPI + SQLAlchemy + SQLite, 183 rutas, 37 routers, auth + rate-limit + license middleware.
-- **Base de datos**: SQLite única con seed data: 5 targets, 50 endpoints, 8 findings, 54 verdicts, 834 memory_records.
+- **Backend**: FastAPI + SQLAlchemy + SQLite/PostgreSQL, 236 rutas, 38 routers, auth + rate-limit + license middleware.
+- **Base de datos**: 17 tablas (SQLite default, PostgreSQL via DATABASE_URL).
+- **Pipeline Unificado**: Target → Recon → Hypotheses → Validation → Evidence → Findings → Reports → Investigation con timeline y progreso visual.
 - **Discovery Engine**: Subfinder, Katana, Httpx vía Go binaries con scheduler async (30min).
-- **Frontend**: React 19 + Vite 8, build ~950ms, 0 TS errors, 24 páginas, onboarding UX.
-- **AI Layer**: Ollama (Qwen2.5-Coder) + OpenAI-compatible + fallback local rule-based.
+- **Frontend**: React 19 + Vite 8, build ~1.7s, 0 TS errors, 27 páginas, onboarding UX, sidebar con submenús.
+- **Android**: Capacitor 8 scaffolded, APK build script, mobile bottom nav.
+- **Personal Learning Engine**: 7 módulos backend + 12 endpoints + 19 tests + UI dedicada.
+- **i18n**: Español default, auto-detect OS language, EN/ES completos, arquitectura para PT/FR/DE/IT.
+- **User Auth**: Registro, login, refresh tokens, perfil — PBKDF2-HMAC-SHA256 (stdlib, sin bcrypt).
+- **AI Layer**: Ollama (Qwen2.5-Coder) + OpenAI-compatible + fallback local rule-based + MemoryBuilder PLE.
 - **Investigation Narrator**: 7 funciones de interpretación de inteligencia.
-- **Test suite**: 122/122 passed (incluyendo 11 tests de seguridad).
-- **Auth**: JWT middleware global — 401 en rutas protegidas, 403 si sin licencia.
+- **Test suite**: 152/152 passed (incluyendo 11 tests de seguridad + 11 auth + 19 PLE).
+- **Auth**: JWT middleware global + User model + register/login/refresh/me.
 - **Rate limiter**: Token bucket — 30/s default, login 5/s, overview 10/s.
 - **License system**: HMAC-SHA256, machine fingerprint, persistencia, 3 endpoints + frontend Activation.
 - **Onboarding UX**: WelcomeWizard + TourOverlay + BootScreen.
 - **Auto-updater**: GitHub Releases + SHA-256 + rollback.
 - **Windows lifecycle**: install/uninstall scripts, Add/Remove Programs, shortcuts.
-- **Hardening**: P1-P8 completado (auth, rate-limit, tests, license, onboarding, updater, lifecycle, N+1 optimization).
-- **Housekeeping**: Legacy removals (dashboard/, root main.py, main_desktop.spec, schema.sql, 3 dead components, differential/discovery skeletons).
+- **Project Governance**: PROJECT_STATUS.md, TIMELINE.md, FEATURE_MATRIX.md, TECH_DEBT.md.
+- **Hardening**: P1-P8 completado + Dual DB + migration script.
+- **Housekeeping**: Legacy removals, 21 dead API functions eliminadas, dead components removidos.
 
 ## 2. Arquitectura Real Observada
 
 ```
 Middleware: CORS → RateLimit → Auth (global)
 Backend:    FastAPI modular con 37 routers + 183 rutas
-DB:         SQLite (15 tablas, SQLAlchemy)
-Frontend:   React 19 + Vite 8 + Tailwind 4 + 24 páginas
+DB:         SQLite (default) + PostgreSQL via DATABASE_URL (17 tablas)
+Frontend:   React 19 + Vite 8 + Tailwind 4 + 25 páginas
 Desktop:    pywebview 6 + pystray 0.19.5 + PyInstaller
 Engine:     core_engines/ (recon, scoring, graph, evidence, verdict, report)
 AI:         core_engines/ai/ (conversacional) + core_engines/assistant/ (narrativo)
@@ -83,23 +89,34 @@ License:    core_engines/license/ (validator, hardware, store)
 
 ## 7. Roadmap Futuro
 
-### Short-term
-- UX Premium: design tokens, theme refinement, skeletal loading, transitions
-- AI Provider abstraction layer + streaming SSE
-- Engine polish: visual clustering, evidence traceability, human-language narrator
-- Windows .exe via GitHub Actions CI
+### Short-term (v1.2.x)
+- [x] Personal Learning Engine (PLE) — backend + frontend + tests
+- [x] i18n — español default, auto-detect, arquitectura multi-idioma
+- [x] Project governance — status, timeline, feature matrix, tech debt
+- [x] User auth — registro, login, refresh, perfil
+- [x] Dual DB — SQLite + PostgreSQL + migration script
+- [ ] WebSocket manager + event bus bridge
+- [ ] SSE fallback for restricted networks
+- [ ] Client-side WebSocket hook
 
-### Medium-term
-- Widget system con drag & drop
-- Modo offline mejorado
-- Investigation Canvas (espacio infinito de hipótesis visuales)
-- Replay Timeline Visual (evolución de target como película)
+### Medium-term (v1.3.x)
+- AI Provider abstraction layer (Ollama, OpenAI, OpenRouter, LM Studio, vLLM)
+- Provider registry + auto-fallback chain
+- Model selector UI
+- SSE streaming endpoint
+- Dashboard widgets (PLE-powered)
+- Weekly progress charts
+- Investigation heatmap
 
-### Long-term
-- AI Memory persistente entre sesiones
-- Soporte para equipos (opcional)
-- Integraciones externas (Burp, Nuclei, etc.)
-- Versión nativa Windows + Linux estable
+### Long-term (v2.0)
+- PostgreSQL como DB principal (SQLite sigue siendo compatible)
+- WebSocket + SSE sync layer
+- Android app via Capacitor
+- iOS app structure
+- Notificaciones multiplataforma (FCM + Email + Desktop)
+- Cuenta de usuario con sincronización cloud
+- FREE / PRO / ELITE feature flags
+- Sistema de permisos preparado para monetización
 
 ## 8. Riesgos de Evolución
 

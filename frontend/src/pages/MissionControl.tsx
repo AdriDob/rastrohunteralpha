@@ -21,10 +21,10 @@ import type {
 } from '../types';
 
 const QUICK_ACTIONS = [
-  { label: 'Run Scan', icon: '🔍', path: '/pipeline' },
-  { label: 'Hot Paths', icon: '⚡', path: '/hotpaths' },
-  { label: 'Briefing', icon: '🌅', path: '/daily' },
-  { label: 'Opportunities', icon: '🎯', path: '/radar' },
+  { label: 'Investigations', icon: '◈', path: '/investigations' },
+  { label: 'Pipeline', icon: '▤', path: '/pipeline' },
+  { label: 'Hypotheses', icon: '⟐', path: '/hypothesis' },
+  { label: 'Evidence', icon: '📋', path: '/evidence' },
   { label: 'Reports', icon: '📄', path: '/reports' },
 ];
 
