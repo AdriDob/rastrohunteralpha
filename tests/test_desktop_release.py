@@ -10,6 +10,7 @@ Verifies:
   - Tray controller works
   - Autostart functions exist
   - First-run onboarding
+  - Port consistency (single source of truth across all components)
 
 Usage:
     pytest tests/test_desktop_release.py -v
@@ -361,6 +362,124 @@ class TestProcessIsolation:
         assert "subprocess" not in content
         assert "Popen" not in content
         assert "multiprocessing" not in content
+
+
+# ── Port consistency — single source of truth ──────────────────────
+
+class TestPortConsistency:
+    """Validate that all components use the same backend port.
+
+    The single source of truth is:
+      core_engines.env.config.EnvConfig.port  (env var RASTRO_PORT, default 8000)
+      desktop.settings.DEFAULT_SETTINGS.backend_port  (default 8000)
+
+    Every URL builder, tray action, health check, and browser opener
+    MUST use this port — never a hardcoded constant.
+    """
+
+    def test_env_config_default_port(self):
+        """core_engines.env.config is the canonical port source."""
+        from core_engines.env.config import EnvConfig
+        cfg = EnvConfig()
+        assert cfg.port == 8000, f"EnvConfig.port should be 8000, got {cfg.port}"
+
+    def test_settings_default_port(self):
+        """Desktop settings default port matches env config."""
+        from desktop.settings import DEFAULT_SETTINGS
+        assert DEFAULT_SETTINGS["backend_port"] == 8000, (
+            f"Settings backend_port should be 8000, got {DEFAULT_SETTINGS['backend_port']}"
+        )
+
+    def test_build_dashboard_url_default_port(self):
+        """build_dashboard_url default port matches canonical port."""
+        from desktop.browser_opener import build_dashboard_url
+        from core_engines.env.config import EnvConfig
+        cfg = EnvConfig()
+
+        url = build_dashboard_url()
+        expected = f"http://127.0.0.1:{cfg.port}/"
+        assert url == expected, f"Expected {expected}, got {url}"
+
+    def test_build_dashboard_url_explicit_port(self):
+        """build_dashboard_url accepts explicit port override."""
+        from desktop.browser_opener import build_dashboard_url
+        url = build_dashboard_url(port=8000, path="/daily")
+        assert url == "http://127.0.0.1:8000/daily"
+
+    def test_build_dashboard_url_with_params(self):
+        """build_dashboard_url includes query params correctly."""
+        from desktop.browser_opener import build_dashboard_url
+        url = build_dashboard_url(port=8000, token="abc", tab="findings")
+        assert "token=abc" in url
+        assert "tab=findings" in url
+        assert url.startswith("http://127.0.0.1:8000/")
+
+    def test_open_dashboard_default_port(self):
+        """open_dashboard default port matches canonical port."""
+        from desktop.browser_opener import open_dashboard
+        import inspect
+        sig = inspect.signature(open_dashboard)
+        default_port = sig.parameters["port"].default
+        from core_engines.env.config import EnvConfig
+        cfg = EnvConfig()
+        assert default_port == cfg.port, (
+            f"open_dashboard default port should be {cfg.port}, got {default_port}"
+        )
+
+    def test_server_thread_stores_port(self):
+        """ServerThread stores the port and exposes it."""
+        from desktop.main_desktop import ServerThread
+        thread = ServerThread("127.0.0.1", 8000)
+        assert thread.port == 8000
+        assert thread.host == "127.0.0.1"
+
+    def test_start_tray_uses_server_port(self):
+        """Verify _start_tray capture uses server.port, not hardcoded constant."""
+        import inspect
+        from desktop.main_desktop import _start_tray
+        source = inspect.getsource(_start_tray)
+        # Must NOT contain port=5173
+        assert "port=5173" not in source, (
+            "_start_tray still has hardcoded port=5173"
+        )
+        # Must reference server.port or api_port
+        assert "server.port" in source or "api_port" in source, (
+            "_start_tray must use server.port"
+        )
+
+    def test_open_browser_uses_port_parameter(self):
+        """Verify _open_browser uses its port parameter, not hardcoded constant."""
+        import inspect
+        from desktop.main_desktop import _open_browser
+        source = inspect.getsource(_open_browser)
+        # Must NOT contain port=5173
+        assert "port=5173" not in source, (
+            "_open_browser still has hardcoded 5173"
+        )
+        # first_boot branch should use 'port' variable
+        assert '"port": port' in source, (
+            "_open_browser must pass 'port' in ctx dict"
+        )
+
+    def test_no_hardcoded_5173_in_desktop_code(self):
+        """No hardcoded 5173 remains in desktop/*.py (except docs/launcher)."""
+        desktop_dir = Path(__file__).resolve().parent.parent / "desktop"
+        for py_file in sorted(desktop_dir.rglob("*.py")):
+            content = py_file.read_text()
+            # Only search for 5173 in Python source (not strings like monetary values)
+            if "5173" in content:
+                rel = py_file.relative_to(desktop_dir.parent)
+                pytest.fail(f"Hardcoded 5173 found in {rel}")
+
+    def test_browser_opener_defaults_match(self):
+        """build_dashboard_url and open_dashboard share the same default port."""
+        from desktop.browser_opener import build_dashboard_url, open_dashboard
+        import inspect
+        b_sig = inspect.signature(build_dashboard_url)
+        o_sig = inspect.signature(open_dashboard)
+        assert b_sig.parameters["port"].default == o_sig.parameters["port"].default, (
+            "build_dashboard_url and open_dashboard default ports differ"
+        )
 
 
 # ── Silent run — file logging ─────────────────────────────────────

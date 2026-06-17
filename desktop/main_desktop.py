@@ -228,10 +228,21 @@ def _init_settings() -> int:
 
 # ── Desktop window ──────────────────────────────────────────────────
 
-def _open_desktop_window(host: str, port: int) -> None:
+def _open_desktop_window(host: str, port: int) -> bool:
+    """Try to open a pywebview desktop window.
+
+    Returns True if the window was shown and the user closed it normally.
+    Returns False if the window could not be created (e.g. missing WebView2)
+    or if webview.start() returned without blocking — caller should fall
+    back to browser mode.
+    """
     url = f"http://{host}:{port}"
     _lifecycle(_BROWSER, "Opening desktop window → %s", url)
+    user_closed: threading.Event = threading.Event()
+    start_ts = time.time()
+
     try:
+        _lifecycle(_BROWSER, "webview.create_window() starting...")
         window = webview.create_window(
             "Rastro Investigation OS",
             url=url,
@@ -240,16 +251,23 @@ def _open_desktop_window(host: str, port: int) -> None:
             resizable=True,
             min_size=(1024, 600),
         )
-        window.closed += lambda: _lifecycle(_SHUTDOWN, "Desktop window closed")
+        window.closed += lambda: (user_closed.set(), _lifecycle(_SHUTDOWN, "Desktop window closed"))
+        _lifecycle(_BROWSER, "webview.start() starting...")
         webview.start(storage_path=None)
+        elapsed = time.time() - start_ts
+        _lifecycle(_BROWSER, "webview.start() returned after %.2fs (user_closed=%s)",
+                   elapsed, user_closed.is_set())
+
+        if elapsed < 2.0 and not user_closed.is_set():
+            _lifecycle(_BROWSER, "Desktop window unavailable — "
+                       "webview returned in %.2fs without user action "
+                       "(likely WebView2 runtime missing)", elapsed)
+            return False
+
+        return True
     except Exception as exc:
         _lifecycle(_BROWSER, "Desktop window failed (%s), falling back to browser", exc)
-        _open_browser(port)
-        import signal as _sig
-        _shutdown: threading.Event = threading.Event()
-        _sig.signal(_sig.SIGINT, lambda *_: _shutdown.set())
-        _sig.signal(_sig.SIGTERM, lambda *_: _shutdown.set())
-        _shutdown.wait()
+        return False
 
 
 def _open_browser(port: int) -> None:
@@ -265,7 +283,7 @@ def _open_browser(port: int) -> None:
 
     if first_boot:
         ctx: dict = {
-            "port": 5173,
+            "port": port,
             "token": settings.get("session_token"),
             "device_id": settings.get("device_id"),
         }
@@ -300,17 +318,18 @@ def _start_tray(server: ServerThread, shutdown_event: threading.Event):
         settings.record_shutdown()
         shutdown_event.set()
 
+    api_port = server.port
     try:
         tray = TrayController(
             on_open_dashboard=lambda: open_dashboard(
-                port=5173,
+                port=api_port,
                 token=settings.get("session_token"),
                 device_id=settings.get("device_id"),
                 tab=settings.get("last_dashboard_tab"),
                 target_id=settings.get("last_opened_target"),
             ),
             on_open_daily_mode=lambda: open_dashboard(
-                port=5173, path="/daily",
+                port=api_port, path="/daily",
                 token=settings.get("session_token"),
                 device_id=settings.get("device_id"),
             ),
@@ -426,7 +445,29 @@ def main() -> None:
             _lifecycle(_SHUTDOWN, "KeyboardInterrupt")
     else:
         _lifecycle(_READY, "Rastro Desktop ready (desktop window)")
-        _open_desktop_window(host, port)
+        if not _open_desktop_window(host, port):
+            _lifecycle(_BOOT, "Desktop UI unavailable, browser mode activated.")
+            _open_browser(port)
+
+            shutdown_event: threading.Event = threading.Event()
+
+            def _handle_signal(signum, frame):
+                if not shutdown_event.is_set():
+                    _lifecycle(_SHUTDOWN, "Signal %d received", signum)
+                shutdown_event.set()
+
+            signal.signal(signal.SIGINT, _handle_signal)
+            signal.signal(signal.SIGTERM, _handle_signal)
+
+            if not no_tray:
+                tray = _start_tray(server, shutdown_event)
+
+            _lifecycle(_READY, "Rastro Desktop ready (browser fallback)")
+
+            try:
+                shutdown_event.wait()
+            except KeyboardInterrupt:
+                _lifecycle(_SHUTDOWN, "KeyboardInterrupt")
 
     # ── Graceful shutdown ───────────────────────────────────────────
     _lifecycle(_SHUTDOWN, "Stopping server...")

@@ -67,7 +67,7 @@ def open_system_browser(url: str) -> bool:
 
 
 def build_dashboard_url(
-    port: int = 5173,
+    port: int = 8000,
     path: str = "/",
     token: Optional[str] = None,
     device_id: Optional[str] = None,
@@ -93,7 +93,7 @@ def build_dashboard_url(
 
 
 def open_dashboard(
-    port: int = 5173,
+    port: int = 8000,
     path: str = "/",
     token: Optional[str] = None,
     device_id: Optional[str] = None,
