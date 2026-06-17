@@ -20,12 +20,16 @@ const en: Translations = {
   sidebar_expand: 'Expand sidebar',
   recent: 'Recent',
   pinned: 'Pinned',
-  mission: 'MISSION',
-  map: 'MAP',
-  hunt: 'HUNT',
-  bag: 'BAG',
-  report: 'REPORT',
-  work: 'WORK',
+  nav_mission: 'Mission',
+  nav_recon: 'Recon',
+  nav_findings: 'Findings',
+  nav_analysis: 'Analysis',
+  nav_operations: 'Operations',
+  nav_intelligence: 'Intelligence',
+  daily_briefing: 'Daily Briefing',
+  actions_view: 'Actions',
+  history_view: 'History',
+  project_dashboard: 'Project Dashboard',
 
   // Opportunities
   opportunity_radar: 'Opportunity Radar',
@@ -67,6 +71,7 @@ const en: Translations = {
   target_detail: 'Target Detail',
   finding_detail: 'Finding Detail',
   endpoint_detail: 'Endpoint Detail',
+  personal_intelligence: 'Personal Intel',
 
   // Evidence
   evidence_center: 'Evidence Center',
@@ -81,6 +86,11 @@ const en: Translations = {
 
   // Settings
   settings: 'Settings',
+  settings_title: 'Settings',
+  settings_section_appearance: 'Appearance',
+  settings_section_language: 'Language',
+  settings_language_desc: 'Choose your preferred language for the interface',
+  settings_theme_desc: 'Toggle between dark and light themes',
   theme: 'Theme',
   language: 'Language',
   notifications: 'Notifications',
@@ -89,6 +99,32 @@ const en: Translations = {
   // Operations
   operations_dashboard: 'Operations Dashboard',
   task_queue: 'Task Queue',
+  investigations: 'Investigations',
+
+  // Personal Learning
+  adaptive_mode: 'Adaptive Mode',
+  adaptive_mode_desc: 'Enable adaptive recommendations based on your profile',
+  export_json: 'Export JSON',
+  export_md: 'Export MD',
+  reset_profile: 'Reset Profile',
+  strength_map: 'Strength Map',
+  areas_of_expertise: 'Areas of Expertise',
+  success_history: 'Success History',
+  recommendations_title: 'Recommendations',
+  recent_activity: 'Recent Activity',
+  no_learning_data: 'No Learning Data Yet',
+  no_learning_data_desc: 'Your investigator profile will grow as you investigate targets, create findings, and use the system. Enable Adaptive Mode to start.',
+  no_bug_classes: 'No bug class data yet. Create findings to build your strength map.',
+  no_industries: 'No industries tracked yet.',
+  targets_label: 'Targets',
+  findings_label: 'Findings',
+  hours_label: 'Hours',
+  sessions_label: 'Sessions',
+  confirmed_label: 'Confirmed',
+  high_severity_label: 'High Severity',
+  rejected_label: 'Rejected',
+  duplicates_label: 'Duplicates',
+  total_roi: 'Total ROI',
 
   // Placeholders / Common
   loading: 'Loading...',

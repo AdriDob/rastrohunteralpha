@@ -17,4 +17,6 @@ pywebview>=6.0.0
 pystray>=0.19.0
 plyer>=2.1.0
 Pillow>=10.0.0
+psycopg2-binary>=2.9.0
+cryptography>=41.0.0
 # taipy>=4.0.0  -- removed: dashboard_taipy/ directory does not exist

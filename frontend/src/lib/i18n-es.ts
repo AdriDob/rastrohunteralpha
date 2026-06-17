@@ -20,12 +20,16 @@ const es: Translations = {
   sidebar_expand: 'Expandir barra lateral',
   recent: 'Reciente',
   pinned: 'Fijado',
-  mission: 'MISIÓN',
-  map: 'MAPA',
-  hunt: 'CAZA',
-  bag: 'BOLSA',
-  report: 'INFORME',
-  work: 'TRABAJO',
+  nav_mission: 'Misión',
+  nav_recon: 'Reconocimiento',
+  nav_findings: 'Hallazgos',
+  nav_analysis: 'Análisis',
+  nav_operations: 'Operaciones',
+  nav_intelligence: 'Inteligencia',
+  daily_briefing: 'Briefing Diario',
+  actions_view: 'Acciones',
+  history_view: 'Historial',
+  project_dashboard: 'Panel del Proyecto',
 
   // Opportunities
   opportunity_radar: 'Radar de Oportunidades',
@@ -67,6 +71,7 @@ const es: Translations = {
   target_detail: 'Detalle del Objetivo',
   finding_detail: 'Detalle del Hallazgo',
   endpoint_detail: 'Detalle del Endpoint',
+  personal_intelligence: 'Intel. Personal',
 
   // Evidence
   evidence_center: 'Centro de Evidencia',
@@ -81,6 +86,11 @@ const es: Translations = {
 
   // Settings
   settings: 'Configuración',
+  settings_title: 'Configuración',
+  settings_section_appearance: 'Apariencia',
+  settings_section_language: 'Idioma',
+  settings_language_desc: 'Seleccione su idioma preferido para la interfaz',
+  settings_theme_desc: 'Cambie entre tema oscuro y claro',
   theme: 'Tema',
   language: 'Idioma',
   notifications: 'Notificaciones',
@@ -89,6 +99,32 @@ const es: Translations = {
   // Operations
   operations_dashboard: 'Panel de Operaciones',
   task_queue: 'Cola de Tareas',
+  investigations: 'Investigaciones',
+
+  // Personal Learning
+  adaptive_mode: 'Modo Adaptativo',
+  adaptive_mode_desc: 'Activar recomendaciones adaptativas basadas en su perfil',
+  export_json: 'Exportar JSON',
+  export_md: 'Exportar MD',
+  reset_profile: 'Reiniciar Perfil',
+  strength_map: 'Mapa de Fortalezas',
+  areas_of_expertise: 'Áreas de Experiencia',
+  success_history: 'Historial de Éxitos',
+  recommendations_title: 'Recomendaciones',
+  recent_activity: 'Actividad Reciente',
+  no_learning_data: 'Sin Datos de Aprendizaje',
+  no_learning_data_desc: 'Su perfil de investigador crecerá a medida que investigue objetivos, cree hallazgos y use el sistema. Active el Modo Adaptativo para comenzar.',
+  no_bug_classes: 'Aún no hay clases de bug. Cree hallazgos para construir su mapa de fortalezas.',
+  no_industries: 'Aún no hay industrias registradas.',
+  targets_label: 'Objetivos',
+  findings_label: 'Hallazgos',
+  hours_label: 'Horas',
+  sessions_label: 'Sesiones',
+  confirmed_label: 'Confirmados',
+  high_severity_label: 'Alta Gravedad',
+  rejected_label: 'Rechazados',
+  duplicates_label: 'Duplicados',
+  total_roi: 'ROI Total',
 
   // Placeholders / Common
   loading: 'Cargando...',

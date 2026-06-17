@@ -84,6 +84,10 @@ class EvidenceOut(BaseModel):
     consistent: bool = False
     curl_command: Optional[str] = None
     body_diff_ratio: float = 0.0
+    request_body: Optional[str] = None
+    response_body: Optional[str] = None
+    request_headers: Optional[str] = None
+    response_headers: Optional[str] = None
 
 
 class OpportunityOut(BaseModel):
@@ -211,3 +215,117 @@ class ReportOut(BaseModel):
     total_estimated_value: int = 0
     generated_at: str = ""
     markdown: str = ""
+
+
+# ── Phase 0: Identity & Investigation schemas ──
+
+
+class TargetIdentityOut(BaseModel):
+    id: int
+    target_id: int
+    label: str
+    auth_type: str
+    is_baseline: bool
+    is_active: bool
+    session_valid: bool = False
+    session_expires_at: Optional[str] = None
+    created_at: Optional[str] = None
+
+
+class TargetIdentityCreate(BaseModel):
+    label: str = "Default"
+    auth_type: str = "none"
+    username: Optional[str] = None
+    password: Optional[str] = None
+    token: Optional[str] = None
+    api_key: Optional[str] = None
+    cookies: Optional[Dict[str, str]] = None
+    login_url: Optional[str] = None
+    login_params: Optional[Dict[str, Any]] = None
+    is_baseline: bool = False
+
+
+class TargetIdentityUpdate(BaseModel):
+    label: Optional[str] = None
+    auth_type: Optional[str] = None
+    username: Optional[str] = None
+    password: Optional[str] = None
+    token: Optional[str] = None
+    api_key: Optional[str] = None
+    cookies: Optional[Dict[str, str]] = None
+    login_url: Optional[str] = None
+    login_params: Optional[Dict[str, Any]] = None
+    is_baseline: Optional[bool] = None
+    is_active: Optional[bool] = None
+
+
+class TargetSessionStatus(BaseModel):
+    identity_id: int
+    is_valid: bool
+    expires_at: Optional[str] = None
+    last_refresh_at: Optional[str] = None
+    failure_count: int = 0
+
+
+class InvestigationOut(BaseModel):
+    id: int
+    target_id: int
+    target_name: str = ""
+    name: str
+    status: str
+    pipeline_state: Dict[str, Any] = {}
+    notes: Optional[str] = None
+    tags: List[str] = []
+    created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+
+class InvestigationCreate(BaseModel):
+    target_id: int
+    name: str
+    notes: Optional[str] = None
+    tags: Optional[List[str]] = None
+
+
+class InvestigationUpdate(BaseModel):
+    name: Optional[str] = None
+    status: Optional[str] = None
+    notes: Optional[str] = None
+    tags: Optional[List[str]] = None
+
+
+class ValidationRunOut(BaseModel):
+    id: int
+    investigation_id: Optional[int] = None
+    endpoint_id: int
+    identity_baseline_id: Optional[int] = None
+    identity_probe_id: Optional[int] = None
+    status: str
+    verdict_id: Optional[int] = None
+    started_at: Optional[str] = None
+    finished_at: Optional[str] = None
+
+
+class ReportNewOut(BaseModel):
+    id: int
+    investigation_id: Optional[int] = None
+    format: str
+    created_at: Optional[str] = None
+
+
+class ReportFullOut(BaseModel):
+    id: int
+    investigation_id: Optional[int] = None
+    format: str
+    content: Optional[Dict[str, Any]] = None
+    finding_ids: List[int] = []
+    created_at: Optional[str] = None
+
+
+class ReportListItem(BaseModel):
+    id: int
+    format: str
+    summary: str = ""
+    severity: str = ""
+    finding_ids: List[int] = []
+    created_at: Optional[str] = None

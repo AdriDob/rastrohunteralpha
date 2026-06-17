@@ -63,13 +63,17 @@ class EventBus:
         self._max_history = 500
 
     def subscribe(self, event_type: str, handler: EventHandler) -> None:
-        """Register a sync handler for an event type."""
+        """Register a sync handler for an event type.
+        Use "*" to subscribe to all events.
+        """
         if event_type not in self._handlers:
             self._handlers[event_type] = []
         self._handlers[event_type].append(handler)
 
     def subscribe_async(self, event_type: str, handler: EventHandler) -> None:
-        """Register an async handler for an event type."""
+        """Register an async handler for an event type.
+        Use "*" to subscribe to all events.
+        """
         if event_type not in self._async_handlers:
             self._async_handlers[event_type] = []
         self._async_handlers[event_type].append(handler)
@@ -111,16 +115,16 @@ class EventBus:
         except Exception as exc:
             logger.debug("Priority routing skipped: %s", exc)
 
-        # Sync handlers
-        handlers = self._handlers.get(event_type, [])
+        # Sync handlers (exact match + wildcard)
+        handlers = self._handlers.get(event_type, []) + self._handlers.get("*", [])
         for handler in handlers:
             try:
                 handler(event_type=event_type, priority=priority, **payload)
             except Exception as exc:
                 logger.warning("Event handler error on %s: %s", event_type, exc)
 
-        # Async handlers — fire and forget
-        async_handlers = self._async_handlers.get(event_type, [])
+        # Async handlers — fire and forget (exact match + wildcard)
+        async_handlers = self._async_handlers.get(event_type, []) + self._async_handlers.get("*", [])
         if async_handlers:
             loop = _get_loop()
             for handler in async_handlers:

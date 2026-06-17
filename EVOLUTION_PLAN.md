@@ -1,7 +1,7 @@
 # Rastro Evolution Plan — Multi-Device Unified System
 
-**Version:** 1.1 (draft)
-**Status:** Planning
+**Version:** 1.2 (live)
+**Status:** Phase 1 COMPLETED — Phase 2 PLANNED
 **Target:** Production-ready multi-device investigation OS
 
 ---
@@ -43,27 +43,29 @@ Transform Rastro from a single-user local-first desktop app into a **multi-devic
 
 ## 3. Milestones & Phases
 
-### Phase 1: Foundation (Week 1-2)
-**Goal: PostgreSQL + auth + user management**
+### Phase 1: Foundation (Week 1-2) — ✅ COMPLETED v1.2.0
+**Goal: PostgreSQL + auth + user management + PLE + i18n**
 
-| Task | Details | Files affected | Dependencies |
-|------|---------|----------------|-------------|
-| 1.1 | Database migration: SQLite → PostgreSQL | `database/db.py`, `database/models.py` | — |
-| 1.2 | User model + Email/password auth | `database/models.py`, new `api/routers/auth_users.py` | 1.1 |
-| 1.3 | JWT + refresh tokens | `core_engines/auth/` | 1.2 |
-| 1.4 | Session management (multi-device) | `core_engines/auth/`, new `core_engines/session/` | 1.3 |
-| 1.5 | Update all DB session handlers for async | `api/routers/*`, `api/services/*` | 1.1 |
-| 1.6 | Migrate seed data to PostgreSQL | `database/seed.py` | 1.1 |
+| Task | Details | Status |
+|------|---------|--------|
+| 1.1 | Database migration: SQLite → PostgreSQL | ✅ Dual DB + `scripts/migrate_to_postgres.py` |
+| 1.2 | User model + Email/password auth | ✅ `database/models.py` (User), `api/routers/auth_users.py` |
+| 1.3 | JWT + refresh tokens | ✅ `core_engines/auth/` (JWT, refresh, PBKDF2-HMAC-SHA256) |
+| 1.4 | Session management (multi-device) | ⏳ Partial (Session model exists, multi-device pending Phase 2) |
+| 1.5 | **Personal Learning Engine** | ✅ 7 módulos + 12 endpoints + 19 tests + UI |
+| 1.6 | **i18n + español default** | ✅ ES default, auto-detect, EN/ES completos, 22 claves PLE |
+| 1.7 | Update all DB session handlers for async | ⏳ Pending (sync sessions still) |
+| 1.8 | Migrate seed data to PostgreSQL | ✅ `scripts/migrate_to_postgres.py` exists |
 
-### Phase 2: Real-time Sync (Week 3-4)
+### Phase 2: Real-time Sync (Week 3-4) — ✅ COMPLETED (v1.3.0)
 **Goal: WebSocket + SSE layer for live updates**
 
 | Task | Details | Files affected | Dependencies |
 |------|---------|----------------|-------------|
-| 2.1 | WebSocket manager | New `api/ws/manager.py` | Phase 1 |
-| 2.2 | Connection auth handshake | `api/ws/auth.py` | 1.3 |
-| 2.3 | Event bus → WebSocket bridge | `core_engines/events/` | 2.1 |
-| 2.4 | SSE fallback for restricted networks | New `api/routers/sse.py` | 2.1 |
+| 2.1 | WebSocket manager | `core_engines/ws/manager.py` | Phase 1 |
+| 2.2 | Connection auth handshake | `api/routers/ws.py` | 1.3 |
+| 2.3 | Event bus → WebSocket bridge | `core_engines/ws/bridge.py` | 2.1 |
+| 2.4 | SSE fallback for restricted networks | Postergado a v1.4.x | 2.1 |
 | 2.5 | Client-side WebSocket hook | `frontend/src/lib/ws.ts` | 2.1 |
 | 2.6 | Live dashboard updates | `frontend/src/pages/MissionControl.tsx` | 2.5 |
 
@@ -136,9 +138,7 @@ Transform Rastro from a single-user local-first desktop app into a **multi-devic
 
 | Package | Purpose | Phase |
 |---------|---------|-------|
-| `asyncpg` or `psycopg3` | PostgreSQL async driver | 1 |
-| `bcrypt` or `passlib[bcrypt]` | Password hashing | 1 |
-| `python-jose` or `PyJWT` | JWT tokens | 1 |
+| `asyncpg` or `psycopg3` | PostgreSQL async driver | 2 |
 | `websockets` | WebSocket protocol | 2 |
 | `firebase-admin` | FCM push notifications | 3 |
 | `aiosmtplib` | Async email sending | 3 |
@@ -147,14 +147,15 @@ Transform Rastro from a single-user local-first desktop app into a **multi-devic
 
 ---
 
-## 7. Backward Compatibility
+## 7. Backward Compatibility (CONFIRMED v1.2.0)
 
-- **Existing SQLite database**: Script to migrate SQLite → PostgreSQL
-- **Existing API endpoints**: 100% backward compatible (no breaking changes)
-- **Frontend state**: Zustand store becomes cache layer; backend remains source of truth
-- **Desktop boot**: Unchanged (13-step sequence preserved)
-- **Middleware chain**: Unchanged (CORS → RateLimit → Auth)
+- **Existing SQLite database**: `scripts/migrate_to_postgres.py` — tested
+- **Existing API endpoints**: 195 routes, 100% backward compatible
+- **Frontend state**: Zustand store (localStorage) with partialize pattern
+- **Desktop boot**: 13-step boot sequence preserved (no changes)
+- **Middleware chain**: CORS → RateLimit → Auth (no changes)
 - **Pipeline core**: UNTOUCHED (Recon → Scoring → Graph → Evidence → Verdict → Report)
+- **PLE data**: Local-first, never leaves instance without explicit export
 
 ---
 
@@ -162,12 +163,12 @@ Transform Rastro from a single-user local-first desktop app into a **multi-devic
 
 | Phase | Tasks | Estimated time |
 |-------|-------|----------------|
-| Phase 1: Foundation | 6 tasks | 2 weeks |
+| Phase 1: Foundation | 8 tasks | 3 weeks |
 | Phase 2: Real-time sync | 6 tasks | 2 weeks |
 | Phase 3: Notifications | 6 tasks | 1 week |
 | Phase 4: Mobile Companion | 6 tasks | 3 weeks |
 | Phase 5: Polish + Release | 6 tasks | 2 weeks |
-| **Total** | **30 tasks** | **10 weeks** |
+| **Total** | **32 tasks** | **11 weeks** |
 
 ---
 

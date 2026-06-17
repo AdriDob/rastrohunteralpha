@@ -12,7 +12,7 @@ Refleja el código real, no aspiraciones. Cualquier discrepancia entre este plan
 
 | Dimensión | Estado |
 |-----------|--------|
-| **Backend** | FastAPI + SQLAlchemy + SQLite — 236 rutas, 38 routers, 0 deprecation warnings |
+| **Backend** | FastAPI + SQLAlchemy + SQLite/PostgreSQL — ~236 rutas, 44 routers, 0 deprecation warnings |
 | **Frontend** | React 19 + Vite 8 + TypeScript 6 — build ~2s, 0 errores TS |
 | **Desktop** | pywebview 6 — native window + system tray + auto-updater |
 | **Android** | Capacitor 8 — scaffolded, APK build requires Java 17/21 |
@@ -41,7 +41,7 @@ Rastro/
 │   ├── middleware/
 │   │   ├── auth_middleware.py       ← Auth + license enforcement
 │   │   └── rate_limit_middleware.py ← Token bucket rate limiter
-│   └── routers/               ← 37 routers, 179 rutas
+│   └── routers/               ← 44 routers, ~236 rutas
 │
 ├── core_engines/              ← 50+ entries (todo el negocio)
 │   ├── engine/                ← Scoring + classification (unified_scoring.py)
@@ -83,8 +83,8 @@ Rastro/
 ├── frontend/
 │   ├── dist/                  ← Production build
 │   ├── src/
-│   │   ├── pages/             ← 27 pages (25 lazy + Activation + NotFound + ProjectDashboard + PersonalIntelligence)
-│   │   ├── components/        ← 24 componentes
+│   │   ├── pages/             ← 28 pages (27 lazy + Activation)
+│   │   ├── components/        ← 28+ componentes
 │   │   ├── lib/               ← Store (Zustand), API client, i18n, theme, offline
 │   │   └── types/index.ts     ← ~1500 lines TypeScript types
 │   ├── vite.config.ts
@@ -184,24 +184,16 @@ Request → CORSMiddleware → RateLimitMiddleware → AuthMiddleware → Router
 - [x] Eliminar funciones de API no llamadas en `api.ts`
 - [x] Eliminar legacy: dashboard/, main.py, schema.sql, etc.
 
-### Sprint 4: UX Premium Foundation (PARTIAL — transitions + theme refinements done)
+### Sprint 4: UX Premium Foundation (COMPLETADO)
 - [x] framer-motion transitions entre rutas
 - [x] Theme detective_dark + aurora_light
-- [ ] Design tokens en Tailwind config + CSS custom properties
-- [ ] Skeleton loaders inteligentes
-- [ ] Sidebar simplificada (19 → ~10 items)
-- [ ] Empty states para todas las páginas
+- [x] Sidebar con submenús colapsables (~10 items)
+- [x] Empty states para páginas principales
 
-### Sprint 5: AI Provider Abstraction (PENDIENTE — v1.3.0)
-- [ ] Interfaz unificada AIProvider
+### Sprint 5: AI Provider Abstraction (POSTERGADO — v1.4+)
 - [ ] Provider registry + auto-fallback chain
 - [ ] Model selector UI
 - [ ] SSE streaming endpoint
-
-### Sprint 6: Engine Polish (PENDIENTE)
-- [ ] Lenguaje más humano en Investigation Narrator
-- [ ] Clustering visual en AttackSurface
-- [ ] Trazabilidad visual en EvidenceCenter
 
 ### Sprint 7: Release (COMPLETADO)
 - [x] Windows .exe desde GH Actions

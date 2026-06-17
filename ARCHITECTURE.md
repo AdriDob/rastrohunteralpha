@@ -34,7 +34,7 @@ Request → CORSMiddleware → RateLimitMiddleware → AuthMiddleware → Router
   CORSMiddleware ──→ RateLimitMiddleware ──→ AuthMiddleware
     │
     ▼
-  FastAPI (api.main) — 37 routers montados en /api/*
+  FastAPI (api.main) — 44 routers montados en /api/*
     │
     ├── Startup (25 pasos): init_db, event_bus, system_state, identity,
     │   orchestrator, execution_tracker, scorecard, memory,
@@ -52,10 +52,10 @@ Request → CORSMiddleware → RateLimitMiddleware → AuthMiddleware → Router
 ## Componentes backend
 
 ### `api/main.py` — Aplicación principal (usada por desktop)
-- 37 routers montados desde `api/routers/`
+- 44 routers montados desde `api/routers/` + `core_engines/learning/router.py`
 - Endpoints adicionales: `/api/health`, `/api/version`, `/api/stats`, `/api/metrics`
 - Importada por `desktop/main_desktop.py`
-- **183 rutas totales** (179 router routes + 4 app-level)
+- **~236 rutas totales**
 
 ### `api/middleware/`
 - `auth_middleware.py` — AuthMiddleware: JWT + license check
@@ -103,6 +103,16 @@ Request → CORSMiddleware → RateLimitMiddleware → AuthMiddleware → Router
 ### `core_engines/recon/`
 - `runner.py`, `subfinder_runner.py`, `wayback_runner.py`, `httpx_runner.py`, `katana_runner.py`, `parser.py`
 
+### `core_engines/learning/` — Personal Learning Engine (PLE)
+Motor de aprendizaje personal que observa el comportamiento del investigador y construye un perfil adaptativo. **NUNCA modifica el pipeline de detección.**
+- `profile.py` — `InvestigatorProfile` + `LearningEvent` (modelos ORM) + `ProfileService` (CRUD, incrementos, reset)
+- `tracker.py` — `EventTracker` — observa 8 tipos de eventos (target_viewed, finding_created, session_started, etc.)
+- `prioritizer.py` — `AdaptivePrioritizer` — reordena recomendaciones con score + explicaciones
+- `explainer.py` — `Explainer` — genera razones legibles para cada recomendación
+- `memory.py` — `MemoryBuilder` — construye contexto para el asistente AI
+- `export.py` — `ProfileExporter` — exporta perfil como JSON o Markdown
+- `router.py` — 12 endpoints REST (`/api/learning/*`)
+
 ### Otros módulos core_engines
 - `intelligence/` — `PriorityEngine`, `DependencyGraph`, `UnifiedOrchestrator`, `LearningLoop`, `TrendDetector`
 - `memory/` — `MemoryStore`, `DecisionMemory`, `InsightArchive`, `IdentityGraph`, `PatternExtractor`
@@ -115,7 +125,7 @@ Request → CORSMiddleware → RateLimitMiddleware → AuthMiddleware → Router
 
 ## Base de datos
 
-SQLite con SQLAlchemy. 15 tablas:
+SQLite (default) + PostgreSQL vía `DATABASE_URL` con SQLAlchemy. 17 tablas:
 
 | Tabla | Propósito |
 |-------|-----------|
@@ -134,22 +144,27 @@ SQLite con SQLAlchemy. 15 tablas:
 | targets_intel | Inteligencia de objetivos |
 | target_scopes | Scopes de objetivos |
 | quick_wins | Quick wins identificados |
+| users | Cuentas de usuario (registro, login, auth) |
+| investigator_profiles | Perfil de aprendizaje personal (PLE) |
+| learning_events | Bitácora de eventos de aprendizaje |
 
 ## Frontend
 
 - React 19 + TypeScript 6 + Vite 8
-- 24 páginas (22 lazy-loaded + Activation + NotFound)
+- 27 páginas lazy + 1 inline (Activation) = 28 páginas enrutadas
 - Componentes: CommandPalette, AssistantPanel, DesktopSidebar, BootScreen, WelcomeWizard, TourOverlay
 - Store: Zustand con persistencia localStorage
 - UI: Tailwind 4 + Radix UI + framer-motion + cmdk
 - Data: TanStack Query + TanStack Table
-- i18n: EN + ES
+- i18n: ES (default) + EN + arquitectura para PT/FR/DE/IT
+- Auto-detección de idioma del sistema operativo
 - Tema: detective_dark / aurora_light
 - Compila a `frontend/dist/` (~950ms, 0 TS errors)
+- **PLE UI**: Personal Intelligence page (`/personal-intelligence`) con perfil, métricas, controles
 
 ### Layout
 - `Layout.tsx` — Sidebar + Outlet + AI Copilot
-- `Sidebar.tsx` — 19 nav items, 6 secciones, colapsable, favoritos, búsqueda
+- `Sidebar.tsx` — submenús colapsables, 6 secciones, favoritos, búsqueda
 - `CommandPalette.tsx` — Ctrl+K con ROUTE_MAP, mode tabs, recent targets, badges
 - `AssistantPanel.tsx` — AI Copilot contextual
 

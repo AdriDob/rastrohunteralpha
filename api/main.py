@@ -38,6 +38,7 @@ from api.routers import (
     operations,
     opportunity_intelligence,
     auth,
+    auth_users,
     sync,
     notifications,
     mobile,
@@ -48,7 +49,13 @@ from api.routers import (
     identity,
     execution,
     license,
+    project_dashboard,
+    ws,
+    target_identity,
+    idor,
+    investigations,
 )
+from core_engines.learning.router import router as learning_router
 
 from core_engines.log_config import setup_logging
 setup_logging()
@@ -159,6 +166,40 @@ async def lifespan(app: FastAPI):
     except Exception as exc:
         logger.warning("Notification poller failed to start (non-fatal): %s", exc)
 
+    # Start WebSocket event bus bridge
+    try:
+        from core_engines.ws.bridge import start_event_bridge
+        start_event_bridge()
+        logger.info("WS event bridge started")
+    except Exception as exc:
+        logger.warning("WS event bridge failed to start (non-fatal): %s", exc)
+
+    # Register notification bridges
+    try:
+        from core_engines.notifications.bridges import (
+            register_db_bridge,
+            register_desktop_channel,
+            register_email_channel,
+            register_fcm_channel,
+            register_event_bridge,
+            register_ws_forwarder,
+        )
+        register_db_bridge()
+        register_desktop_channel()
+        register_email_channel()
+        register_fcm_channel()
+        register_ws_forwarder()
+        logger.info("Notification bridges registered")
+    except Exception as exc:
+        logger.warning("Notification bridges failed (non-fatal): %s", exc)
+
+    # Subscribe event bus → notification bridge
+    try:
+        register_event_bridge()
+        logger.info("Event → notification bridge started")
+    except Exception as exc:
+        logger.warning("Event → notification bridge failed (non-fatal): %s", exc)
+
     yield
 
 # Read version from VERSION file (single source of truth)
@@ -216,6 +257,7 @@ app.include_router(screenshots.router)
 app.include_router(operations.router)
 app.include_router(opportunity_intelligence.router)
 app.include_router(auth.router)
+app.include_router(auth_users.router)
 app.include_router(sync.router)
 app.include_router(notifications.router)
 app.include_router(mobile.router)
@@ -224,11 +266,17 @@ app.include_router(system_state.router)
 app.include_router(daily.router)
 app.include_router(orchestrator.router)
 app.include_router(identity.router)
+app.include_router(target_identity.router)
 app.include_router(execution.router)
 app.include_router(license.router)
+app.include_router(learning_router)
+app.include_router(project_dashboard.router)
+app.include_router(ws.router)
+app.include_router(idor.router)
+app.include_router(investigations.router)
 
 
-APP_VERSION = "0.4.0"
+APP_VERSION = _APP_VERSION
 
 
 @app.exception_handler(Exception)

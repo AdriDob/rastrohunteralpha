@@ -229,19 +229,22 @@ class TestCoreEnvConfig:
 
 class TestCapacitorConfig:
     def test_capacitor_config_exists(self):
-        path = PROJECT_DIR / "capacitor.config.ts"
-        assert path.is_file()
+        path = PROJECT_DIR / "capacitor.config.json"
+        assert path.is_file(), f"capacitor.config.json not found at {path}"
         content = path.read_text()
         assert "ai.rastro.app" in content
         assert "Rastro" in content
         assert "frontend/dist" in content
 
-    def test_capacitor_config_is_valid_ts(self):
-        """Basic TypeScript syntax check (won't catch everything, but ensures no obvious breaks)."""
-        path = PROJECT_DIR / "capacitor.config.ts"
+    def test_capacitor_config_is_valid_json(self):
+        """Validate capacitor.config.json is valid JSON with expected structure."""
+        import json
+        path = PROJECT_DIR / "capacitor.config.json"
         content = path.read_text()
-        assert content.strip().startswith("import")
-        assert "export default defineConfig" in content
+        cfg = json.loads(content)
+        assert cfg["appId"] == "ai.rastro.app"
+        assert cfg["appName"] == "Rastro"
+        assert cfg["webDir"] == "frontend/dist"
 
 
 # ── New TrayController (Bloque 1) ────────────────────────────────────
@@ -308,10 +311,11 @@ class TestUpdater:
         assert callable(apply_update)
         assert callable(rollback)
 
-    def test_check_updates_returns_none(self):
+    def test_check_updates_finds_release(self):
         from desktop.updater import check_for_updates
         result = check_for_updates("0.0.0")
-        assert result is None
+        assert result is not None
+        assert hasattr(result, "version")
 
     def test_verify_checksum_detects_mismatch(self, tmp_path):
         from desktop.updater import verify_checksum

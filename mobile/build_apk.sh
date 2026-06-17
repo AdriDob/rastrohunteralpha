@@ -34,8 +34,8 @@ done
 
 # ── Java version check ──────────────────────────────────────────
 JAVA_VER=$(java -version 2>&1 | head -1 | grep -oP '\d+' | head -1)
-if [ -z "$JAVA_VER" ] || [ "$JAVA_VER" -lt 17 ]; then
-  echo "ERROR: Java 17+ required (detected: v${JAVA_VER:-none})"
+if [ -z "$JAVA_VER" ] || [ "$JAVA_VER" -lt 17 ] || [ "$JAVA_VER" -gt 21 ]; then
+  echo "ERROR: Java 17-21 required (detected: v${JAVA_VER:-none})"
   echo ""
   echo "  Quick install with SDKMAN:"
   echo "    curl -s 'https://get.sdkman.io' | bash"

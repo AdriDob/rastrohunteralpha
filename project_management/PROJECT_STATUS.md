@@ -11,7 +11,7 @@
 
 | Dimensión | Progreso | Estado |
 |-----------|----------|--------|
-| **Backend** | 96% | ✅ 195 rutas, 38 routers, 17 tablas, 0 deprecation warnings |
+| **Backend** | 96% | ✅ ~236 rutas, 44 routers, 17 tablas, 0 deprecation warnings |
 | **Frontend** | 82% | ✅ 25 páginas, 0 errores TS, build ~1.4s |
 | **Desktop** | 85% | ✅ pywebview, tray, auto-updater, 13-step boot |
 | **Mobile** | 20% | ✅ Capacitor Android scaffolded, build script, mobile nav |
@@ -31,8 +31,8 @@
 2. ✅ i18n upgrade (español default, auto-detect)
 3. ✅ Governance docs (PROJECT_STATUS, TIMELINE, FEATURE_MATRIX, TECH_DEBT)
 4. ✅ Docs sincronizados (docs stale archivados, VERSION→1.2.0)
-5. ⏳ Phase 2: WebSocket manager + event bus bridge
-6. ⏳ Phase 3: Notification system (desktop + push + email)
+5. ✅ WebSocket manager + event bus bridge + client hook (implementado en v1.3.0)
+6. ⏳ Phase 3: Notification system (desktop push + email + FCM — bridges registrados, falta config)
 
 ---
 

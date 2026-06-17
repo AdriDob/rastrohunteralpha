@@ -48,3 +48,32 @@ def get_scan_run_detail(scan_id: int):
     if not run:
         raise HTTPException(status_code=404, detail="Scan run not found")
     return run
+
+
+class NucleiScanRequest(BaseModel):
+    urls: list[str]
+    severity: str = "medium,high,critical"
+    tags: Optional[list[str]] = None
+    exclude_tags: Optional[list[str]] = None
+
+
+@router.post("/nuclei")
+async def run_nuclei_scan(request: NucleiScanRequest):
+    import tempfile
+    from pathlib import Path
+    from core_engines.recon.nuclei_runner import NucleiRunner
+
+    tmp = Path(tempfile.mkdtemp(prefix="rastro_nuclei_"))
+    target_file = tmp / "targets.txt"
+    target_file.write_text("\n".join(request.urls))
+
+    runner = NucleiRunner(tmp, timeout=600)
+    out = await runner.run_nuclei(
+        target_file,
+        severity=request.severity,
+        tags=request.tags,
+        exclude_tags=request.exclude_tags,
+    )
+    findings = await runner.load_findings(out)
+
+    return {"findings": findings, "count": len(findings), "output": str(out)}

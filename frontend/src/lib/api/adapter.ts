@@ -102,6 +102,10 @@ const EVIDENCE_MAP: Record<string, string> = {
   finding_id: 'findingId',
   request_url: 'requestUrl',
   response_status: 'responseStatus',
+  request_body: 'requestBody',
+  response_body: 'responseBody',
+  request_headers: 'requestHeaders',
+  response_headers: 'responseHeaders',
   created_at: 'createdAt',
 };
 

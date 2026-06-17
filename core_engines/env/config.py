@@ -75,6 +75,12 @@ class EnvConfig:
     build_env: str = field(
         default_factory=lambda: os.environ.get("RASTRO_BUILD_ENV", "production")
     )
+    database_url: str = field(
+        default_factory=lambda: os.environ.get(
+            "DATABASE_URL",
+            f"sqlite:///{Path.home() / '.rastro' / 'database' / 'rastro.db'}",
+        )
+    )
 
     @property
     def is_production(self) -> bool:

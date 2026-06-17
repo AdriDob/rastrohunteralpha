@@ -6,6 +6,7 @@ from typing import Iterable, Any, Coroutine
 
 from .httpx_runner import HttpxRunner
 from .katana_runner import KatanaRunner
+from .nuclei_runner import NucleiRunner
 from .parser import EndpointParser
 from .subfinder_runner import SubfinderRunner
 from .wayback_runner import WaybackRunner
@@ -36,6 +37,7 @@ class ReconRunner:
         self.httpx = HttpxRunner(self.recon_dir)
         self.katana = KatanaRunner(self.recon_dir)
         self.wayback = WaybackRunner(self.recon_dir)
+        self.nuclei = NucleiRunner(self.recon_dir)
 
         self.parser = EndpointParser()
 
@@ -195,6 +197,31 @@ class ReconRunner:
                 logger.error(f"Failed reading normalized endpoints: {exc}")
 
         logger.info(f"Normalized endpoints: {len(endpoint_entries)}")
+
+        # NUCLEI VULNERABILITY SCAN (post-recon)
+
+        if endpoint_entries and mode.upper() in {"DEEP", "API"}:
+            targets_file = self.recon_dir / "nuclei_targets.txt"
+            urls = [
+                f"{ep.get('url', ep.get('path', ''))}"
+                for ep in endpoint_entries
+                if ep.get("url") or ep.get("path")
+            ]
+            if urls:
+                targets_file.write_text("\n".join(urls))
+                nuclei_path = await self._safe_run_tool(
+                    "nuclei",
+                    self.nuclei.run_nuclei(
+                        targets_file,
+                        "nuclei.json",
+                        severity="medium,high,critical",
+                    ),
+                    timeout=300,
+                )
+                if nuclei_path:
+                    outputs["nuclei"] = str(nuclei_path)
+                    findings = await self.nuclei.load_findings(nuclei_path)
+                    logger.info("nuclei findings: %d", len(findings))
 
         # SUMMARY
 

@@ -1,17 +1,19 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/version-1.0.0-7c3aed?style=for-the-badge" alt="Version">
-  <img src="https://img.shields.io/badge/tests-122%20passing-22c55e?style=for-the-badge" alt="Tests">
+  <img src="https://img.shields.io/badge/version-1.4.0--rc1-7c3aed?style=for-the-badge" alt="Version">
+  <img src="https://img.shields.io/badge/tests-159%20passing-22c55e?style=for-the-badge" alt="Tests">
   <img src="https://img.shields.io/badge/build-0%20errors-22c55e?style=for-the-badge" alt="Build">
   <img src="https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20macOS-7c3aed?style=for-the-badge" alt="Platform">
+  <img src="https://img.shields.io/badge/español-default-7c3aed?style=for-the-badge" alt="Spanish Default">
   <img src="https://img.shields.io/badge/license-Proprietary-ef4444?style=for-the-badge" alt="License">
 </p>
 
 <h1 align="center">🕵️ Rastro</h1>
-<p align="center"><em>Private Investigation Operating System</em></p>
+<p align="center"><em>Sistema Operativo Privado de Investigación</em></p>
 
 <p align="center">
   Rastro es un sistema operativo privado de investigación para analistas de bug bounty<br>
-  y attack surface intelligence. Corre 100% local, sin dependencia cloud.
+  y attack surface intelligence. Corre 100% local, sin dependencia cloud.<br>
+  <strong>Idioma por defecto: Español</strong> — con soporte completo para Inglés y arquitectura multi-idioma.
 </p>
 
 ---
@@ -79,8 +81,8 @@ uvicorn api.main:app --reload --host 127.0.0.1 --port 8000   # Terminal 2
 
 ```
 Middleware: CORSMiddleware → RateLimitMiddleware → AuthMiddleware
-Backend:    FastAPI + 37 routers / 183 routes + SQLAlchemy + SQLite
-Frontend:   React 19 + TypeScript + Vite 8 + 24 pages
+Backend:    FastAPI + 44 routers / ~236 routes + SQLAlchemy + SQLite/PostgreSQL
+Frontend:   React 19 + TypeScript + Vite 8 + 28 pages
 Desktop:    pywebview + pystray + PyInstaller (single process)
 ```
 
@@ -100,7 +102,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full breakdown.
 ├── api/                    # FastAPI backend
 │   ├── main.py             # App entrypoint + 25-step startup
 │   ├── middleware/          # CORS → RateLimit → Auth
-│   ├── routers/            # 37 routers, 183 routes
+│   ├── routers/            # 44 routers, ~236 routes
 │   └── services/           # Data access layer
 ├── core_engines/            # Core intelligence
 │   ├── engine/             # Scoring + classification
@@ -117,7 +119,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full breakdown.
 │   ├── platform/           # OS abstraction layer
 │   └── ...                 # 30+ modules total
 ├── frontend/               # React + TypeScript + Vite
-│   └── src/                # 24 pages, 20 components
+│   └── src/                # 27 pages, 24 components
 ├── desktop/                # Desktop app entrypoint
 │   ├── main_desktop.py     # 13-step boot sequence
 │   ├── updater.py          # Auto-updater + rollback

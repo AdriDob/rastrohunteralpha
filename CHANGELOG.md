@@ -1,5 +1,18 @@
 # Changelog
 
+## v1.4.0-rc1 (2026-06-17)
+- **159 tests passing** (7 nuevos e2e pipeline smoke tests)
+- **Documentación sincronizada**: README, ARCHITECTURE, ROADMAP, EVOLUTION_PLAN, MANUAL_ES, OPENCODE_PLAN
+- **PROJECT_STATE.md** + **RELEASE_CHECKLIST.md** creados
+- **GUIA_RAPIDA.md**: primer objetivo bug bounty en 9 pasos
+- **Fix test capacitor**: test esperaban `.ts`, archivo es `.json`
+- **Fix prebuild.py**: ya no ignora test_desktop_release.py, 16/16 checks verdes
+- **Fix build_windows.ps1**: versión dinámica desde VERSION file
+- **Fix mobile/build_apk.sh**: Java 17-21 check (no 22+)
+- **End-to-end pipeline validado**: Target→Recon→Hypothesis→Investigation→Dashboard→Report
+- **App routes**: 236 confirmadas (vs 195 documentadas previamente)
+- **WebSocket/WS infra**: documentada como completada (ya activa desde v1.3.0)
+
 ## v1.3.0 (2026-06-16)
 - **Pipeline Integration**: Flujo unificado Mission Control → Investigation auto-creación → Pipeline/Hypothesis/Evidence/Reports scoped to investigation
 - **Hypothesis → Investigation**: Botones "Promote to Investigation" funcionales, crean investigación con nombre generado desde hipótesis + target

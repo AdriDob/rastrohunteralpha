@@ -117,10 +117,10 @@ Matriz completa de features del sistema.
 
 | Feature | Estado | Dependencias | Prioridad | Impacto |
 |---------|--------|--------------|-----------|---------|
-| WebSocket manager | ⏳ PLANNED | PostgreSQL | Alta | Multi-device |
+| WebSocket manager | ✅ DONE | FastAPI/WS | Alta | Multi-device |
+| Event bus → WS bridge | ✅ DONE | Events | Alta | Sync |
+| Client-side WS hook | ✅ DONE | WebSocket | Alta | Frontend |
 | SSE fallback | ⏳ PLANNED | WebSocket | Media | Resiliencia |
-| Event bus → WS bridge | ⏳ PLANNED | Events | Alta | Sync |
-| Client-side WS hook | ⏳ PLANNED | WebSocket | Alta | Frontend |
 | Live dashboard updates | ⏳ PLANNED | WS hook | Media | UX |
 
 ---

@@ -6,6 +6,33 @@ const backBtnStyle: React.CSSProperties = {
   fontSize: 13, padding: 0, marginBottom: 16, display: 'inline-block',
 };
 
+const SEVERITY_SCORE: Record<string, number> = {
+  critical: 9.5, high: 7.5, medium: 5.0, low: 2.0, info: 0,
+};
+
+const SEVERITY_COLOR: Record<string, string> = {
+  critical: '#ef4444', high: '#f97316', medium: '#eab308', low: '#6b7280', info: '#6b7280',
+};
+
+function ScoreBar({ score, color }: { score: number; color: string }) {
+  const pct = (score / 10) * 100;
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+      <div style={{
+        flex: 1, height: 8, background: '#0d0f14', borderRadius: 4, overflow: 'hidden',
+      }}>
+        <div style={{
+          width: `${pct}%`, height: '100%', background: color, borderRadius: 4,
+          transition: 'width 0.3s ease',
+        }} />
+      </div>
+      <span style={{ fontSize: 13, fontWeight: 700, color, minWidth: 32, textAlign: 'right' }}>
+        {score.toFixed(1)}
+      </span>
+    </div>
+  );
+}
+
 export default function FindingDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -16,21 +43,24 @@ export default function FindingDetail() {
 
   if (!finding) return <p style={{ color: '#7c8299' }}>Loading…</p>;
 
+  const score = SEVERITY_SCORE[finding.severity.toLowerCase()] ?? 0;
+  const color = SEVERITY_COLOR[finding.severity.toLowerCase()] ?? '#6b7280';
+
   return (
     <div>
       <button onClick={() => navigate('/pipeline')} style={backBtnStyle}>← Back to Pipeline</button>
 
       <div style={{ background: '#1e2230', borderRadius: 8, border: '1px solid #2a2e3d', padding: 24, marginBottom: 20 }}>
         <h2 style={{ margin: 0, fontSize: 18, color: '#fff' }}>{finding.title}</h2>
-        <div style={{ marginTop: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 12 }}>
+
+        <div style={{ marginTop: 16, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 16 }}>
           <div>
             <span style={labelStyle}>Severity</span>
-            <span style={{
-              ...valStyle,
-              color: ({ critical: '#ef4444', high: '#f97316', medium: '#eab308', low: '#6b7280' } as Record<string, string>)[finding.severity] ?? '#6b7280',
-            }}>
-              {finding.severity.toUpperCase()}
-            </span>
+            <span style={{ ...valStyle, color }}>{finding.severity.toUpperCase()}</span>
+          </div>
+          <div>
+            <span style={labelStyle}>CVSS Score</span>
+            <ScoreBar score={score} color={color} />
           </div>
           <div><span style={labelStyle}>Target</span><span style={valStyle}>{finding.target_name}</span></div>
           <div><span style={labelStyle}>Est. Payout</span><span style={valStyle}>${finding.payout.toLocaleString()}</span></div>

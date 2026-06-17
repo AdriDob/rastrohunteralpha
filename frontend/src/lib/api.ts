@@ -452,3 +452,162 @@ export function getDailyMinimal() {
     return data;
   });
 }
+
+// ── Reports ──
+
+export function getReportsList(limit = 20, offset = 0) {
+  return fetchJson<{ items: import('../types').ReportItem[]; total: number }>(`/reports?limit=${limit}&offset=${offset}`);
+}
+
+export function getReportById(id: number) {
+  return fetchJson<import('../types').ReportFull>(`/reports/${id}`);
+}
+
+// ── Investigations ──
+
+export function getInvestigations(targetId?: number, status?: string, limit = 20, offset = 0) {
+  const p = new URLSearchParams();
+  if (targetId) p.set('target_id', String(targetId));
+  if (status) p.set('status', status);
+  p.set('limit', String(limit));
+  p.set('offset', String(offset));
+  return fetchJson<{ items: import('../types').Investigation[]; total: number }>(`/investigations?${p}`);
+}
+
+export function getInvestigation(id: number) {
+  return fetchJson<import('../types').Investigation>(`/investigations/${id}`);
+}
+
+export function getInvestigationDashboard(id: number) {
+  return fetchJson<import('../types').InvestigationDashboard>(`/investigations/${id}/dashboard`);
+}
+
+export function createInvestigation(payload: import('../types').InvestigationCreatePayload) {
+  return fetchJson<import('../types').Investigation>('/investigations', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+}
+
+export function updateInvestigation(id: number, payload: import('../types').InvestigationUpdatePayload) {
+  return fetchJson<import('../types').Investigation>(`/investigations/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+}
+
+export function deleteInvestigation(id: number) {
+  return fetchJson<{ deleted: boolean }>(`/investigations/${id}`, { method: 'DELETE' });
+}
+
+// ── Validation ─────────────────────────────────────────────────────
+
+export interface ValidateEndpointPayload {
+  hot_path_id: string;
+  endpoint_id: number;
+  target_id: number;
+  url: string;
+  method: string;
+  headers?: Record<string, string>;
+  params?: Record<string, unknown>;
+  body?: string;
+  identity_baseline_id?: number;
+  identity_probe_id?: number;
+  mutations?: Record<string, unknown>;
+  min_attempts?: number;
+}
+
+export function validateEndpoint(payload: ValidateEndpointPayload) {
+  return fetchJson<import('../types').ValidationResult>('/validation/validate', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+}
+
+export interface IDORScanPayload {
+  target_id: number;
+  endpoint_id: number;
+  url: string;
+  method: string;
+  headers?: Record<string, string>;
+  params?: Record<string, string>;
+  body?: string;
+  identity_baseline_id: number;
+  identity_probe_id?: number;
+}
+
+export function scanIDOR(payload: IDORScanPayload) {
+  return fetchJson<import('../types').IDORScanResponse>('/validation/idor', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+}
+
+// ── Personal Learning Engine ────────────────────────────────────────
+
+export function getLearningProfile() {
+  return fetchJson<any>('/learning/profile');
+}
+
+export function resetLearningProfile() {
+  return fetchJson<{ ok: boolean }>('/learning/profile/reset', { method: 'POST' });
+}
+
+export function updateLearningPreferences(body: { adaptive_mode?: boolean }) {
+  return fetchJson<{ ok: boolean }>('/learning/preferences', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+}
+
+export function trackLearningEvent(event_type: string, data: Record<string, any> = {}) {
+  return fetchJson<{ ok: boolean }>('/learning/events', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ event_type, data }),
+  });
+}
+
+export function getLearningEvents(event_type?: string, limit = 50) {
+  const params = new URLSearchParams();
+  if (event_type) params.set('event_type', event_type);
+  params.set('limit', String(limit));
+  return fetchJson<any[]>(`/learning/events?${params}`);
+}
+
+export function prioritizeTargets(targets: any[]) {
+  return fetchJson<any[]>('/learning/prioritize/targets', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ targets }),
+  });
+}
+
+export function prioritizeFindings(findings: any[]) {
+  return fetchJson<any[]>('/learning/prioritize/findings', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ findings }),
+  });
+}
+
+export function getDailyRecommendations() {
+  return fetchJson<any[]>('/learning/recommendations/daily');
+}
+
+export function getMemoryContext(target: any) {
+  return fetchJson<{ context: string; tip: string | null }>('/learning/memory/context', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ target }),
+  });
+}
+
+export function exportLearningProfile(fmt: 'json' | 'markdown' = 'json') {
+  return fetchJson<any>(`/learning/export?fmt=${fmt}`);
+}

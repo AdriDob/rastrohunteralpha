@@ -2,29 +2,26 @@
 
 ## Introducción
 
-Rastro es una herramienta local-first de apoyo a recon y priorización para bug bounty. Se enfoca en detectar endpoints de alto valor (APIs, GraphQL, paneles admin, multi-tenant) y priorizarlos con heurísticas deterministas.
+Rastro es un sistema operativo privado de investigación para analistas de bug bounty y attack surface intelligence. Corre 100% local, sin dependencia cloud.
 
-Este manual es para usuarios principiantes que quieren ejecutar Rastro localmente y entender el flujo.
+Este manual es para usuarios que quieren ejecutar Rastro y entender el flujo completo.
 
 ---
 
 ## Qué hace (y qué no hace)
 
-- Hace: ejecuta herramientas locales de recon (subfinder, wayback, katana, httpx), normaliza endpoints, los puntúa con reglas heurísticas y muestra un digest de alto valor.
+- Hace: ejecuta herramientas locales de recon (subfinder, wayback, katana, httpx), normaliza endpoints, los puntúa con reglas heurísticas, genera hipótesis, valida hallazgos, produce reportes en formatos HackerOne/Bugcrowd.
 - No hace: scrapping agresivo de plataformas, entrenamiento ML, explotación automática de vulnerabilidades.
 
 ---
 
-## Requisitos previos (resumen)
+## Requisitos previos
 
-- Python 3.12+ (el entorno de desarrollo usa 3.14 en el repo)
-- Virtualenv
-- Herramientas opcionales que aumentan la cobertura:
-  - `subfinder`
-  - `katana`
-  - `httpx` (CLI runner incluido)
-  - `nuclei` (opcional)
-  - `gowitness` (opcional, para capturas)
+- Python 3.10+
+- Node.js 20+ (para compilar frontend)
+- Herramientas de descubrimiento (opcional pero recomendado):
+  - `subfinder`, `katana`, `httpx` (Go binaries en `~/go/bin`)
+  - `nuclei`, `gowitness` (opcionales)
 - (Opcional) `Ollama` para resúmenes AI locales
 
 ---
@@ -32,66 +29,72 @@ Este manual es para usuarios principiantes que quieren ejecutar Rastro localment
 ## Instalación rápida
 
 ```bash
-cd /home/tuusuario/Rastro
+git clone <repo-url> rastro
+cd rastro
+
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-python -m uvicorn main:app --host 127.0.0.1 --port 8000
-# en otra terminal
-streamlit run dashboard/app.py
+
+cd frontend && npm install && npm run build && cd ..
+
+python run.py
+```
+
+Esto inicia Rastro en modo desktop (pywebview). También se puede usar en navegador:
+
+```bash
+python run.py --browser
 ```
 
 ---
 
 ## Flujo básico (paso a paso)
 
-1. Abrir el dashboard (Streamlit) y en la pestaña `Targets` crear un target (nombre y dominio).
-2. Seleccionar el target y pulsar `Run Scan` en la pestaña `Recon` (elige modo: FAST/DEEP/API).
-3. Esperar a que el scan termine; el sistema persistirá endpoints normalizados en la base de datos.
-4. Revisar la pestaña `High Signal` y `Targets Intelligence` para ver prioridades y acciones.
-5. Si deseas analizar un endpoint en detalle, usa `Endpoints` → selecciona endpoint → `Generar AI summary` (si está disponible Ollama).
+1. Abrir Rastro en el navegador o desktop app.
+2. Ir a **Targets** → crear un target (nombre y dominio).
+3. Ir al target y pulsar **Run Scan** (modo FAST/DEEP/API).
+4. Esperar a que el scan termine; los endpoints se persisten automáticamente.
+5. Revisar **Scoring** y **Attack Surface** para ver prioridades.
+6. Generar **Hypotheses** desde el panel de hipótesis.
+7. Promover una hipótesis a **Investigation**.
+8. En la investigación, seguir el pipeline: Validation → Evidence → Findings → Report.
+9. Exportar el reporte a HackerOne JSON, Bugcrowd HTML o Markdown.
 
 ---
 
-## Interpretación del Digest
+## Interpretación del Scoring
 
-- Cada entrada trae una `risk_score` calculada por heurísticas deterministas.
+- Cada endpoint recibe un `risk_score` calculado por heurísticas deterministas.
 - Prioriza APIs, GraphQL, admin, multi-tenant y endpoints con indicios de `auth`.
 - `noise` indica probabilidad de activos estáticos o marketing.
 
 ---
 
-## Troubleshooting rápido
+## Atajos de teclado
 
-- Si `Run Scan` falla:
-  - Revisa que las herramientas externas estén instaladas.
-  - Revisa `targets/<nombre>/logs` para ver los logs generados.
-  - Aumenta `SCAN_TIMEOUT` en variables de entorno si tu red es lenta.
-- Si el dashboard no muestra endpoints:
-  - Confirma que `normalized_endpoints.json` existe en `targets/<nombre>/endpoints/`.
-  - Comprueba que `endpoints` están insertados en la base de datos (chequear `database/rastro.db`).
+- `Ctrl+K` — Command Palette (búsqueda global, navegación rápida)
+- `Ctrl+Shift+I` — AI Copilot contextual
 
 ---
 
 ## Primeros pasos — herramientas (instalación rápida)
 
-- subfinder: https://github.com/projectdiscovery/subfinder
-- katana: https://github.com/projectdiscovery/katana
-- httpx: https://github.com/projectdiscovery/httpx
-- nuclei: https://github.com/projectdiscovery/nuclei
-- gowitness: https://github.com/sensepost/gowitness
-- Ollama: https://ollama.com/ (opcional)
+```bash
+go install -v github.com/projectdiscovery/subfinder/v2/cmd/subfinder@latest
+go install -v github.com/projectdiscovery/katana/cmd/katana@latest
+go install -v github.com/projectdiscovery/httpx/cmd/httpx@latest
+go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
+go install -v github.com/sensepost/gowitness@latest
+```
 
-(En la sección `First-run setup` del README se incluyen comandos sugeridos.)
+Asegurate que `~/go/bin` esté en tu PATH.
 
 ---
 
 ## Buenas prácticas
 
-- Ejecuta scans en ambientes controlados y respeta TOS.
+- Ejecuta scans en ambientes controlados y respeta TOS de los programas.
 - Mantén actualizado el entorno virtual y las herramientas externas.
 - Revisa y ajusta pesos de scoring según tus observaciones.
-
----
-
-Si quieres, puedo traducir/ajustar este manual para equipos o añadir ejemplos concretos.
+- Usa el modo DEEP solo en objetivos con scope autorizado.

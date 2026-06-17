@@ -50,10 +50,11 @@ class HypothesisEngine:
         clusters: Optional[List[Dict[str, Any]]] = None,
         hot_paths: Optional[List[Dict[str, Any]]] = None,
         risk_verdicts: Optional[Dict[int, Dict[str, Any]]] = None,
+        nuclei_findings: Optional[List[Dict[str, Any]]] = None,
     ) -> HypothesisEngineOutput:
         LOG.info("HypothesisEngine.run: target=%s (%d endpoints)", target_name, len(endpoints))
 
-        hypotheses = self._stage_1_generate(target_id, target_name, endpoints)
+        hypotheses = self._stage_1_generate(target_id, target_name, endpoints, nuclei_findings)
         LOG.info("Stage 1 (generate): %d hypotheses", len(hypotheses))
 
         hypotheses = self._stage_2_score(hypotheses)
@@ -111,8 +112,9 @@ class HypothesisEngine:
 
     def _stage_1_generate(
         self, target_id: int, target_name: str, endpoints: List[Dict[str, Any]],
+        nuclei_findings: Optional[List[Dict[str, Any]]] = None,
     ) -> List[Hypothesis]:
-        return generate_hypotheses(endpoints, target_id, target_name)
+        return generate_hypotheses(endpoints, target_id, target_name, nuclei_findings=nuclei_findings)
 
     def _stage_2_score(self, hypotheses: List[Hypothesis]) -> List[Hypothesis]:
         scored = []

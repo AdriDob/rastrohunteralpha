@@ -600,6 +600,87 @@ def generate_web3(
     )
 
 
+def generate_nuclei(
+    nuclei_findings: List[Dict[str, Any]],
+    target_id: int,
+    target_name: str,
+) -> List[Hypothesis]:
+    hypotheses: List[Hypothesis] = []
+    for i, nf in enumerate(nuclei_findings):
+        info = nf.get("info", {})
+        sev = info.get("severity", "medium")
+        name = info.get("name", "Nuclei finding")
+        desc = info.get("description", "")
+        matched = nf.get("matched-at", "")
+        type_tag = info.get("classification", {}).get("cve-id", "")
+        tags = info.get("tags", [])
+
+        vt = VulnerabilityType.BUSINESS_LOGIC
+        tag_set = {t.lower() for t in tags}
+        tag_keywords = " ".join(tags).lower()
+        if any(k in tag_keywords for k in {"idor", "insecure-direct", "object-reference"}):
+            vt = VulnerabilityType.IDOR
+        elif any(k in tag_keywords for k in {"auth", "bypass", "login", "oauth", "jwt"}):
+            vt = VulnerabilityType.AUTH_BYPASS
+        elif any(k in tag_keywords for k in {"ssrf"}):
+            vt = VulnerabilityType.SSRF
+        elif any(k in tag_keywords for k in {"xss"}):
+            vt = VulnerabilityType.XSS
+        elif any(k in tag_keywords for k in {"sqli", "sql-injection"}):
+            vt = VulnerabilityType.SQLI
+        elif any(k in tag_keywords for k in {"graphql", "introspection"}):
+            vt = VulnerabilityType.GRAPHQL_INTROSPECTION
+        elif any(k in tag_keywords for k in {"ssti", "template"}):
+            vt = VulnerabilityType.SSTI
+        elif any(k in tag_keywords for k in {"exposure", "disclosure", "leak", "debug"}):
+            vt = VulnerabilityType.DATA_EXPOSURE
+        elif any(k in tag_keywords for k in {"file", "upload", "lfi", "rfi", "path-traversal"}):
+            vt = VulnerabilityType.FILE_OPERATION
+
+        severity_factor = {"critical": 0.9, "high": 0.7, "medium": 0.5, "low": 0.3, "info": 0.1}
+        impact = severity_factor.get(sev, 0.3)
+
+        hyp_id = f"nuclei_{i}_{target_id}"
+
+        evidence = [f"Nuclei template: {name}"]
+        if desc:
+            evidence.append(desc)
+        if matched:
+            evidence.append(f"Matched at: {matched}")
+        if type_tag:
+            evidence.append(f"CVE: {type_tag}")
+        evidence.append(f"Severity: {sev} | Tags: {', '.join(tags[:8])}")
+
+        actions = [
+            f"Review nuclei finding: {name}",
+            f"Manual validation at {matched}" if matched else "Manual validation of the detected pattern",
+            "Check for false positive — nuclei templates can produce false positives",
+            "If confirmed, create a finding and add to report",
+        ]
+        if type_tag:
+            actions.insert(0, f"Research CVE {type_tag} for known exploit chains")
+
+        hypotheses.append(Hypothesis(
+            id=hyp_id,
+            vulnerability_type=vt,
+            target_id=target_id,
+            target_name=target_name,
+            endpoint={"path": matched, "id": 0, "method": nf.get("method", "GET")},
+            likelihood=0.65 if sev in ("critical", "high") else 0.45,
+            impact=impact,
+            exploitability=0.55,
+            confidence=0.3,
+            priority_score=0.0,
+            evidence=evidence,
+            reasoning=f"Nuclei template '{name}' matched at {matched}. This is an automated scanner finding that requires manual review to confirm. The template targets {vt.value} class vulnerabilities. {'CVE: ' + type_tag if type_tag else ''}",
+            suggested_actions=actions,
+            source=HypothesisSource.PATTERN,
+            vector=f"nuclei/{sev}",
+            attack_surface_labels=list(tag_set),
+        ))
+    return hypotheses
+
+
 GENERATORS = [
     generate_idor,
     generate_auth_bypass,
@@ -617,6 +698,7 @@ def generate_hypotheses(
     endpoints: List[Dict[str, Any]],
     target_id: int,
     target_name: str,
+    nuclei_findings: Optional[List[Dict[str, Any]]] = None,
 ) -> List[Hypothesis]:
     hypotheses: List[Hypothesis] = []
     seen = set()
@@ -629,4 +711,13 @@ def generate_hypotheses(
                 continue
             seen.add(h.id)
             hypotheses.append(h)
+
+    # Nuclei enrichment
+    if nuclei_findings:
+        nuclei_h = generate_nuclei(nuclei_findings, target_id, target_name)
+        for h in nuclei_h:
+            if h.id not in seen:
+                seen.add(h.id)
+                hypotheses.append(h)
+
     return hypotheses

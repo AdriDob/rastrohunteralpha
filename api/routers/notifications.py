@@ -4,6 +4,7 @@ from fastapi import APIRouter, Query, Request
 
 from core_engines.notifications.hub import get_hub, NOTIFICATION_TYPES
 from core_engines.gateway.schemas import ok, error
+from database import db
 
 router = APIRouter(prefix="/api/notifications", tags=["notifications"])
 
@@ -33,6 +34,7 @@ async def get_notifications(
             "priority": n.priority,
             "timestamp": n.timestamp,
             "metadata": n.metadata,
+            "db_id": n.db_id,
         }
         for n in notifications
     ]
@@ -43,24 +45,137 @@ async def get_notifications(
 @router.post("/preferences")
 async def set_notification_preferences(request: Request):
     """Set per-channel notification preferences.
+    Persisted to the investigator profile.
 
-    Body: { "channel": "desktop"|"web"|"mobile", "enabled": bool }
+    Body: { "channel": "desktop"|"web"|"mobile"|"email"|"fcm", "enabled": bool }
     """
     body = await request.json()
     channel = body.get("channel")
     enabled = body.get("enabled", True)
 
-    valid_channels = ["desktop", "web", "mobile"]
+    valid_channels = ["desktop", "web", "mobile", "email", "fcm"]
     if channel not in valid_channels:
         return error(f"Invalid channel: {channel}. Valid: {', '.join(valid_channels)}", version="1.0")
 
-    return ok({"channel": channel, "enabled": enabled, "status": "updated"})
+    try:
+        from core_engines.learning.profile import get_profile_service
+        profile = get_profile_service()
+        prefs = profile.get_stats().get("notification_preferences", {})
+        prefs[f"channel_{channel}"] = enabled
+
+        session = db.SessionLocal()
+        try:
+            from database.models import InvestigatorProfile
+            row = session.query(InvestigatorProfile).first()
+            if row:
+                row.notification_preferences = prefs
+                session.commit()
+        finally:
+            session.close()
+
+        return ok({"channel": channel, "enabled": enabled, "status": "updated"})
+    except Exception as exc:
+        return error(str(exc), version="1.0")
+
+
+@router.get("/preferences")
+async def get_notification_preferences():
+    """Get current notification channel preferences."""
+    try:
+        from core_engines.learning.profile import get_profile_service
+        profile = get_profile_service()
+        prefs = profile.get_stats().get("notification_preferences", {})
+        return ok({"preferences": prefs})
+    except Exception as exc:
+        return error(str(exc), version="1.0")
 
 
 @router.get("/types")
 async def list_notification_types():
     """List all supported notification types."""
     return ok({"types": NOTIFICATION_TYPES})
+
+
+# ── Device Registration ──────────────────────────────────────────────
+
+
+@router.post("/devices")
+async def register_device(request: Request):
+    """Register a device for push notifications.
+
+    Body: { "platform": "fcm"|"apns"|"webpush", "token": "...", "name": "optional" }
+    """
+    body = await request.json()
+    platform = body.get("platform")
+    token = body.get("token")
+    name = body.get("name")
+
+    if platform not in ("fcm", "apns", "webpush"):
+        return error(f"Invalid platform: {platform}", version="1.0")
+    if not token:
+        return error("token is required", version="1.0")
+
+    try:
+        existing = db.query(
+            "SELECT id FROM devices WHERE platform = ? AND token = ?",
+            (platform, token),
+        )
+        if existing:
+            db.execute(
+                "UPDATE devices SET name = ?, is_active = 'true', updated_at = CURRENT_TIMESTAMP WHERE platform = ? AND token = ?",
+                (name, platform, token),
+            )
+        else:
+            db.execute(
+                "INSERT INTO devices (platform, token, name) VALUES (?, ?, ?)",
+                (platform, token, name),
+            )
+        return ok({"status": "registered", "platform": platform})
+    except Exception as exc:
+        return error(str(exc), version="1.0")
+
+
+@router.delete("/devices/{token}")
+async def unregister_device(token: str):
+    """Unregister a device by push token."""
+    try:
+        db.execute("UPDATE devices SET is_active = 'false' WHERE token = ?", (token,))
+        return ok({"status": "unregistered"})
+    except Exception as exc:
+        return error(str(exc), version="1.0")
+
+
+@router.get("/devices")
+async def list_devices():
+    """List all registered push devices."""
+    try:
+        rows = db.query(
+            "SELECT id, platform, token, name, is_active, created_at FROM devices ORDER BY created_at DESC",
+        )
+        return ok({"devices": [dict(r) for r in rows]})
+    except Exception as exc:
+        return error(str(exc), version="1.0")
+
+
+# ── Delivery Status ──────────────────────────────────────────────────
+
+
+@router.get("/delivery")
+async def get_delivery_records(limit: int = Query(50, ge=1, le=200)):
+    """Get recent delivery records."""
+    try:
+        rows = db.query(
+            """SELECT dr.id, dr.notification_id, dr.channel, dr.status,
+                      dr.error, dr.delivered_at, dr.created_at,
+                      n.notification_type, n.title
+               FROM delivery_records dr
+               LEFT JOIN notifications n ON n.id = dr.notification_id
+               ORDER BY dr.created_at DESC LIMIT ?""",
+            (limit,),
+        )
+        return ok({"records": [dict(r) for r in rows]})
+    except Exception as exc:
+        return error(str(exc), version="1.0")
 
 
 # ── Digest & Dedup Intelligence ───────────────────────────────────────

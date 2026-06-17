@@ -32,6 +32,7 @@ TOOL_CHECKS = {
     "katana": ["katana", "-version"],
     "httpx": ["httpx", "-version"],
     "waybackurls": ["waybackurls", "-h"],
+    "nuclei": ["nuclei", "-version"],
 }
 
 CRITICAL_TOOLS = ["subfinder", "katana", "httpx"]

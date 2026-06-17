@@ -64,6 +64,7 @@ class Notification:
     metadata: Dict[str, Any] = field(default_factory=dict)
     channels: List[str] = field(default_factory=lambda: ["web"])
     dedup_key: Optional[str] = None
+    db_id: Optional[int] = None  # set after persistence
 
 
 class NotificationHub:

@@ -7,7 +7,7 @@
 ### Requisitos
 - Linux o macOS
 - Node.js 18+
-- Java 17 o 21 (JDK)
+- Java 17, 18, 19, 20 o 21 (JDK) — NO usar Java 22+
 - Android SDK (o usar `--install-sdk`)
 
 ### Compilar APK

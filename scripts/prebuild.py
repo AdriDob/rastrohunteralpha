@@ -111,7 +111,7 @@ def main():
     print("\n── Test suite ──")
     try:
         result = subprocess.run(
-            [sys.executable, "-m", "pytest", "tests/", "--ignore=tests/test_desktop_release.py", "--tb=short", "-q"],
+            [sys.executable, "-m", "pytest", "tests/", "--tb=short", "-q"],
             cwd=str(ROOT),
             capture_output=True, text=True, timeout=120,
         )

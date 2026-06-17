@@ -1,11 +1,13 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { useEndpoint, useFindings } from '../lib/query';
+import { useEndpoint, useFindings, useValidateEndpoint, useScanIDOR } from '../lib/query';
 import { useStore } from '../lib/store';
 import FavoriteButton from '../components/FavoriteButton';
+import ValidationResultPanel from '../components/ValidationResultPanel';
+import IDORResultPanel from '../components/IDORResultPanel';
 import DataTable from '../components/tables/DataTable';
 import { createColumnHelper } from '@tanstack/react-table';
-import type { Finding, PaginationState } from '../types';
+import type { Finding, PaginationState, ValidationResult, IDORScanResponse } from '../types';
 
 const findingHelper = createColumnHelper<Finding>();
 const findingColumns = [
@@ -30,11 +32,47 @@ export default function EndpointDetail() {
     limit: pagination.pageSize,
   });
   const setSelectedFinding = useStore((s) => s.setSelectedFinding);
+  const validateMutation = useValidateEndpoint();
+  const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
+  const idorMutation = useScanIDOR();
+  const [idorResult, setIdorResult] = useState<IDORScanResponse | null>(null);
 
   if (!endpoint) return <p style={{ color: '#7c8299' }}>Loading…</p>;
 
   const items = findingsRes?.items ?? [];
   const total = findingsRes?.total ?? 0;
+
+  const handleValidate = () => {
+    const hotPathId = `manual-${endpoint.id}-${Date.now()}`;
+    validateMutation.mutate(
+      {
+        hot_path_id: hotPathId,
+        endpoint_id: endpoint.id,
+        target_id: endpoint.target_id,
+        url: endpoint.path,
+        method: endpoint.method,
+        min_attempts: 3,
+      },
+      {
+        onSuccess: (res) => setValidationResult(res),
+      },
+    );
+  };
+
+  const handleIDOR = () => {
+    idorMutation.mutate(
+      {
+        target_id: endpoint.target_id,
+        endpoint_id: endpoint.id,
+        url: `https://${endpoint.path}`,
+        method: endpoint.method,
+        identity_baseline_id: 0,
+      },
+      {
+        onSuccess: (res) => setIdorResult(res),
+      },
+    );
+  };
 
   return (
     <div>
@@ -51,9 +89,51 @@ export default function EndpointDetail() {
           <div><span style={labelStyle}>Vector</span><span style={valStyle}>{endpoint.vector}</span></div>
           <div><span style={labelStyle}>Labels</span><span style={valStyle}>{endpoint.labels.join(', ') || '—'}</span></div>
         </div>
+        <div style={{ marginTop: 16, display: 'flex', gap: 8, alignItems: 'center' }}>
+          <button onClick={handleValidate} disabled={validateMutation.isPending} style={{
+            background: validateMutation.isPending ? '#4a1d96' : '#7c3aed',
+            border: 'none', color: '#fff', padding: '8px 20px', borderRadius: 6,
+            cursor: validateMutation.isPending ? 'not-allowed' : 'pointer',
+            fontSize: 13, fontWeight: 500,
+          }}>
+            {validateMutation.isPending ? 'Validating…' : 'Validate'}
+          </button>
+          <button onClick={handleIDOR} disabled={idorMutation.isPending} style={{
+            background: idorMutation.isPending ? '#4a1d96' : '#7c3aed',
+            border: 'none', color: '#fff', padding: '8px 20px', borderRadius: 6,
+            cursor: idorMutation.isPending ? 'not-allowed' : 'pointer',
+            fontSize: 13, fontWeight: 500,
+          }}>
+            {idorMutation.isPending ? 'Scanning…' : 'IDOR Scan'}
+          </button>
+          {validateMutation.isError && (
+            <span style={{ fontSize: 12, color: '#ef4444' }}>
+              Validation failed: {(validateMutation.error as any)?.message || 'Unknown error'}
+            </span>
+          )}
+          {idorMutation.isError && (
+            <span style={{ fontSize: 12, color: '#ef4444' }}>
+              IDOR scan failed: {(idorMutation.error as any)?.message || 'Unknown error'}
+            </span>
+          )}
+        </div>
       </div>
 
-      <h3 style={{ fontSize: 16, fontWeight: 600, margin: '0 0 12px', color: '#fff' }}>Findings on this Endpoint</h3>
+      {validationResult && (
+        <ValidationResultPanel
+          result={validationResult}
+          onClose={() => setValidationResult(null)}
+        />
+      )}
+
+      {idorResult && (
+        <IDORResultPanel
+          result={idorResult}
+          onClose={() => setIdorResult(null)}
+        />
+      )}
+
+      <h3 style={{ fontSize: 16, fontWeight: 600, margin: '16px 0 12px', color: '#fff' }}>Findings on this Endpoint</h3>
       <DataTable
         data={items as any}
         columns={findingColumns as any}

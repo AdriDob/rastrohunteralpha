@@ -56,6 +56,16 @@ export default function TargetDetail() {
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <h2 style={{ margin: 0, fontSize: 18, color: '#fff' }}>{target.name}</h2>
           <FavoriteButton itemType="target" itemId={target.id} label={target.name} />
+          <button
+            onClick={() => navigate(`/hypothesis?targetId=${target.id}`)}
+            style={{
+              marginLeft: 'auto', background: '#7c3aed', border: 'none',
+              borderRadius: 6, padding: '6px 14px', color: '#fff',
+              fontSize: 11, fontWeight: 600, cursor: 'pointer',
+            }}
+          >
+            Generate Hypotheses
+          </button>
         </div>
         <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', gap: 8 }}>
           <div><span style={labelStyle}>Domain</span><span style={valStyle}>{target.domain ?? '—'}</span></div>

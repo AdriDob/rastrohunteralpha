@@ -22,12 +22,16 @@ export interface Translations {
   sidebar_expand: string;
   recent: string;
   pinned: string;
-  mission: string;
-  map: string;
-  hunt: string;
-  bag: string;
-  report: string;
-  work: string;
+  nav_mission: string;
+  nav_recon: string;
+  nav_findings: string;
+  nav_analysis: string;
+  nav_operations: string;
+  nav_intelligence: string;
+  daily_briefing: string;
+  actions_view: string;
+  history_view: string;
+  project_dashboard: string;
 
   // Opportunities
   opportunity_radar: string;
@@ -69,6 +73,7 @@ export interface Translations {
   target_detail: string;
   finding_detail: string;
   endpoint_detail: string;
+  personal_intelligence: string;
 
   // Evidence
   evidence_center: string;
@@ -83,6 +88,11 @@ export interface Translations {
 
   // Settings
   settings: string;
+  settings_title: string;
+  settings_section_appearance: string;
+  settings_section_language: string;
+  settings_language_desc: string;
+  settings_theme_desc: string;
   theme: string;
   language: string;
   notifications: string;
@@ -91,6 +101,32 @@ export interface Translations {
   // Operations
   operations_dashboard: string;
   task_queue: string;
+  investigations: string;
+
+  // Personal Learning
+  adaptive_mode: string;
+  adaptive_mode_desc: string;
+  export_json: string;
+  export_md: string;
+  reset_profile: string;
+  strength_map: string;
+  areas_of_expertise: string;
+  success_history: string;
+  recommendations_title: string;
+  recent_activity: string;
+  no_learning_data: string;
+  no_learning_data_desc: string;
+  no_bug_classes: string;
+  no_industries: string;
+  targets_label: string;
+  findings_label: string;
+  hours_label: string;
+  sessions_label: string;
+  confirmed_label: string;
+  high_severity_label: string;
+  rejected_label: string;
+  duplicates_label: string;
+  total_roi: string;
 
   // Placeholders / Common
   loading: string;

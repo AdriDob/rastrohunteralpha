@@ -309,6 +309,10 @@ def list_evidence(verdict_id: Optional[int] = None, skip: int = 0, limit: int = 
                 "consistent": e.consistent == "true",
                 "curl_command": e.curl_command,
                 "body_diff_ratio": float(e.body_diff_ratio) if e.body_diff_ratio else 0.0,
+                "request_body": e.request_body,
+                "response_body": e.response_body,
+                "request_headers": e.request_headers,
+                "response_headers": e.response_headers,
             }
             for e in evidence
         ]

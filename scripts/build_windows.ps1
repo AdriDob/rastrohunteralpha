@@ -51,7 +51,8 @@ Write-Host "`n[4/5] ✓ Rastro.exe generated ($('{0:N1}' -f $size) MB)" -Foregro
 
 # ── 6. Create distribution ZIP ──────────────────────────────────────
 Write-Host "`n[5/5] Creating distribution ZIP..." -ForegroundColor Green
-$zipName = "Rastro_v1.0.0_Windows.zip"
+$version = (Get-Content (Join-Path $ROOT "VERSION")).Trim()
+$zipName = "Rastro_v${version}_Windows.zip"
 $zipPath = Join-Path $ROOT "dist" $zipName
 if (Test-Path $zipPath) { Remove-Item $zipPath }
 

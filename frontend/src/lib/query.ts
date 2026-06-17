@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import * as api from './api';
 import type { PaginationFilters } from '../types';
 
@@ -329,5 +329,75 @@ export function useActionStats() {
     queryKey: ['execution', 'actions', 'stats'],
     queryFn: () => api.getActionStats(),
     refetchInterval: 60_000,
+  });
+}
+
+export function useReportsList(limit = 20, offset = 0) {
+  return useQuery({
+    queryKey: ['reports', limit, offset],
+    queryFn: () => api.getReportsList(limit, offset),
+  });
+}
+
+export function useReportById(id: number | null) {
+  return useQuery({
+    queryKey: ['report', id],
+    queryFn: () => api.getReportById(id!),
+    enabled: id !== null,
+  });
+}
+
+export function useInvestigations(targetId?: number | null, status?: string, limit = 20, offset = 0) {
+  return useQuery({
+    queryKey: ['investigations', targetId, status, limit, offset],
+    queryFn: () => api.getInvestigations(targetId ?? undefined, status, limit, offset),
+  });
+}
+
+export function useInvestigation(id: number | null) {
+  return useQuery({
+    queryKey: ['investigation', id],
+    queryFn: () => api.getInvestigation(id!),
+    enabled: id !== null,
+  });
+}
+
+export function useInvestigationDashboard(id: number | null) {
+  return useQuery({
+    queryKey: ['investigationDashboard', id],
+    queryFn: () => api.getInvestigationDashboard(id!),
+    enabled: id !== null,
+    staleTime: 15_000,
+  });
+}
+
+export function useCreateInvestigation() {
+  return useMutation({
+    mutationFn: (payload: import('../types').InvestigationCreatePayload) => api.createInvestigation(payload),
+  });
+}
+
+export function useUpdateInvestigation() {
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: number; payload: import('../types').InvestigationUpdatePayload }) =>
+      api.updateInvestigation(id, payload),
+  });
+}
+
+export function useDeleteInvestigation() {
+  return useMutation({
+    mutationFn: (id: number) => api.deleteInvestigation(id),
+  });
+}
+
+export function useValidateEndpoint() {
+  return useMutation({
+    mutationFn: (payload: api.ValidateEndpointPayload) => api.validateEndpoint(payload),
+  });
+}
+
+export function useScanIDOR() {
+  return useMutation({
+    mutationFn: (payload: api.IDORScanPayload) => api.scanIDOR(payload),
   });
 }

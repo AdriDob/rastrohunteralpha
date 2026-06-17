@@ -7,7 +7,7 @@
 
 Rastro — **estable con pipeline integrado, Android scaffold, sidebar unificada**:
 
-- **Backend**: FastAPI + SQLAlchemy + SQLite/PostgreSQL, 236 rutas, 38 routers, auth + rate-limit + license middleware.
+- **Backend**: FastAPI + SQLAlchemy + SQLite/PostgreSQL, ~236 rutas, 44 routers, auth + rate-limit + license middleware.
 - **Base de datos**: 17 tablas (SQLite default, PostgreSQL via DATABASE_URL).
 - **Pipeline Unificado**: Target → Recon → Hypotheses → Validation → Evidence → Findings → Reports → Investigation con timeline y progreso visual.
 - **Discovery Engine**: Subfinder, Katana, Httpx vía Go binaries con scheduler async (30min).
@@ -89,24 +89,29 @@ License:    core_engines/license/ (validator, hardware, store)
 
 ## 7. Roadmap Futuro
 
-### Short-term (v1.2.x)
+### Short-term (v1.2.x) — COMPLETED
 - [x] Personal Learning Engine (PLE) — backend + frontend + tests
 - [x] i18n — español default, auto-detect, arquitectura multi-idioma
 - [x] Project governance — status, timeline, feature matrix, tech debt
 - [x] User auth — registro, login, refresh, perfil
 - [x] Dual DB — SQLite + PostgreSQL + migration script
-- [ ] WebSocket manager + event bus bridge
-- [ ] SSE fallback for restricted networks
-- [ ] Client-side WebSocket hook
+- [x] WebSocket manager + event bus bridge (implementado en v1.3.0)
+- [x] Client-side WebSocket hook (implementado en v1.3.0)
 
-### Medium-term (v1.3.x)
-- AI Provider abstraction layer (Ollama, OpenAI, OpenRouter, LM Studio, vLLM)
-- Provider registry + auto-fallback chain
-- Model selector UI
+### v1.3.x
+- [x] Pipeline Integration: Mission Control → Investigation auto-creación
+- [x] Hypothesis → Investigation promotion funcional
+- [x] Timeline + Progreso Visual en pipeline
+- [x] Sidebar con submenús colapsables
+- [x] Empty states para páginas principales
+- [x] Android Capacitor scaffold + build script
+
+### Medium-term (v1.4.x)
+- Empaquetado Desktop estable (Windows 11)
+- APK Android funcional
+- End-to-end pipeline validado
+- AI Provider selector (Ollama, OpenRouter, local)
 - SSE streaming endpoint
-- Dashboard widgets (PLE-powered)
-- Weekly progress charts
-- Investigation heatmap
 
 ### Long-term (v2.0)
 - PostgreSQL como DB principal (SQLite sigue siendo compatible)

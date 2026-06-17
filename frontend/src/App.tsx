@@ -12,6 +12,7 @@ import TourOverlay from './components/onboarding/TourOverlay';
 import { I18nContext, getTranslations } from './lib/i18n';
 import type { Language } from './lib/i18n';
 import { ThemeContext, getTheme, applyTheme, detective_dark, aurora_light } from './lib/theme';
+import WSBridge from './components/WSBridge';
 
 const MissionControl = lazy(() => import('./pages/MissionControl'));
 const Activation = lazy(() => import('./pages/Activation'));
@@ -36,6 +37,11 @@ const AttackSurface = lazy(() => import('./pages/AttackSurface'));
 const DifferentialEngine = lazy(() => import('./pages/DifferentialEngine'));
 const ReplayCenter = lazy(() => import('./pages/ReplayCenter'));
 const FindingsPipeline = lazy(() => import('./pages/FindingsPipeline'));
+const PersonalIntelligence = lazy(() => import('./pages/PersonalIntelligence'));
+const ProjectDashboard = lazy(() => import('./pages/ProjectDashboard'));
+const InvestigationCenter = lazy(() => import('./pages/InvestigationCenter'));
+const InvestigationDetail = lazy(() => import('./pages/InvestigationDetail'));
+const Settings = lazy(() => import('./pages/Settings'));
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { refetchOnWindowFocus: false, staleTime: 30_000 } },
@@ -43,7 +49,16 @@ const queryClient = new QueryClient({
 
 const SETTINGS_KEY = 'rastro-desktop-settings';
 const DEFAULT_THEME = 'detective_dark';
-const DEFAULT_LANG = 'en';
+const DEFAULT_LANG: Language = 'es';
+
+function detectSystemLanguage(): Language {
+  try {
+    const navLang = navigator.language?.split('-')[0] ?? '';
+    if (navLang === 'es') return 'es';
+    if (navLang === 'en') return 'en';
+  } catch {}
+  return DEFAULT_LANG;
+}
 
 function loadSettings(): { theme: string; lang: Language } {
   try {
@@ -53,7 +68,7 @@ function loadSettings(): { theme: string; lang: Language } {
       return { theme: s.theme || DEFAULT_THEME, lang: s.lang || DEFAULT_LANG };
     }
   } catch {}
-  return { theme: DEFAULT_THEME, lang: DEFAULT_LANG };
+  return { theme: DEFAULT_THEME, lang: detectSystemLanguage() };
 }
 
 function saveSettings(theme: string, lang: Language) {
@@ -196,6 +211,7 @@ export default function App() {
             <StateContinuityProvider>
               <BrowserRouter>
                 <AppInitializer />
+                <WSBridge />
                 <Routes>
                   <Route path="/activate" element={<Suspense fallback={fallback}><Activation /></Suspense>} />
                   <Route element={<Layout />}>
@@ -230,8 +246,13 @@ export default function App() {
 
                     {/* Intelligence */}
                     <Route path="/intelligence" element={<Suspense fallback={fallback}><IntelligenceDashboard /></Suspense>} />
+                    <Route path="/personal-intelligence" element={<Suspense fallback={fallback}><PersonalIntelligence /></Suspense>} />
                     <Route path="/radar" element={<Suspense fallback={fallback}><OpportunityRadar /></Suspense>} />
                     <Route path="/reports" element={<Suspense fallback={fallback}><ReportCenter /></Suspense>} />
+                    <Route path="/project-dashboard" element={<Suspense fallback={fallback}><ProjectDashboard /></Suspense>} />
+                    <Route path="/investigations" element={<Suspense fallback={fallback}><InvestigationCenter /></Suspense>} />
+                    <Route path="/investigation/:id" element={<Suspense fallback={fallback}><InvestigationDetail /></Suspense>} />
+                    <Route path="/settings" element={<Suspense fallback={fallback}><Settings /></Suspense>} />
 
                     {/* 404 */}
                     <Route path="*" element={<NotFound />} />
