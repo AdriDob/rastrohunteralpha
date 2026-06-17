@@ -2,6 +2,16 @@
 
 ## 1. Instalación
 
+### Desde ZIP (recomendado — sin dependencias)
+
+```bash
+unzip Rastro-1.4.0-rc1-final-linux-x64.zip
+cd Rastro-Desktop
+./run.sh
+```
+
+### Desde código fuente
+
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
@@ -12,6 +22,10 @@ cd frontend && npm install && npm run build && cd ..
 ## 2. Iniciar Rastro
 
 ```bash
+# Desde ZIP:
+cd Rastro-Desktop && ./run.sh
+
+# Desde código fuente:
 python run.py            # Modo desktop (pywebview)
 python run.py --browser  # Modo navegador
 ```

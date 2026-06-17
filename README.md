@@ -43,7 +43,10 @@ Input Target ──→ Recon ──→ Scoring ──→ Graph ──→ Evidenc
 ## Quick Start
 
 ```bash
-# Production (desktop mode)
+# Production (ZIP bundle — extract and run)
+cd Rastro-Desktop && ./run.sh
+
+# Production (from source)
 python desktop/main_desktop.py
 
 # Development
@@ -81,7 +84,7 @@ uvicorn api.main:app --reload --host 127.0.0.1 --port 8000   # Terminal 2
 
 ```
 Middleware: CORSMiddleware → RateLimitMiddleware → AuthMiddleware
-Backend:    FastAPI + 44 routers / ~236 routes + SQLAlchemy + SQLite/PostgreSQL
+Backend:    FastAPI + 51 routers / ~240 routes + SQLAlchemy + SQLite/PostgreSQL
 Frontend:   React 19 + TypeScript + Vite 8 + 28 pages
 Desktop:    pywebview + pystray + PyInstaller (single process)
 ```
@@ -102,7 +105,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full breakdown.
 ├── api/                    # FastAPI backend
 │   ├── main.py             # App entrypoint + 25-step startup
 │   ├── middleware/          # CORS → RateLimit → Auth
-│   ├── routers/            # 44 routers, ~236 routes
+│   ├── routers/            # 51 routers, ~240 routes
 │   └── services/           # Data access layer
 ├── core_engines/            # Core intelligence
 │   ├── engine/             # Scoring + classification
@@ -135,7 +138,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full breakdown.
 ├── database/
 │   ├── models.py           # 15 SQLAlchemy models
 │   └── rastro.db           # SQLite database
-├── tests/                  # 122 tests (security + API + tools)
+├── tests/                  # 159 tests (security + API + tools + e2e)
 ├── docs/
 │   └── android_build.md    # Android Capacitor guide
 └── Rastro.spec             # PyInstaller configuration
@@ -154,14 +157,14 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full breakdown.
 | Android | APK | See `docs/android_build.md` |
 
 ```bash
-# Linux — run directly
+# Linux — from release ZIP (extract first)
+cd Rastro-Desktop && ./run.sh
+
+# Linux — from source build
 ./dist/Rastro/Rastro
 
-# Linux — AppImage (portable single file)
-./dist/Rastro-1.0.0-x86_64.AppImage
-
 # Windows — double-click installer
-Rastro_Setup_1.0.0.exe
+Rastro_Setup_1.4.0-rc1.exe
 ```
 
 ---
@@ -170,7 +173,7 @@ Rastro_Setup_1.0.0.exe
 
 - **OS**: Windows 10/11, Linux (x86_64), macOS (experimental)
 - **Python**: 3.10+ (3.14 recommended)
-- **RAM**: 512 MB minimum, 2 GB recommended
+- **RAM**: 1 GB minimum, 4 GB recommended
 - **Disk**: 500 MB for installation
 - **Optional tools**: subfinder, httpx, katana (Go binaries)
 

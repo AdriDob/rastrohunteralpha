@@ -3,7 +3,7 @@
 ## Pre-Release
 
 ### Tests
-- [ ] `pytest tests/ -q --tb=short` → 152/152 passed
+- [ ] `pytest tests/ -q --tb=short` → 159/159 passed
 - [ ] `cd frontend && npm run build` → 0 errores TS, build exitoso
 - [ ] `python scripts/prebuild.py` → todas las fases verdes
 

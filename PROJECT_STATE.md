@@ -12,11 +12,11 @@
 
 | Dimensión | Estado |
 |-----------|--------|
-| Backend | FastAPI + SQLAlchemy + SQLite/PostgreSQL, ~236 rutas, 44 routers |
+| Backend | FastAPI + SQLAlchemy + SQLite/PostgreSQL, ~240 rutas, 51 routers |
 | Frontend | React 19 + Vite 8 + TypeScript 6, 28 páginas |
 | Desktop | pywebview 6 + pystray + auto-updater + PyInstaller |
 | Mobile | Capacitor 8 scaffolded, APK build script |
-| Tests | 152/152 (11 test files) |
+| Tests | 159/159 (11 test files) |
 | Auth | JWT + rate-limit + license HMAC-SHA256 |
 | AI | Ollama + OpenAI-compatible + fallback local rule-based |
 | PLE | 7 módulos + 12 endpoints + UI |
@@ -88,5 +88,6 @@ Propietaria — HMAC-SHA256 con hardware fingerprint.
 **Missing:** No endpoint to delete targets (405 on DELETE). Reports are generated on-the-fly but not auto-persisted (expected behavior).
 
 ### Distribution artifacts
-- `dist/rastro-1.4.0-rc1-linux-x64.zip` — 86 MB (PyInstaller bundle + docs)
+- `~/Desktop/Rastro-1.4.0-rc1-final-linux-x64.zip` — 89 MB (PyInstaller bundle + APK + docs)
 - `dist/Rastro/Rastro` — 21 MB executable
+- `dist/rastro-android-debug.apk` — 4.2 MB Android APK

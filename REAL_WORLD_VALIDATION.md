@@ -2,21 +2,21 @@
 
 **Target:** testphp.vulnweb.com (Acunetix test site — designed for security testing)
 
-**Date:** 2026-06-17 14:36:49 UTC
+**Date:** 2026-06-17 16:04:57 UTC
 
 ## Pipeline Results
 
 | Stage | Status | Detail | Time |
 |-------|--------|--------|------|
-| 1_create_target | ✅ ok | Target #123 created | 0.18s |
-| 2_add_endpoints | ✅ ok | 25/25 endpoints created | 2.33s |
-| 3_hypotheses | ✅ ok | 15 hypotheses generated | 0.04s |
-| 4_investigation | ✅ ok | Investigation #2 created | 0.11s |
-| 5_dashboard | ✅ ok | Dashboard loaded | 0.06s |
-| 6_report | ✅ ok | Report generated | 0.08s |
-| 7_export | ✅ ok | 0 reports available for export | 0.05s |
-| 8_scoring | ✅ ok | 15/25 endpoints have risk scores | 0.06s |
-| 9_attack_surface | ✅ ok | Attack surface loaded | 0.5s |
+| 1_create_target | ✅ ok | Target #151 created | 0.18s |
+| 2_add_endpoints | ✅ ok | 25/25 endpoints created | 2.68s |
+| 3_hypotheses | ✅ ok | 15 hypotheses generated | 0.32s |
+| 4_investigation | ✅ ok | Investigation #3 created | 0.09s |
+| 5_dashboard | ✅ ok | Dashboard loaded | 0.08s |
+| 6_report | ✅ ok | Report generated | 0.07s |
+| 7_export | ✅ ok | 0 reports available for export | 0.04s |
+| 8_scoring | ✅ ok | 15/25 endpoints have risk scores | 0.05s |
+| 9_attack_surface | ✅ ok | Attack surface loaded | 0.69s |
 
 ## Endpoints Found
 
@@ -52,10 +52,10 @@ No immediate improvements required.
 ### 1_create_target
 
 - **Status:** ok
-- **Detail:** Target #123 created
+- **Detail:** Target #151 created
 - **Time:** 0.18s
 - **Data:** `{
-  "id": 123,
+  "id": 151,
   "name": "AcunetixTest",
   "domain": "testphp.vulnweb.com"
 }`
@@ -64,13 +64,13 @@ No immediate improvements required.
 
 - **Status:** ok
 - **Detail:** 25/25 endpoints created
-- **Time:** 2.33s
+- **Time:** 2.68s
 
 ### 3_hypotheses
 
 - **Status:** ok
 - **Detail:** 15 hypotheses generated
-- **Time:** 0.04s
+- **Time:** 0.32s
 - **Data:** `{
   "total": 15,
   "by_type": {
@@ -88,10 +88,10 @@ No immediate improvements required.
 ### 4_investigation
 
 - **Status:** ok
-- **Detail:** Investigation #2 created
-- **Time:** 0.11s
+- **Detail:** Investigation #3 created
+- **Time:** 0.09s
 - **Data:** `{
-  "id": 2,
+  "id": 3,
   "name": "idor \u2014 AcunetixTest",
   "status": "active"
 }`
@@ -100,7 +100,7 @@ No immediate improvements required.
 
 - **Status:** ok
 - **Detail:** Dashboard loaded
-- **Time:** 0.06s
+- **Time:** 0.08s
 - **Data:** `{
   "pipeline_progress": "40%",
   "confidence": 0.0,
@@ -124,11 +124,11 @@ No immediate improvements required.
 
 - **Status:** ok
 - **Detail:** Report generated
-- **Time:** 0.08s
+- **Time:** 0.07s
 - **Data:** `{
   "title": "Rastro Bug Bounty Report",
   "findings": 1,
-  "estimated_value": 258000,
+  "estimated_value": 285000,
   "markdown_len": 435
 }`
 
@@ -136,19 +136,19 @@ No immediate improvements required.
 
 - **Status:** ok
 - **Detail:** 0 reports available for export
-- **Time:** 0.05s
+- **Time:** 0.04s
 
 ### 8_scoring
 
 - **Status:** ok
 - **Detail:** 15/25 endpoints have risk scores
-- **Time:** 0.06s
+- **Time:** 0.05s
 
 ### 9_attack_surface
 
 - **Status:** ok
 - **Detail:** Attack surface loaded
-- **Time:** 0.5s
+- **Time:** 0.69s
 - **Data:** `{
   "clusters": 0,
   "hot_paths": 0

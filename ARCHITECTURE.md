@@ -34,7 +34,7 @@ Request → CORSMiddleware → RateLimitMiddleware → AuthMiddleware → Router
   CORSMiddleware ──→ RateLimitMiddleware ──→ AuthMiddleware
     │
     ▼
-  FastAPI (api.main) — 44 routers montados en /api/*
+   FastAPI (api.main) — 51 routers montados en /api/*
     │
     ├── Startup (25 pasos): init_db, event_bus, system_state, identity,
     │   orchestrator, execution_tracker, scorecard, memory,
@@ -52,10 +52,10 @@ Request → CORSMiddleware → RateLimitMiddleware → AuthMiddleware → Router
 ## Componentes backend
 
 ### `api/main.py` — Aplicación principal (usada por desktop)
-- 44 routers montados desde `api/routers/` + `core_engines/learning/router.py`
+- 51 routers montados desde `api/routers/` + `core_engines/learning/router.py`
 - Endpoints adicionales: `/api/health`, `/api/version`, `/api/stats`, `/api/metrics`
 - Importada por `desktop/main_desktop.py`
-- **~236 rutas totales**
+- **~240 rutas totales**
 
 ### `api/middleware/`
 - `auth_middleware.py` — AuthMiddleware: JWT + license check

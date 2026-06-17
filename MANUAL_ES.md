@@ -28,6 +28,19 @@ Este manual es para usuarios que quieren ejecutar Rastro y entender el flujo com
 
 ## Instalación rápida
 
+### Desde el ZIP de release (recomendado)
+
+```bash
+# Extraer el ZIP
+unzip Rastro-1.4.0-rc1-final-linux-x64.zip
+cd Rastro-Desktop
+
+# Ejecutar (sin necesidad de Python ni Node)
+./run.sh
+```
+
+### Desde el código fuente
+
 ```bash
 git clone <repo-url> rastro
 cd rastro
