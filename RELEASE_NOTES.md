@@ -32,7 +32,7 @@
 | Evidence | ✅ | Evidence graph + store |
 | Findings | ✅ | Persistencia con scoring y severidad CVSS v3 |
 | Report | ✅ | Export HackerOne JSON, Bugcrowd HTML, Markdown |
-| Opportunity Radar | ✅ | 48 oportunidades activas, scoring por layers, paid-first |
+| Opportunity Radar | ✅ | 26 oportunidades activas, scoring por layers, paid-first |
 
 ### AI Conversacional
 | Componente | Estado | Descripción |
