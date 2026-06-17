@@ -104,7 +104,7 @@ class TrayController:
         icon_image = _create_icon_image()
         menu = self._create_menu()
         try:
-            self._icon = pystray.Icon("rastro", icon_image, "Rastro — Running", menu)
+            self._icon = pystray.Icon("rastro", icon_image, "Rastro - Running", menu)
             self._icon.run()
         except Exception as exc:
             logger.warning("Tray icon failed to start: %s", exc)

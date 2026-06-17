@@ -54,6 +54,7 @@ from api.routers import (
     target_identity,
     idor,
     investigations,
+    settings_ai,
 )
 from core_engines.learning.router import router as learning_router
 
@@ -274,6 +275,7 @@ app.include_router(project_dashboard.router)
 app.include_router(ws.router)
 app.include_router(idor.router)
 app.include_router(investigations.router)
+app.include_router(settings_ai.router)
 
 
 APP_VERSION = _APP_VERSION

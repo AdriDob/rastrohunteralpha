@@ -142,6 +142,23 @@ const es: Translations = {
   global_shortcuts: 'Globales',
   navigation_shortcuts: 'Navegación',
   press_shortcut_hint: 'Presione ⌘/ (Ctrl+/) para abrir este diálogo',
+
+  // AI Settings
+  settings_section_ai: 'Inteligencia Artificial',
+  settings_ai_provider: 'Proveedor de IA',
+  settings_ai_provider_desc: 'Selecciona el backend de IA para análisis y recomendaciones.',
+  settings_ai_model: 'Modelo',
+  settings_ai_model_desc: 'Modelo a usar con este proveedor.',
+  settings_ai_host: 'Host / URL Base',
+  settings_ai_host_desc: 'Dirección del servidor del proveedor de IA.',
+  settings_ai_api_key: 'API Key',
+  settings_ai_api_key_desc: 'Dejar vacío para mantener la clave actual.',
+  settings_ai_save: 'Guardar Config',
+  settings_ai_saved: 'Configuración guardada.',
+  settings_ai_error: 'Error al guardar configuración.',
+  settings_ai_available: 'Disponible',
+  settings_ai_unavailable: 'No disponible',
+  settings_ai_active: 'Activo',
 };
 
 export default es;

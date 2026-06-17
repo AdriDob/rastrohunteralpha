@@ -10,8 +10,10 @@ from __future__ import annotations
 from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
+from core_engines.ai.provider import get_provider
 from core_engines.ai.assistant import get_assistant
 from core_engines.assistant.ai_assistant import get_narrator
 
@@ -60,6 +62,29 @@ def chat(body: ChatRequest):
         raise HTTPException(status_code=400, detail="Message cannot be empty")
     assistant = get_assistant()
     return assistant.chat(body.message)
+
+
+@router.post("/chat/stream")
+async def chat_stream(body: ChatRequest):
+    if not body.message.strip():
+        raise HTTPException(status_code=400, detail="Message cannot be empty")
+
+    async def event_stream():
+        provider = get_provider()
+        messages = [{"role": "user", "content": body.message}]
+        for token in provider.chat_stream(messages):
+            yield f"data: {token}\n\n"
+        yield "data: [DONE]\n\n"
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @router.get("/summary")

@@ -648,3 +648,17 @@ class Report(Base):
         DateTime(timezone=True),
         server_default=func.now(),
     )
+
+
+class AIProviderConfig(Base):
+    """Persistent AI provider configuration."""
+    __tablename__ = "ai_provider_config"
+
+    id = Column(Integer, primary_key=True, index=True)
+    key = Column(String, unique=True, nullable=False, index=True)
+    value = Column(Text, nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+    )

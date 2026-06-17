@@ -142,6 +142,23 @@ const en: Translations = {
   global_shortcuts: 'Global',
   navigation_shortcuts: 'Navigation',
   press_shortcut_hint: 'Press ⌘/ (Ctrl+/) to open this dialog anytime',
+
+  // AI Settings
+  settings_section_ai: 'Artificial Intelligence',
+  settings_ai_provider: 'AI Provider',
+  settings_ai_provider_desc: 'Select which AI backend to use for analysis and recommendations.',
+  settings_ai_model: 'Model',
+  settings_ai_model_desc: 'Model to use with this provider.',
+  settings_ai_host: 'Host / Base URL',
+  settings_ai_host_desc: 'Server address for the AI provider.',
+  settings_ai_api_key: 'API Key',
+  settings_ai_api_key_desc: 'Leave blank to keep the current key.',
+  settings_ai_save: 'Save Config',
+  settings_ai_saved: 'Configuration saved.',
+  settings_ai_error: 'Failed to save configuration.',
+  settings_ai_available: 'Available',
+  settings_ai_unavailable: 'Unavailable',
+  settings_ai_active: 'Active',
 };
 
 export default en;

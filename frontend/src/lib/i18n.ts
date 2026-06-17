@@ -144,6 +144,23 @@ export interface Translations {
   global_shortcuts: string;
   navigation_shortcuts: string;
   press_shortcut_hint: string;
+
+  // AI Settings
+  settings_section_ai: string;
+  settings_ai_provider: string;
+  settings_ai_provider_desc: string;
+  settings_ai_model: string;
+  settings_ai_model_desc: string;
+  settings_ai_host: string;
+  settings_ai_host_desc: string;
+  settings_ai_api_key: string;
+  settings_ai_api_key_desc: string;
+  settings_ai_save: string;
+  settings_ai_saved: string;
+  settings_ai_error: string;
+  settings_ai_available: string;
+  settings_ai_unavailable: string;
+  settings_ai_active: string;
 }
 
 import en from './i18n-en';

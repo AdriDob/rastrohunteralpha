@@ -611,3 +611,43 @@ export function getMemoryContext(target: any) {
 export function exportLearningProfile(fmt: 'json' | 'markdown' = 'json') {
   return fetchJson<any>(`/learning/export?fmt=${fmt}`);
 }
+
+// ── AI Settings ─────────────────────────────────────────────────────
+
+export interface AIProviderInfo {
+  id: string;
+  label: string;
+  models: string[];
+  available: boolean | null;
+  active: boolean;
+}
+
+export interface AIConfig {
+  provider_type: string;
+  host: string;
+  model: string;
+  api_base: string;
+  active_provider: string;
+  available: boolean;
+}
+
+export function getAIProviders() {
+  return fetchJson<{ providers: AIProviderInfo[] }>('/settings/ai/providers');
+}
+
+export function getAIConfig() {
+  return fetchJson<AIConfig>('/settings/ai/config');
+}
+
+export function updateAIConfig(body: {
+  provider_type: string;
+  host?: string;
+  model?: string;
+  api_key?: string;
+  api_base?: string;
+}) {
+  return fetchJson<{ status: string; active_provider: string; available: boolean }>(
+    '/settings/ai/config',
+    { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) },
+  );
+}

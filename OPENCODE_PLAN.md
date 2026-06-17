@@ -1,4 +1,4 @@
-# Rastro — Central System Plan v1.3.0
+# Rastro — Central System Plan v1.4.0-rc1
 OPENCODE SIEMPRE LEES ESTO PRIMERO. SIEMPRE ACTUALIZA ESTE PLAN A LOS ÚLTIMOS CAMBIOS Y PRÓXIMAS ACTUALIZACIONES
 
 ---
@@ -12,18 +12,18 @@ Refleja el código real, no aspiraciones. Cualquier discrepancia entre este plan
 
 | Dimensión | Estado |
 |-----------|--------|
-| **Backend** | FastAPI + SQLAlchemy + SQLite/PostgreSQL — ~236 rutas, 44 routers, 0 deprecation warnings |
-| **Frontend** | React 19 + Vite 8 + TypeScript 6 — build ~2s, 0 errores TS |
-| **Desktop** | pywebview 6 — native window + system tray + auto-updater |
-| **Android** | Capacitor 8 — scaffolded, APK build requires Java 17/21 |
+| **Backend** | FastAPI + SQLAlchemy + SQLite/PostgreSQL — 240 rutas, 45 routers + 1 learning router, 0 deprecation warnings |
+| **Frontend** | React 19 + Vite 8 + TypeScript 6 — build ~1.3s, 0 errores TS, 551 módulos |
+| **Desktop** | pywebview 6 — native window + system tray + auto-updater, PyInstaller 21MB Linux binary |
+| **Android** | Capacitor 8 — APK build 4.2MB requires Java 17-21 |
 | **Auth** | JWT global middleware + rate limiter (token bucket) + license system (HMAC-SHA256) |
-| **Tests** | 152/152 passing (11 test files) |
+| **Tests** | 159/159 passing (14 test files: +test_auth_users, +test_learning, +test_pipeline_e2e) |
 | **CI/CD** | GitHub Actions — `test.yml` (push) + `release.yml` (tag v*) |
 | **DB** | SQLite, 17 tablas, 0 Alembic, schema via `create_all()` + ad-hoc ALTER TABLE |
 | **Licencia** | HMAC-SHA256, hardware-bound, 5×5 base32, expiry-encoded |
 | **AI** | Ollama (Qwen2.5-Coder) + OpenAI-compatible + fallback local rule-based + PLE MemoryBuilder |
-| **Pipeline** | Flujo unificado: Target → Recon → Hypotheses → Validation → Evidence → Findings → Reports → Investigation con timeline y progreso |
-| **Coherencia docs vs código** | ~95% (docs stale archivados, sincronización completa) |
+| **Pipeline** | Flujo unificado: Target → Recon → Hypotheses → Validation → Evidence → Findings → Reports → Investigation con timeline y progreso. Validado end-to-end 9/9 etapas |
+| **Coherencia docs vs código** | ~98% (docs archivados, sincronización completa, REAL_WORLD_VALIDATION.md documentado) |
 
 ---
 
@@ -41,7 +41,7 @@ Rastro/
 │   ├── middleware/
 │   │   ├── auth_middleware.py       ← Auth + license enforcement
 │   │   └── rate_limit_middleware.py ← Token bucket rate limiter
-│   └── routers/               ← 44 routers, ~236 rutas
+│   └── routers/               ← 45 routers, ~240 rutas
 │
 ├── core_engines/              ← 50+ entries (todo el negocio)
 │   ├── engine/                ← Scoring + classification (unified_scoring.py)
@@ -62,10 +62,13 @@ Rastro/
 │   ├── accountability/        ← Outcome tracker + scorecard
 │   ├── explainability/        ← Decision trace + explanation engine
 │   ├── orchestrator/          ← Pipeline orchestration + scan service
-│   ├── events/                ← Event bus
+│   ├── events/                ← Event bus + WebSocket bridge
+│   ├── ws/                    ← WebSocket manager + bridge + router (operacional)
 │   ├── learning/              ← Personal Learning Engine (7 módulos: profile, tracker, prioritizer, explainer, memory, export, router)
 │   ├── identity/              ← Identity manager + device registry
-│   ├── notifications/         ← Notification hub + push
+│   ├── notifications/         ← Notification hub + push + bridges (DB, desktop, email, FCM)
+│   ├── pipeline/              ← Pipeline stages + evidence service + report service
+│   ├── target_auth/           ← Identity manager + login service + session manager + vault + IDOR tester
 │   ├── contracts/             ← DTO normalizers + validators
 │   ├── targets/               ← TargetIntel + Scope models
 │   ├── platform/              ← Platform detection
@@ -84,7 +87,8 @@ Rastro/
 │   ├── dist/                  ← Production build
 │   ├── src/
 │   │   ├── pages/             ← 28 pages (27 lazy + Activation)
-│   │   ├── components/        ← 28+ componentes
+│   │   ├── components/        ← 30+ componentes (incl. IDORResultPanel, ValidationResultPanel, WSBridge)
+│   │   ├── hooks/             ← useWebSocket hook
 │   │   ├── lib/               ← Store (Zustand), API client, i18n, theme, offline
 │   │   └── types/index.ts     ← ~1500 lines TypeScript types
 │   ├── vite.config.ts
@@ -190,10 +194,12 @@ Request → CORSMiddleware → RateLimitMiddleware → AuthMiddleware → Router
 - [x] Sidebar con submenús colapsables (~10 items)
 - [x] Empty states para páginas principales
 
-### Sprint 5: AI Provider Abstraction (POSTERGADO — v1.4+)
-- [ ] Provider registry + auto-fallback chain
-- [ ] Model selector UI
-- [ ] SSE streaming endpoint
+### Sprint 5: AI Provider Abstraction (v1.4.x — COMPLETED)
+- [x] Provider registry + auto-fallback chain
+- [x] Model selector UI (Settings.tsx)
+- [x] SSE streaming endpoint (`POST /api/assistant/chat/stream`)
+- [x] `AIProviderConfig` DB model for persistent config
+- [x] `settings_ai` API router (list providers, get/update config)
 
 ### Sprint 7: Release (COMPLETADO)
 - [x] Windows .exe desde GH Actions
@@ -221,7 +227,10 @@ Request → CORSMiddleware → RateLimitMiddleware → AuthMiddleware → Router
 - [x] Fix tipo Investigation duplicado en types/index.ts
 - [x] Android Capacitor scaffold + build script con Java 17+ check
 - [x] Mobile bottom nav actualizado (Dashboard, Investigaciones, Evidencia, Reportes, Ajustes)
-- [x] 152 tests pasando, frontend build limpio, prebuild OK
+- [x] 159 tests pasando, frontend build limpio, prebuild 16/16 OK
+- [x] Real-world validation 9/9 etapas (testphp.vulnweb.com)
+- [x] Linux build PyInstaller 21MB + dist ZIP 86MB
+- [x] GitHub Release v1.4.0-rc1 publicado
 
 ---
 
@@ -260,9 +269,9 @@ Report:    report_engine.py → severity + CVSS + export formats
 ## 9. Comandos de Verificación
 
 ```bash
-python -m pytest tests/ -q --tb=short       # 152 tests
-cd frontend && npm run build                 # 0 TS errors, ~2s
+python -m pytest tests/ -q --tb=short       # 159 tests
+cd frontend && npm run build                 # 0 TS errors, ~1.3s
 python -c "from api.main import app; print('OK')"  # API imports
-python scripts/prebuild.py                   # Validación completa
+python scripts/prebuild.py                   # Validación completa (16 checks)
 npx cap sync android                         # Sync Capacitor Android
 ```

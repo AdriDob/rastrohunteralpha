@@ -49,9 +49,25 @@ def _get_exe_dir() -> Path:
     return Path(__file__).resolve().parent.parent / "dist" / "Rastro"
 
 
-def _parse_semver(v: str) -> tuple[int, int, int]:
+def _parse_semver(v: str) -> tuple[int, int, int, int]:
     parts = v.lstrip("vV").split(".")
-    return tuple(int(p) for p in parts[:3])  # type: ignore[return-value]
+    major = int(parts[0]) if len(parts) > 0 else 0
+    minor = int(parts[1]) if len(parts) > 1 else 0
+    patch_str = parts[2] if len(parts) > 2 else "0"
+    patch = 0
+    pre = 9999
+    if "-" in patch_str:
+        patch_str, pre_str = patch_str.split("-", 1)
+        patch = int(patch_str)
+        pre_match = 0
+        for ch in pre_str:
+            if ch.isdigit():
+                pre_match = pre_match * 10 + int(ch)
+        pre = pre_match if pre_match > 0 else 9999
+    else:
+        patch = int(patch_str)
+        pre = 9999
+    return (major, minor, patch, pre)  # type: ignore[return-value]
 
 
 def _current_version() -> str:
@@ -89,6 +105,13 @@ def check_for_updates(current_version: str | None = None) -> Optional[ReleaseInf
 
     if latest_ver <= current_ver:
         logger.debug("Already up to date (%s)", version)
+        return None
+
+    # Pre-release: skip auto-update to pre-release when current is a real release
+    current_is_pre = current_ver[3] < 9999 if len(current_ver) > 3 else False
+    is_prerelease = data.get("prerelease", False)
+    if is_prerelease and not current_is_pre and current_ver >= (1, 0, 0, 9999):
+        logger.debug("Latest release %s is pre-release — skipping auto-update on stable", latest_tag)
         return None
 
     # Find the ZIP asset for the current platform
