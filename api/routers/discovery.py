@@ -1,0 +1,134 @@
+"""Program discovery and technology fingerprinting API endpoints.
+
+Extends the Hunter pipeline with catalog browsing, technology
+distribution analytics, and on-demand program fetching.
+"""
+
+import logging
+from typing import Any, Dict, List, Optional
+
+from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel
+
+from core_engines.targets.hunter import Hunter
+
+LOG = logging.getLogger("rastro.api.discovery")
+router = APIRouter(prefix="/api/discovery", tags=["discovery"])
+
+
+# ── Response schemas ─────────────────────────────────────────────────
+
+
+class ProgramItem(BaseModel):
+    id: int
+    name: str
+    domain: Optional[str] = None
+    source: Optional[str] = None
+    program_url: Optional[str] = None
+    quality_score: Optional[int] = None
+    roi_score: Optional[int] = None
+    opportunity_score: Optional[float] = None
+    technology_tags: List[str] = []
+    cms_detected: Optional[str] = None
+    framework_detected: Optional[str] = None
+    wordpress_plugins_detected: List[str] = []
+    saas_probability: Optional[float] = None
+    api_density: Optional[int] = None
+    graphql_detected: Optional[bool] = None
+    multi_tenant: Optional[bool] = None
+    admin_detected: Optional[bool] = None
+    tags: Optional[str] = None
+    created_at: Optional[str] = None
+
+
+class DiscoveryListResult(BaseModel):
+    items: List[ProgramItem]
+    total: int
+    skip: int = 0
+    limit: int = 100
+
+
+class TechnologyDistribution(BaseModel):
+    technology: str
+    count: int
+
+
+class FetchResult(BaseModel):
+    platform: str
+    fetched: int
+    imported: int
+
+
+# ── Endpoints ────────────────────────────────────────────────────────
+
+
+@router.get("/programs", response_model=DiscoveryListResult)
+def list_discovered_programs(
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=500),
+    sort_by: str = Query("name"),
+    sort_order: str = Query("asc", pattern="^(asc|desc)$"),
+    search: str = Query("", max_length=200),
+    technology: str = Query("", max_length=100),
+):
+    """Browse the persistent program catalog with technology filtering."""
+    h = Hunter()
+    items, total = h.list_programs(
+        skip=skip,
+        limit=limit,
+        sort_by=sort_by,
+        sort_order=sort_order,
+        search=search,
+        technology=technology,
+    )
+    return DiscoveryListResult(
+        items=[ProgramItem(**i) for i in items],
+        total=total,
+        skip=skip,
+        limit=limit,
+    )
+
+
+@router.get("/programs/{program_id}", response_model=ProgramItem)
+def get_program_detail(program_id: int):
+    """Return a single program with full technology metadata."""
+    h = Hunter()
+    items, _ = h.list_programs(skip=0, limit=1)
+    for item in items:
+        if item["id"] == program_id:
+            return ProgramItem(**item)
+    raise HTTPException(status_code=404, detail="Program not found")
+
+
+@router.get("/technologies", response_model=List[TechnologyDistribution])
+def get_technology_distribution():
+    """Return aggregate technology counts across all programs."""
+    h = Hunter()
+    return [TechnologyDistribution(**d) for d in h.count_by_technology()]
+
+
+@router.post("/fetch", response_model=List[FetchResult])
+def fetch_public_programs(platforms: Optional[List[str]] = None):
+    """Fetch and import public programs from specified platforms.
+
+    If no platforms specified, fetches from all supported platforms.
+    """
+    h = Hunter()
+    if not platforms:
+        platforms = list(Hunter.SUPPORTED_PLATFORMS)
+    results = []
+    for platform in platforms:
+        if platform not in Hunter.SUPPORTED_PLATFORMS:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Unsupported platform '{platform}'. "
+                       f"Supported: {Hunter.SUPPORTED_PLATFORMS}",
+            )
+        programs = h.fetch_public_programs(platform)
+        imported = h.ingest_programs(programs)
+        results.append(FetchResult(
+            platform=platform,
+            fetched=len(programs),
+            imported=len(imported),
+        ))
+    return results
