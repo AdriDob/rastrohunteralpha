@@ -69,18 +69,21 @@ def run_pyinstaller():
     wsl_path = f"/mnt/c/Users/adrie/AppData/Local/Temp/rastro_build"
 
     script_path_wsl = Path(wsl_path) / "run_pyinstaller.py"
+    wt = WIN_TEMP.replace('\\', '/')
     script_path_wsl.write_text(f"""
 import sys
-sys.path.insert(0, r'{WIN_TEMP}')
-sys.path.insert(0, r'{WIN_TEMP}\\\\desktop')
+import os
+_BASE = os.path.join(r'{WIN_TEMP}')
+sys.path.insert(0, _BASE)
+sys.path.insert(0, os.path.join(_BASE, 'desktop'))
 import PyInstaller.__main__
 PyInstaller.__main__.run([
     '--onedir',
     '--name', 'Rastro',
-    '--distpath', r'{WIN_TEMP}\\\\dist',
-    '--workpath', r'{WIN_TEMP}\\\\build',
-    '--specpath', r'{WIN_TEMP}',
-    '--add-data', r'{WIN_TEMP}\\\\frontend\\\\dist;frontend_dist',
+    '--distpath', os.path.join(_BASE, 'dist'),
+    '--workpath', os.path.join(_BASE, 'build'),
+    '--specpath', _BASE,
+    '--add-data', os.path.join(_BASE, 'frontend', 'dist') + ';frontend_dist',
     '--hidden-import', 'desktop.main_desktop',
     '--hidden-import', 'desktop.settings',
     '--hidden-import', 'desktop.autostart',
@@ -106,12 +109,13 @@ PyInstaller.__main__.run([
     '--collect-all', 'api',
     '--collect-all', 'database',
     '--collect-all', 'ai',
-    r'{WIN_TEMP}\\\\run.py',
+    os.path.join(_BASE, 'run.py'),
 ])
 """)
 
+    win_script = os.path.join(WIN_TEMP, 'run_pyinstaller.py')
     result = subprocess.run(
-        [WIN_PYTHON_WSL, f"{WIN_TEMP}\\\\run_pyinstaller.py"],
+        [WIN_PYTHON_WSL, win_script],
         capture_output=True, text=False, timeout=600,
         cwd=WIN_TEMP
     )
