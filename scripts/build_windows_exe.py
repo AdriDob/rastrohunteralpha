@@ -106,7 +106,7 @@ PyInstaller.__main__.run([
     '--collect-all', 'api',
     '--collect-all', 'database',
     '--collect-all', 'ai',
-    r'{WIN_TEMP}\\\\desktop\\\\main_desktop.py',
+    r'{WIN_TEMP}\\\\run.py',
 ])
 """)
 
