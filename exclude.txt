@@ -1,0 +1,15 @@
+.venv
+node_modules
+.git
+__pycache__
+.pytest_cache
+dist
+rastro.db
+rastro_test.db
+*.pyc
+.venv\
+node_modules\
+.git\
+__pycache__\
+.pytest_cache\
+dist\
