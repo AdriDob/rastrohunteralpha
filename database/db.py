@@ -84,6 +84,20 @@ def init_db():
                     logger = __import__('logging').getLogger('rastro.db')
                     logger.debug("Migration skip (reports.%s): %s", col_name, exc)
 
+            # Auto-migration for notifications table
+            notification_columns = [
+                ("title", "VARCHAR"),
+                ("severity", "VARCHAR DEFAULT 'info'"),
+                ("priority", "VARCHAR DEFAULT 'medium'"),
+                ("dedup_key", "VARCHAR"),
+                ("delivered_via", "VARCHAR"),
+            ]
+            for col_name, col_type in notification_columns:
+                try:
+                    session.execute(text(f"ALTER TABLE notifications ADD COLUMN {col_name} {col_type};"))
+                except Exception:
+                    pass
+
             session.commit()
         except Exception as exc:
             logger = __import__('logging').getLogger('rastro.db')

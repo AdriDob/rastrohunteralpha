@@ -69,6 +69,32 @@ def get_review_queue(limit: int = Query(100, ge=1, le=500)):
     return queue.to_dict()
 
 
+@router.get("/state")
+def get_system_state():
+    """Full system state summary with service health details."""
+    from core_engines.system_state import get_system_state as _get_state
+    state = _get_state()
+    return {
+        "state": state.get_summary(),
+        "services": state.get_services(),
+    }
+
+
+@router.get("/state/events")
+def get_system_state_events(
+    event_type: str = Query(None, description="Filter by event type"),
+    limit: int = Query(50, ge=1, le=200),
+):
+    """Recent event bus history."""
+    from core_engines.events.event_bus import get_event_bus
+    bus = get_event_bus()
+    events = bus.get_history(event_type=event_type, limit=limit)
+    return {
+        "events": events,
+        "total": len(events),
+    }
+
+
 @router.get("/update-check")
 def check_update():
     from desktop.updater import check_for_updates, _current_version
