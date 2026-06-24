@@ -9,6 +9,7 @@ from sqlalchemy import cast, Float, func as sa_func
 
 from database import db, models
 from core_engines.engine.unified_scoring import score as unified_score, score_target as unified_score_target
+from core_engines.gateway.schemas import safe_response
 from core_engines.targets.models import TargetIntel
 
 router = APIRouter(prefix="/api", tags=["overview"])
@@ -127,7 +128,7 @@ def get_overview():
             })
         top_targets.sort(key=lambda x: x["priority"], reverse=True)
 
-        return {
+        return safe_response({
             "target_count": target_count,
             "endpoint_count": endpoint_count,
             "finding_count": finding_count,
@@ -140,7 +141,7 @@ def get_overview():
             "severity_counts": severity_counts,
             "pipeline_stages": pipeline_stages,
             "top_targets": top_targets[:10],
-        }
+        })
     finally:
         session.close()
 
@@ -198,7 +199,7 @@ def get_activity(
             })
 
         events.sort(key=lambda x: x.get("timestamp", ""), reverse=True)
-        return {"events": events[:limit], "total": len(events)}
+        return safe_response({"events": events[:limit], "total": len(events)})
     finally:
         session.close()
 
@@ -248,7 +249,7 @@ def get_intelligence_summary():
         def _avg(vals):
             return round(sum(vals) / max(len(vals), 1), 1) if vals else 0.0
 
-        return {
+        return safe_response({
             "total_programs": len(intel_records),
             "platform_distribution": dict(top_platforms),
             "avg_quality": _avg(qualities),
@@ -260,7 +261,7 @@ def get_intelligence_summary():
             "graphql_count": graphql_count,
             "admin_count": admin_count,
             "multi_tenant_count": multi_tenant_count,
-        }
+        })
     finally:
         session.close()
 
@@ -305,9 +306,9 @@ def get_system_health():
         try:
             detailed = collect_health()
             result["detailed"] = detailed.to_dict()
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("Health check collection failed: %s", e)
 
-        return result
+        return safe_response(result)
     finally:
         session.close()

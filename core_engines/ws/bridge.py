@@ -19,4 +19,4 @@ def start_event_bridge() -> None:
         await manager.broadcast(event_type, payload)
 
     bus.subscribe_async("*", _on_event)
-    logger.info("Event bus → WebSocket bridge started")
+    logger.info("Event bus -> WebSocket bridge started")

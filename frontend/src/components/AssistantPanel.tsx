@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useStore } from '../lib/store';
+import { useUI } from '../lib/store';
 import {
   getAssistantSummary, getAssistantInsights,
   getAssistantRecommendations, getAssistantNextAction,
@@ -89,7 +89,7 @@ export default function AssistantPanel({ title = 'AI Assistant', suggestions, co
   const [bounty, setBounty] = useState<BountyPotential | null>(null);
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState(!compact);
-  const { assistantOpen, setAssistantOpen } = useStore();
+  const { assistantOpen, setAssistantOpen } = useUI();
 
   const { data: sysState } = useSystemState();
   const isDegraded = sysState?.state?.system_state === 'DEGRADED' || sysState?.state?.system_state === 'FAILED';

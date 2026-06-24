@@ -59,7 +59,7 @@ export default function EVHWidget() {
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <span style={{ color: '#e2e4e9', fontWeight: 600, flex: 1 }}>{opp.name}</span>
               <span style={{ color: opp.evh ? evhColor(opp.evh.rating) : '#7c8299', fontWeight: 700, fontSize: 13 }}>
-                ${opp.evh?.value.toFixed(0) ?? '?'}/hr
+                ${opp.evh?.value?.toFixed(0) ?? '?'}/hr
               </span>
             </div>
             <div style={{ display: 'flex', gap: 8, marginTop: 4, color: '#7c8299', fontSize: 10, alignItems: 'center' }}>

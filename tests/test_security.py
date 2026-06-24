@@ -75,6 +75,102 @@ class TestAuthMiddleware:
         resp = client.get("/api/targets", headers={"Authorization": "NotBearer something"})
         assert resp.status_code == 401
 
+    # ── Desktop auth hardening: frontend assets must never require auth ──
+
+    def test_frontend_root_does_not_require_auth(self, client):
+        """The SPA entry point (/) must load without auth."""
+        resp = client.get("/")
+        assert resp.status_code != 401, "SPA root must not return 401"
+
+    def test_frontend_assets_do_not_require_auth(self, client):
+        """Static assets like /assets/* must load without auth."""
+        resp = client.get("/assets/some-file.js")
+        assert resp.status_code != 401, "Static assets must not return 401"
+
+    def test_spa_routes_do_not_require_auth(self, client):
+        """SPA routes like /daily, /settings must not 401."""
+        for route in ("/daily", "/settings", "/intelligence", "/radar"):
+            resp = client.get(route)
+            assert resp.status_code != 401, f"SPA route {route} must not return 401"
+
+    def test_favicon_does_not_require_auth(self, client):
+        resp = client.get("/favicon.ico")
+        assert resp.status_code != 401
+
+    # ── Desktop session auto-creation ──
+
+    def test_desktop_session_creation(self):
+        """The _create_desktop_session function must produce a valid token."""
+        from desktop.settings import get_settings, DesktopSettings
+        from desktop.main_desktop import _create_desktop_session
+        from api.main import app
+        from fastapi.testclient import TestClient
+
+        settings = get_settings()
+        # Save the token if any (singleton may have one from other tests)
+        old_token = settings.get("session_token")
+        settings.set("session_token", None)
+        _create_desktop_session(8000)
+        token = settings.get("session_token")
+        assert token is not None, "desktop session must create a token"
+        # Restore old token
+        if old_token:
+            settings.set("session_token", old_token)
+
+        # The token must work against private API
+        c = TestClient(app)
+        resp = c.get("/api/targets", headers={"Authorization": f"Bearer {token}"})
+        assert resp.status_code == 200, f"desktop token must authenticate, got {resp.status_code}"
+
+    def test_desktop_session_not_expired(self):
+        """Freshly created session must not be expired."""
+        from desktop.settings import get_settings
+        from desktop.main_desktop import _create_desktop_session
+        from api.main import app
+        from fastapi.testclient import TestClient
+
+        settings = get_settings()
+        old_token = settings.get("session_token")
+        settings.set("session_token", None)
+        _create_desktop_session(8000)
+        token = settings.get("session_token")
+        if old_token:
+            settings.set("session_token", old_token)
+        c = TestClient(app)
+        resp = c.get("/api/targets", headers={"Authorization": f"Bearer {token}"})
+        assert resp.status_code == 200
+
+    def test_invalid_paths_still_404_not_401(self, client):
+        """Unknown non-API paths should 404, not 401."""
+        for path in ("/nonexistent", "/images/missing.png"):
+            resp = client.get(path)
+            assert resp.status_code != 401, f"{path} must not return 401 (got {resp.status_code})"
+
+    def test_all_api_routes_still_require_auth(self, client):
+        """Every /api/* endpoint (except public) must require auth."""
+        protected = [
+            "/api/targets",
+            "/api/endpoints",
+            "/api/findings",
+            "/api/evidence",
+            "/api/opportunities",
+            "/api/overview",
+            "/api/system/health",
+            "/api/execution/tracker",
+            "/api/stats",
+            "/api/daily/briefing",
+            "/api/operations/tasks",
+            "/api/assistant/insights",
+        ]
+        for path in protected:
+            resp = client.get(path)
+            assert resp.status_code == 401, f"{path} should require auth, got {resp.status_code}"
+
+    def test_static_file_paths_under_api_still_protected(self, client):
+        """Even non-existent /api sub-paths must require auth (no info leak)."""
+        resp = client.get("/api/secrets")
+        assert resp.status_code != 200, "/api/secrets must not be accessible without auth"
+
 
 class TestRateLimit:
     def test_login_rate_limit(self, client):

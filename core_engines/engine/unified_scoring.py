@@ -1,4 +1,5 @@
 import re
+import threading
 from functools import lru_cache
 from typing import Any, Dict, List, Optional, Set, Tuple
 
@@ -163,6 +164,7 @@ def _rank_attack_vector(path: str, params: Optional[Dict[str, Any]]) -> str:
 
 
 _score_cache: Dict[Tuple[str, str, str], Dict[str, Any]] = {}
+_score_cache_lock = threading.Lock()
 
 try:
     from core_engines.config import get_config
@@ -198,7 +200,8 @@ def score(
     Returns a normalized dict with risk_score, vector, confidence, signals.
     """
     key = _make_score_key(path, method, params)
-    cached = _score_cache.get(key)
+    with _score_cache_lock:
+        cached = _score_cache.get(key)
     if cached is not None:
         return cached
     safe_path = str(path or "/")
@@ -412,7 +415,8 @@ def score(
         "is_graphql": "graphql" in labels,
     }
     if len(_score_cache) < _MAX_CACHE:
-        _score_cache[key] = result
+        with _score_cache_lock:
+            _score_cache[key] = result
     return result
 
 
@@ -479,6 +483,31 @@ def score_target(meta: Optional[Dict[str, Any]] = None) -> Dict[str, float]:
 
     if meta.get("static"):
         score_val -= 30.0
+
+    technology_tags = meta.get("technology_tags") or []
+    technology_relevance = float(meta.get("technology_relevance", 0.0))
+    if technology_relevance:
+        score_val += technology_relevance * 0.3
+        roi += technology_relevance * 0.2
+    if "wordpress" in technology_tags:
+        score_val += 20.0
+        roi += 15.0
+    wp_plugins = {t for t in technology_tags if t in (
+        "woocommerce", "elementor", "yoast", "acf",
+        "jetpack", "wpforms", "wordfence", "wprocket",
+    )}
+    score_val += min(len(wp_plugins) * 5.0, 20.0)
+    modern_fw = {"nextjs", "nuxt", "django", "fastapi", "spring", "laravel", "rails"}
+    if modern_fw & set(technology_tags):
+        score_val += 15.0
+        roi += 10.0
+    cloud = {"aws", "google_cloud", "azure", "cloudflare", "kubernetes"}
+    if cloud & set(technology_tags):
+        score_val += 10.0
+    other_cms = {"drupal", "joomla", "magento", "shopify"}
+    if other_cms & set(technology_tags):
+        score_val += 15.0
+        roi += 10.0
 
     quality = min(max(score_val, 0.0), 100.0)
     complexity_score = min(complexity, 100.0)

@@ -15,15 +15,17 @@ router = APIRouter()
 async def websocket_endpoint(websocket: WebSocket) -> None:
     token = websocket.query_params.get("token")
 
-    user_id: str | None = None
-    if token:
-        from core_engines.auth.auth import verify_token
-        payload = verify_token(token)
-        if payload:
-            user_id = payload.get("sub") or payload.get("user_id")
-        else:
-            await websocket.close(code=4001)
-            return
+    if not token:
+        await websocket.close(code=4001, reason="Missing token")
+        return
+
+    from core_engines.auth.auth import verify_token
+    payload = verify_token(token)
+    if not payload:
+        await websocket.close(code=4001, reason="Invalid token")
+        return
+
+    user_id = payload.get("sub") or payload.get("user_id")
 
     manager = get_ws_manager()
     client = await manager.connect(websocket, user_id=user_id)

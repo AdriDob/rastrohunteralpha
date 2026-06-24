@@ -4,6 +4,7 @@ export type WSStatus = 'disconnected' | 'connecting' | 'connected';
 
 const RECONNECT_BASE_MS = 1000;
 const RECONNECT_MAX_MS = 30000;
+const RECONNECT_MAX_ATTEMPTS = 20;
 const PING_INTERVAL_MS = 25000;
 
 const WS_PROTOCOL = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
@@ -28,6 +29,10 @@ function notifyEvent(type: string, payload: Record<string, unknown>, ts: number)
 function scheduleReconnect() {
   if (intentionalClose) return;
   if (reconnectTimer) return;
+  if (reconnectAttempt >= RECONNECT_MAX_ATTEMPTS) {
+    console.warn('[WS] Max reconnect attempts reached, giving up');
+    return;
+  }
   const delay = Math.min(RECONNECT_BASE_MS * 2 ** reconnectAttempt, RECONNECT_MAX_MS);
   reconnectAttempt++;
   reconnectTimer = setTimeout(() => {
@@ -54,6 +59,8 @@ function stopPing() {
 
 function getToken(): string | null {
   try {
+    const urlToken = new URLSearchParams(window.location.search).get('token');
+    if (urlToken) return urlToken;
     return sessionStorage.getItem('rastro-token');
   } catch {
     return null;
@@ -68,6 +75,7 @@ export function connect(): void {
   notifyStatus('connecting');
 
   const token = getToken();
+  console.log('[WS] connect() called, token from sessionStorage:', token ? 'present' : 'null', 'sessionStorage rastro-token:', sessionStorage.getItem('rastro-token'));
   const url = token ? `${WS_BASE}?token=${encodeURIComponent(token)}` : WS_BASE;
 
   try {

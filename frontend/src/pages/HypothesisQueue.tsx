@@ -423,5 +423,5 @@ function FilterPill({ label, active, count, color, onClick }: {
 
 const selectStyle: React.CSSProperties = {
   background: '#1a1d29', border: '1px solid #2a2e3d', borderRadius: 6,
-  padding: '8px 14px', color: '#e2e4e9', fontSize: 13, outline: 'none', minWidth: 220,
+  padding: '8px 14px', color: '#e2e4e9', fontSize: 13, outline: 'none', minWidth: 160, width: '100%', maxWidth: 320, boxSizing: 'border-box',
 };

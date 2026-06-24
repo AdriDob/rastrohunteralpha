@@ -1,6 +1,6 @@
-# Rastro v1.4.0-rc1 — Release Notes
+# Rastro v1.5.0 Definitive — Release Notes
 
-**Release Candidate 1** — 2026-06-17
+**Definitive Release** — 2026-06-18
 
 ---
 
@@ -8,11 +8,12 @@
 
 | Campo | Valor |
 |-------|-------|
-| Versión | `1.4.0-rc1` |
-| Estado | Release Candidate |
-| Tests | 159/159 pasando |
-| Frontend | 0 TS errors, ~1.3s build, 551 modules |
-| Desktop | PyInstaller bundle (21 MB ELF x86\_64) |
+| Versión | `1.5.0` |
+| Estado | **Definitive** |
+| Tests | **81/81 pasando** (desktop release suite) |
+| Frontend | 0 TS errors, ~1.4s build, 551 modules |
+| Desktop (Linux) | PyInstaller 6.20.0 bundle (21 MB ELF x86\_64) |
+| Desktop (Windows) | PyInstaller bundle (16.8 MB PE32 x86\_64) |
 | Android | Capacitor APK debug (4.2 MB) |
 
 ---
@@ -71,7 +72,7 @@
 ## Limitaciones conocidas
 
 ### Funcionales
-1. **Windows build**: No disponible en este release (requiere compilación desde Windows vía `scripts/build_windows.ps1`).
+1. **Windows binary**: Built from RC2 source (v1.4.0). To incorporate v1.5.0 source changes (settings migration, port validation), rebuild on Windows via `scripts/build_windows.ps1`.
 2. **macOS**: No mantenido activamente — solo `python run.py` desde código fuente.
 3. **Android APK**: Debug build (no signed para producción). Requiere que el desktop esté corriendo para funcionar. No incluye recon pipeline local.
 4. **Validation engine**: Requiere tokens de sesión (cookies de autenticación del blanco) — no es completamente automático.
@@ -97,6 +98,13 @@
 - **Disco**: 500 MB libres
 - **No requiere**: Python, Node.js, npm (todo incluido en el bundle)
 
+### ZIP bundle (Desktop Windows)
+- **OS**: Windows 10/11 64-bit
+- **RAM**: 1 GB mínimo, 4 GB recomendado
+- **Disco**: 500 MB libres
+- **No requiere**: Python, Node.js, npm (todo incluido en el bundle)
+- **Ejecutar**: `Windows\Rastro.exe` (doble clic o desde terminal con `--no-tray`)
+
 ### Código fuente (multiplataforma)
 - **Python**: 3.10+ (3.14 recomendado)
 - **Node.js**: 20+ (solo para compilar frontend)
@@ -117,16 +125,22 @@ go install github.com/tomnomnom/waybackurls@latest
 
 ## Flujo recomendado de uso
 
-### 1. Extraer e iniciar
+### 1. Extraer e iniciar (Linux)
 ```bash
-unzip Rastro-1.4.0-rc1-final-linux-x64.zip
-cd Rastro-Desktop
-./run.sh
+unzip Rastro-1.5.0-unified.zip
+cd Linux
+./Rastro
+```
+
+### 1. Extraer e iniciar (Windows)
+```bat
+Descomprimir Rastro-1.5.0-unified.zip
+Abrir Windows\Rastro.exe
 ```
 
 ### 2. Crear un target
-Abrir http://localhost:8000 → Targets → Create Target →
-Nombre + Dominio (ej: `acme-corp`, `*.acme.com`)
+Abrir http://localhost:8000 (puerto configurable vía `backend_port` en settings) →
+Targets → Create Target → Nombre + Dominio (ej: `acme-corp`, `*.acme.com`)
 
 ### 3. Ejecutar reconocimiento
 Seleccionar target → Run Scan → esperar a que termine →
@@ -156,6 +170,22 @@ HackerOne JSON / Bugcrowd HTML / Markdown
 
 ## Notas del release
 
+### v1.5.0 Definitive incluye
+- **Root cause investigation**: 5173 port bug traced to old RC1 binary
+- **Settings migration**: Auto-fix legacy `backend_port: 5173` → 8000
+- **Port validation hardened**: Type + range checks with logging
+- **81 tests**: Migration, port validation, browser opener, webview fallback, tray, startup/shutdown
+- **Linux binary rebuilt**: PyInstaller 6.20.0, verified on port 8000
+- **Definitive ZIP**: All platforms in 140 MB, audited clean
+- **Full RC1 cleanup**: Old binaries, launcher, PWA shortcut removed from Windows
+
+### v1.4.0-rc2 incluye
+- **Port 5173 → 8000**: All hardcoded port references replaced
+- **Lifecycle logging**: Structured boot/API/browser/shutdown logs
+- **Browser/webview fallback**: Graceful degradation
+- **Validation suite**: 18 automated checks via `validate_rc2.bat`
+- **Bytecode verified**: RC2 binary confirmed clean
+
 ### v1.4.0-rc1 incluye
 - Sprint 5: AI Provider Abstraction (registry, selector UI, SSE streaming)
 - Fix `_parse_semver` para pre-release tags
@@ -165,7 +195,6 @@ HackerOne JSON / Bugcrowd HTML / Markdown
 - 159 tests, 0 TS errors, prebuild 16/16
 
 ### No incluye (próximas versiones)
-- Builds Windows y macOS nativos
 - Recon batch/múltiples targets
 - Android APK release signed
 - Modo offline completo (sin dependencia Go/Ollama)

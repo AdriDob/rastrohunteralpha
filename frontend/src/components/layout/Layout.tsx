@@ -1,6 +1,6 @@
 import { Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useStore } from '../../lib/store';
+import { useUI } from '../../lib/store';
 import { useIsMobile } from '../../lib/useIsMobile';
 import AssistantPanel from '../AssistantPanel';
 import { DesktopSidebar, MobileBottomBar } from './Sidebar';
@@ -15,7 +15,7 @@ const btnSmallStyle: React.CSSProperties = {
 
 export default function Layout() {
   const isMobile = useIsMobile();
-  const { sidebarOpen, sidebarCollapsed, assistantOpen, setAssistantOpen } = useStore();
+  const { sidebarOpen, sidebarCollapsed, assistantOpen, setAssistantOpen } = useUI();
   const location = useLocation();
 
   useSmartNotifications();

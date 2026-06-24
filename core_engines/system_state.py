@@ -154,17 +154,17 @@ class SystemState:
             for handler in self._state_change_handlers:
                 try:
                     handler(old, new_state)
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.warning("State change handler error: %s", exc)
             for cb in self._on_state_change_callbacks:
                 try:
                     cb(new_state)
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger.warning("State change callback error: %s", exc)
             try:
                 get_event_bus().publish(f"system:state:{new_state.lower()}", previous=old, current=new_state)
-            except Exception:
-                pass
+            except Exception as exc:
+                logger.warning("State change event bus error: %s", exc)
 
 
 _STATE: Optional[SystemState] = None

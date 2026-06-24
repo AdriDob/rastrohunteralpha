@@ -26,7 +26,15 @@ PUBLIC_PREFIXES: Set[str] = {
 
 class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(self, request: Request, call_next):
+        # WebSocket connections are handled by their own auth (token in query param)
+        if request.scope["type"] == "websocket":
+            return await call_next(request)
+
         path = request.url.path
+
+        # Desktop mode: non-API paths are frontend assets, never require auth
+        if not path.startswith("/api/"):
+            return await call_next(request)
 
         if path in PUBLIC_PATHS:
             return await call_next(request)

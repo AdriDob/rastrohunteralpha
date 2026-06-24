@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import logging
 import shutil
+import urllib.parse
 import webbrowser
 from typing import Optional
 
@@ -73,6 +74,7 @@ def build_dashboard_url(
     device_id: Optional[str] = None,
     tab: Optional[str] = None,
     target_id: Optional[int] = None,
+    onboarding: bool = False,
 ) -> str:
     """Build a dashboard URL with optional auth and context params."""
     url = f"http://127.0.0.1:{port}{path}"
@@ -85,8 +87,10 @@ def build_dashboard_url(
         params["tab"] = tab
     if target_id is not None:
         params["target_id"] = str(target_id)
+    if onboarding:
+        params["onboarding"] = "1"
     if params:
-        qs = "&".join(f"{k}={v}" for k, v in params.items())
+        qs = urllib.parse.urlencode(params)
         sep = "&" if "?" in url else "?"
         url = f"{url}{sep}{qs}"
     return url
@@ -99,6 +103,7 @@ def open_dashboard(
     device_id: Optional[str] = None,
     tab: Optional[str] = None,
     target_id: Optional[int] = None,
+    onboarding: bool = False,
 ) -> bool:
     """Open the dashboard with optional auth/session context."""
     url = build_dashboard_url(
@@ -108,6 +113,7 @@ def open_dashboard(
         device_id=device_id,
         tab=tab,
         target_id=target_id,
+        onboarding=onboarding,
     )
     return open_system_browser(url)
 

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   useOverview, useQuickWins, useActivity,
   useTargets, useEvidence, useTimeline, useSystemHealth,
+  useReportStats, useTechnologyDistribution,
 } from '../lib/query';
 import { getOpportunityRecommendations, getMorningBrief } from '../lib/api';
 import KPICard from '../components/layout/KPICard';
@@ -14,7 +15,8 @@ import IdentityVaultWidget from '../components/IdentityVaultWidget';
 import ProviderHealthWidget from '../components/ProviderHealthWidget';
 import AssistantPanel from '../components/AssistantPanel';
 import { SkeletonCard, SkeletonPanel } from '../components/ui/Skeleton';
-import { useStore } from '../lib/store';
+import { useStore, useUI } from '../lib/store';
+import { useIsMobile } from '../lib/useIsMobile';
 import type {
   ActivityEvent, TimelineEvent, QuickWin, OpportunityRecommendations,
   MorningBrief, Target,
@@ -46,7 +48,8 @@ const suggestionDefaults = [
 
 export default function MissionControl() {
   const navigate = useNavigate();
-  const { setSelectedTarget, incrementAssistantInvocations } = useStore();
+  const { setSelectedTarget, incrementAssistantInvocations } = useUI();
+  const isMobile = useIsMobile();
 
   const { data: overview, isLoading: overviewLoading } = useOverview();
   const { data: targetsRes } = useTargets({ limit: 100 });
@@ -55,6 +58,8 @@ export default function MissionControl() {
   const { data: timeline } = useTimeline(undefined, 10);
   const { data: evidenceRes } = useEvidence(null, { limit: 5 });
   const { data: health } = useSystemHealth();
+  const { data: reportStats } = useReportStats();
+  const { data: techDist } = useTechnologyDistribution();
 
   const [oppRecs, setOppRecs] = useState<OpportunityRecommendations | null>(null);
   const [brief, setBrief] = useState<MorningBrief | null>(null);
@@ -127,7 +132,7 @@ export default function MissionControl() {
   return (
     <div style={{ maxWidth: 1400 }}>
       {/* Header */}
-      <div style={{ marginBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div style={{ marginBottom: 20, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 8 }}>
         <div>
           <h1 style={{ fontSize: 22, fontWeight: 700, margin: 0, color: '#fff' }}>Mission Control</h1>
           <p style={{ margin: '4px 0 0', fontSize: 13, color: '#7c8299' }}>
@@ -184,8 +189,19 @@ export default function MissionControl() {
         <KPICard label="Est. ROI" value={`$${(targets.reduce((s: number, t: Target) => s + (t.estimated_payout ?? 0), 0)).toLocaleString()}`} icon="💰" accent="rgba(34,197,94,0.12)" />
       </div>
 
+      {/* Reports KPI row */}
+      {reportStats && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(170px, 1fr))', gap: 10, margin: '0 0 20 0' }}>
+          <KPICard label="Reports" value={reportStats.total} icon="📋" accent="rgba(139,92,246,0.12)" />
+          <KPICard label="Triaged" value={reportStats.status_counts?.triaged ?? 0} icon="🔍" accent="rgba(34,197,94,0.12)" />
+          <KPICard label="Paid" value={reportStats.status_counts?.paid ?? 0} icon="💰" accent="rgba(16,185,129,0.12)" />
+          <KPICard label="Total Rewards" value={`$${(reportStats.total_rewards || 0).toLocaleString()}`} icon="🏆" accent="rgba(250,204,21,0.12)" />
+          <KPICard label="Est. Rewards" value={`$${(reportStats.estimated_rewards || 0).toLocaleString()}`} icon="📈" accent="rgba(59,130,246,0.12)" />
+        </div>
+      )}
+
       {/* MIDDLE ROW: 3-column widget grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: 16, marginBottom: 16 }}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
           <AssistantPanel
             suggestions={suggestions}
@@ -277,8 +293,43 @@ export default function MissionControl() {
         </div>
       </Panel>
 
+      {/* Technology Distribution */}
+      {techDist && techDist.length > 0 && (
+        <Panel title="Technology Distribution" subtitle={`${techDist.length} technologies detected across programs`} accent="#a855f7" style={{ marginBottom: 16 }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {techDist.slice(0, 25).map((t) => (
+              <div
+                key={t.technology}
+                onClick={() => navigate(`/programs?technology=${t.technology}`)}
+                style={{
+                  display: 'inline-flex', alignItems: 'center', gap: 4,
+                  padding: '3px 10px', borderRadius: 4, fontSize: 11, fontWeight: 600,
+                  background: '#1e2230', border: '1px solid #2a2e3d', color: '#c4c7d0',
+                  cursor: 'pointer', transition: 'all 0.12s',
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#a855f7'; e.currentTarget.style.background = '#252836'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#2a2e3d'; e.currentTarget.style.background = '#1e2230'; }}
+              >
+                <span>{t.technology}</span>
+                <span style={{ color: '#7c8299', fontSize: 10 }}>({t.count})</span>
+              </div>
+            ))}
+            <div
+              onClick={() => navigate('/programs')}
+              style={{
+                display: 'inline-flex', alignItems: 'center',
+                padding: '3px 10px', borderRadius: 4, fontSize: 11, fontWeight: 600,
+                background: '#7c3aed', color: '#fff', cursor: 'pointer',
+              }}
+            >
+              View All Programs →
+            </div>
+          </div>
+        </Panel>
+      )}
+
       {/* BOTTOM: Timeline + Evidence + Activity */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16, marginBottom: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr 1fr', gap: 16, marginBottom: 16 }}>
         <Panel title="Timeline" subtitle="Recent events" accent="#8b5cf6" loading={!timeline} empty={!recentEvents.length} emptyMessage="No timeline events">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             {recentEvents.map((e: TimelineEvent, i: number) => (

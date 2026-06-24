@@ -1,4 +1,4 @@
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as api from './api';
 import type { PaginationFilters } from '../types';
 
@@ -332,10 +332,20 @@ export function useActionStats() {
   });
 }
 
-export function useReportsList(limit = 20, offset = 0) {
+export function useReportsList(params?: {
+  limit?: number;
+  offset?: number;
+  status?: string;
+  search?: string;
+  sort_by?: string;
+  sort_order?: string;
+  date_from?: string;
+  date_to?: string;
+}) {
+  const queryKey = ['reports', params];
   return useQuery({
-    queryKey: ['reports', limit, offset],
-    queryFn: () => api.getReportsList(limit, offset),
+    queryKey,
+    queryFn: () => api.getReportsList(params),
   });
 }
 
@@ -344,6 +354,39 @@ export function useReportById(id: number | null) {
     queryKey: ['report', id],
     queryFn: () => api.getReportById(id!),
     enabled: id !== null,
+  });
+}
+
+export function useReportStats() {
+  return useQuery({
+    queryKey: ['reports', 'stats'],
+    queryFn: api.getReportStats,
+    refetchInterval: 30_000,
+  });
+}
+
+export function useUpdateReport() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }: { id: number; data: Partial<import('../types').ReportFull> }) =>
+      api.updateReport(id, data),
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: ['reports'] });
+      queryClient.setQueryData(['report', result.id], result);
+    },
+  });
+}
+
+export function useCreateReport() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { finding_ids: number[]; program?: string; target?: string; vulnerability?: string; severity?: string; notes?: string }) =>
+      api.createReport(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['reports'] });
+      queryClient.invalidateQueries({ queryKey: ['pipeline'] });
+      queryClient.invalidateQueries({ queryKey: ['findings'] });
+    },
   });
 }
 
@@ -372,32 +415,92 @@ export function useInvestigationDashboard(id: number | null) {
 }
 
 export function useCreateInvestigation() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (payload: import('../types').InvestigationCreatePayload) => api.createInvestigation(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['investigations'] });
+    },
   });
 }
 
 export function useUpdateInvestigation() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: ({ id, payload }: { id: number; payload: import('../types').InvestigationUpdatePayload }) =>
       api.updateInvestigation(id, payload),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['investigations'] });
+      queryClient.invalidateQueries({ queryKey: ['investigation', variables.id] });
+      queryClient.invalidateQueries({ queryKey: ['investigationDashboard', variables.id] });
+    },
   });
 }
 
 export function useDeleteInvestigation() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => api.deleteInvestigation(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['investigations'] });
+    },
   });
 }
 
 export function useValidateEndpoint() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (payload: api.ValidateEndpointPayload) => api.validateEndpoint(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['endpoints'] });
+      queryClient.invalidateQueries({ queryKey: ['target'] });
+    },
   });
 }
 
 export function useScanIDOR() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (payload: api.IDORScanPayload) => api.scanIDOR(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['endpoints'] });
+      queryClient.invalidateQueries({ queryKey: ['target'] });
+    },
+  });
+}
+
+// ── Program Discovery hooks ──────────────────────────────────────────
+
+export function usePrograms(filters?: PaginationFilters & { technology?: string }) {
+  return useQuery({
+    queryKey: ['programs', filters],
+    queryFn: () => api.getPrograms(filters),
+  });
+}
+
+export function useProgram(id: number | null) {
+  return useQuery({
+    queryKey: ['program', id],
+    queryFn: () => api.getProgram(id!),
+    enabled: id !== null,
+  });
+}
+
+export function useTechnologyDistribution() {
+  return useQuery({
+    queryKey: ['technologyDistribution'],
+    queryFn: api.getTechnologyDistribution,
+    staleTime: 60_000,
+  });
+}
+
+export function useFetchPublicPrograms() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (platforms?: string[]) => api.fetchPublicPrograms(platforms),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['programs'] });
+      queryClient.invalidateQueries({ queryKey: ['technologyDistribution'] });
+    },
   });
 }

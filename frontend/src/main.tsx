@@ -5,10 +5,10 @@ import App from './App.tsx'
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js').catch(() => {
-      // SW registration failed — app works without it
+    navigator.serviceWorker.register('/service-worker.js').catch((err) => {
+      console.warn('[SW] Service worker registration failed (non-fatal):', err);
     });
-  });
+  }, { once: true });
 }
 
 createRoot(document.getElementById('root')!).render(

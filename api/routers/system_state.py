@@ -12,7 +12,7 @@ from core_engines.system_state import get_system_state
 from core_engines.events.event_bus import get_event_bus
 from core_engines.contracts.wrapper import wrap_list
 
-router = APIRouter(prefix="/api/system", tags=["system"])
+router = APIRouter(prefix="/api/system-state", tags=["system"])
 
 
 @router.get("/state")

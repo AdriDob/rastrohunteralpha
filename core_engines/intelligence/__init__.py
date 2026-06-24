@@ -18,6 +18,7 @@ from core_engines.intelligence.historical_analyzer import HistoricalSummary, ana
 from core_engines.intelligence.trend_detector import TrendReport, TrendSignal, detect_trends
 from core_engines.intelligence.recommendation_engine import RecommendationBundle, generate_recommendations
 from core_engines.intelligence.learning_snapshot import LearningSnapshot, generate_snapshot
+from core_engines.intelligence.reward_learning import RewardLearner, RewardLearningReport, ProgramRewardMetrics, VulnTypeStats
 
 __all__ = [
     "DependencyGraph", "EventSystem", "ArtifactCache", "AntiDriftEnforcer",
@@ -28,4 +29,5 @@ __all__ = [
     "TrendReport", "TrendSignal", "detect_trends",
     "RecommendationBundle", "generate_recommendations",
     "LearningSnapshot", "generate_snapshot",
+    "RewardLearner", "RewardLearningReport", "ProgramRewardMetrics", "VulnTypeStats",
 ]

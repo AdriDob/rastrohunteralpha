@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useEndpoint, useFindings, useValidateEndpoint, useScanIDOR } from '../lib/query';
-import { useStore } from '../lib/store';
+import { useUI } from '../lib/store';
 import FavoriteButton from '../components/FavoriteButton';
 import ValidationResultPanel from '../components/ValidationResultPanel';
 import IDORResultPanel from '../components/IDORResultPanel';
@@ -31,7 +31,7 @@ export default function EndpointDetail() {
     skip: pagination.pageIndex * pagination.pageSize,
     limit: pagination.pageSize,
   });
-  const setSelectedFinding = useStore((s) => s.setSelectedFinding);
+  const { setSelectedFinding } = useUI();
   const validateMutation = useValidateEndpoint();
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
   const idorMutation = useScanIDOR();

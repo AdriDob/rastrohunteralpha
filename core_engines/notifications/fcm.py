@@ -53,25 +53,26 @@ class FCMAdapter:
         android_priority = priority_map.get(priority, "normal")
 
         success = 0
-        for token in tokens:
-            payload = {
-                "message": {
-                    "token": token,
-                    "notification": {"title": title, "body": message},
-                    "android": {"priority": android_priority},
-                    "data": {"priority": priority, **(metadata or {})},
+        with httpx.Client() as client:
+            for token in tokens:
+                payload = {
+                    "message": {
+                        "token": token,
+                        "notification": {"title": title, "body": message},
+                        "android": {"priority": android_priority},
+                        "data": {"priority": priority, **(metadata or {})},
+                    }
                 }
-            }
-            try:
-                resp = httpx.post(url, json=payload, headers=headers, timeout=10)
-                if resp.is_success:
-                    success += 1
-                else:
-                    if resp.status_code == 404:
-                        _deactivate_token(token)
-                    logger.debug("FCM send failed for %s: %s", token[:16], resp.status_code)
-            except Exception as exc:
-                logger.debug("FCM request error: %s", exc)
+                try:
+                    resp = client.post(url, json=payload, headers=headers, timeout=10)
+                    if resp.is_success:
+                        success += 1
+                    else:
+                        if resp.status_code == 404:
+                            _deactivate_token(token)
+                        logger.debug("FCM send failed for %s: %s", token[:16], resp.status_code)
+                except Exception as exc:
+                    logger.debug("FCM request error: %s", exc)
 
         if success:
             logger.info("FCM sent to %d/%d devices", success, len(tokens))

@@ -58,6 +58,25 @@ def paginated(items: list, total: int, skip: int = 0, limit: int = 100, version:
     return PaginatedEnvelope(version=version, items=items, total=total, skip=skip, limit=limit)
 
 
+# ── Simple envelope helpers for direct dict responses ──────────────
+
+def safe_response(data: Optional[dict] = None) -> dict:
+    """Wrap a response dict with a minimal safety envelope.
+
+    Ensures every response has 'status', 'items', 'meta', 'error' keys
+    so frontend code can safely destructure without null guards.
+    """
+    if data is None:
+        return {"status": "ok", "items": [], "meta": {}, "error": None}
+    result = {"status": "ok", "items": [], "meta": {}, "error": None}
+    result.update(data)
+    return result
+
+
+def error_response(msg: str) -> dict:
+    return {"status": "error", "items": [], "meta": {}, "error": msg}
+
+
 # ── DTOs ──────────────────────────────────────────────────────────────
 
 class TargetDTO(BaseModel):

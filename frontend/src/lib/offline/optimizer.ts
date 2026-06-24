@@ -43,20 +43,23 @@ export function batchedFetch(url: string, init?: RequestInit, windowMs = 100): P
 type DebouncedFn<T> = (...args: unknown[]) => T;
 
 export function createDebouncedRefresh<T>(
-  fn: DebouncedFn<T>,
+  fn: DebouncedFn<Promise<T>>,
   delayMs: number,
-): DebouncedFn<T> {
+): DebouncedFn<Promise<T>> {
   let timer: ReturnType<typeof setTimeout> | null = null;
-  let lastResult: T | undefined;
 
-  return (...args: unknown[]) => {
+  return (...args: unknown[]): Promise<T> => {
     if (timer) clearTimeout(timer);
-    return new Promise<T>((resolve) => {
-      timer = setTimeout(() => {
-        lastResult = fn(...args) as T;
-        resolve(lastResult as T);
+    return new Promise<T>((resolve, reject) => {
+      timer = setTimeout(async () => {
+        try {
+          const result = await fn(...args);
+          resolve(result);
+        } catch (err) {
+          reject(err);
+        }
       }, delayMs);
-    }) as unknown as T;
+    });
   };
 }
 

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import { useStore } from '../lib/store';
-import { getNotifications, markNotificationRead, markAllNotificationsRead } from '../lib/api';
+import { useDashboard } from '../lib/store';
+import { useIsMobile } from '../lib/useIsMobile';
+import { markNotificationRead, markAllNotificationsRead } from '../lib/api';
 
 const PRIORITY_COLORS: Record<string, string> = {
   critical: '#ef4444',
@@ -23,18 +24,17 @@ function typeGroup(type: string): string {
 }
 
 export default function NotificationsDropdown() {
-  const { notifications, unreadCount, setNotifications, markRead, markAllRead } = useStore();
+  const { notifications, unreadCount, fetchNotifications, markRead, markAllRead } = useDashboard();
   const [open, setOpen] = useState(false);
   const [groupBy, setGroupBy] = useState(true);
   const ref = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
-    getNotifications(true).then(r => setNotifications(r.items)).catch(() => {});
-    const id = setInterval(() => {
-      getNotifications(true).then(r => setNotifications(r.items)).catch(() => {});
-    }, 30000);
+    fetchNotifications(true);
+    const id = setInterval(() => fetchNotifications(true), 30000);
     return () => clearInterval(id);
-  }, [setNotifications]);
+  }, [fetchNotifications]);
 
   useEffect(() => {
     function handleClick(e: MouseEvent) {
@@ -99,7 +99,7 @@ export default function NotificationsDropdown() {
       </button>
       {open && (
         <div style={{
-          position: 'absolute', top: '100%', right: 0, width: 380, maxHeight: 460,
+          position: 'absolute', top: '100%', right: 0, width: isMobile ? '92vw' : 380, maxHeight: 460,
           background: '#1a1d29', border: '1px solid #2a2e3d', borderRadius: 8,
           overflow: 'hidden', zIndex: 1000, boxShadow: '0 8px 24px rgba(0,0,0,0.4)',
         }}>

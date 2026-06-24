@@ -1,5 +1,26 @@
 # Changelog
 
+## v1.5.0 Definitive (2026-06-18)
+- **Root cause investigation**: 5173 port bug traced to old RC1 binary with hardcoded values in 6 locations
+- **Full RC1 cleanup**: Old binaries, launcher, Brave Apps PWA shortcut removed from Windows
+- **Settings migration**: `_migrate()` auto-fixes legacy `backend_port: 5173` → 8000, tracks `settings_version`, updates `installed_version`
+- **Port validation hardened**: `_init_settings()` checks `isinstance(port, int)`, range 1024–65535, logs invalid resets
+- **81 tests passing** (7 new migration tests, 6 port validation, 3 browser opener, 3 webview fallback, 4 tray, 8 startup/shutdown)
+- **Code changes**: `desktop/settings.py` (SETTINGS_VERSION, _LEGACY_PORTS, _migrate()), `desktop/main_desktop.py` (port validation), `VERSION → 1.5.0`
+- **Linux binary rebuilt**: PyInstaller 6.20.0, 21 MB, verified boots on port 8000
+- **Definitive ZIP assembled**: `Rastro-1.5.0-unified.zip` (140 MB, all platforms)
+- **ZIP audited**: Clean — no `__pycache__`, `.git`, databases, logs, or secrets
+- **Reports**: `ROOT_CAUSE_REPORT.md`, `VALIDATION_REPORT.md` (updated), `FINAL_PACKAGE_AUDIT.md`
+
+## v1.4.0-rc2 (2026-06-17)
+- **Port 5173 → 8000**: All hardcoded port references replaced with configurable `backend_port` setting
+- **Lifecycle logging**: `[BOOT]`, `[API]`, `[BROWSER]`, `[SHUTDOWN]` structured log entries
+- **Browser/webview fallback**: Graceful degradation when webview unavailable
+- **Server thread encapsulation**: `ServerThread` class with start/stop lifecycle
+- **Validation suite**: 18 automated checks passing via `validate_rc2.bat`
+- **Bytecode verified**: RC2 binary confirmed clean — no 5173 integer in bytecode
+- **Deployed to Desktop**: Clean RC2 install at `Desktop\Rastro\` with `Rastro.bat` startup script
+
 ## v1.4.0-rc1 (2026-06-17)
 - **159 tests passing** (7 nuevos e2e pipeline smoke tests)
 - **Documentación sincronizada**: README, ARCHITECTURE, ROADMAP, EVOLUTION_PLAN, MANUAL_ES, OPENCODE_PLAN

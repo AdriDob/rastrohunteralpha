@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import toast, { Toaster } from 'react-hot-toast';
-import { useStore } from '../lib/store';
-import { getNotifications, getOpportunityRecommendations, fetchJson } from '../lib/api';
+import { useStore, useDashboard } from '../lib/store';
+import { getOpportunityRecommendations, fetchJson } from '../lib/api';
 
 const NOTIFICATION_CHECK_INTERVAL = 60000;
 const DIGEST_POLL_INTERVAL = 15000;
@@ -76,7 +76,7 @@ function showToast(item: { id: number; type: string; message: string; priority?:
 export function useSmartNotifications() {
   const lastCheckRef = useRef(0);
   const shownIdsRef = useRef(new Set<number>());
-  const { setNotifications, setUnreadCount } = useStore();
+  const { setNotificationsDirect, setUnreadCountDirect } = useDashboard();
   const [digestMode, setDigestMode] = useState(false);
 
   // Poll digest endpoint when digest mode is active
@@ -113,12 +113,10 @@ export function useSmartNotifications() {
       if (now - lastCheckRef.current < 30000) return;
       lastCheckRef.current = now;
 
-      getNotifications(true).then(r => {
-        const unread = r.items.filter(n => !n.is_read);
+      const store = useStore.getState();
+      store.fetchNotifications(true).then(items => {
+        const unread = items.filter(n => !n.is_read);
         if (unread.length > 0) {
-          setNotifications(r.items);
-          setUnreadCount(unread.length);
-
           // Dedup-aware toast: skip if same id shown within window
           unread.slice(0, 3).forEach(n => {
             if (shownIdsRef.current.has(n.id)) return;
@@ -149,7 +147,7 @@ export function useSmartNotifications() {
     check();
     const interval = setInterval(check, NOTIFICATION_CHECK_INTERVAL);
     return () => clearInterval(interval);
-  }, [setNotifications, setUnreadCount, digestMode]);
+  }, [setNotificationsDirect, setUnreadCountDirect, digestMode]);
 
   return { digestMode, setDigestMode };
 }

@@ -14,17 +14,36 @@ const BOOT_PHASES = [
 ];
 
 export default function BootScreen({ onComplete }: BootScreenProps) {
-  const [phase, setPhase] = useState(0);
+  const [phase, setPhase] = useState(() => {
+    console.log('[BootScreen] phase initialized to 0');
+    return 0;
+  });
   const [fadeOut, setFadeOut] = useState(false);
+
+  console.log(`[BootScreen] render phase=${phase} fadeOut=${fadeOut}`);
 
   useEffect(() => {
     if (phase >= BOOT_PHASES.length) {
+      console.log('[BootScreen] ALL PHASES DONE, starting fadeOut');
       setFadeOut(true);
-      const t = setTimeout(() => onComplete(), 400);
-      return () => clearTimeout(t);
+      const t = setTimeout(() => {
+        console.log('[BootScreen] calling onComplete()');
+        onComplete();
+      }, 400);
+      return () => {
+        console.log('[BootScreen] cleanup fadeOut timer');
+        clearTimeout(t);
+      };
     }
-    const t = setTimeout(() => setPhase((p) => p + 1), BOOT_PHASES[phase].duration);
-    return () => clearTimeout(t);
+    console.log(`[BootScreen] scheduling phase ${phase + 1} in ${BOOT_PHASES[phase].duration}ms (label="${BOOT_PHASES[phase].label}")`);
+    const t = setTimeout(() => {
+      console.log(`[BootScreen] advancing to phase ${phase + 1}`);
+      setPhase((p) => p + 1);
+    }, BOOT_PHASES[phase].duration);
+    return () => {
+      console.log(`[BootScreen] cleanup timer for phase ${phase}`);
+      clearTimeout(t);
+    };
   }, [phase, onComplete]);
 
   return (

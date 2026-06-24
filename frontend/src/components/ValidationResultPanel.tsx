@@ -12,7 +12,9 @@ const statusColors: Record<string, string> = {
 };
 
 export default function ValidationResultPanel({ result, onClose }: Props) {
+  if (!result) return null;
   const { verdict, evidence } = result;
+  if (!verdict) return null;
   const color = statusColors[verdict.status] || '#7c8299';
 
   return (

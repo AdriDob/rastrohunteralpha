@@ -16,8 +16,16 @@ import type {
 
 const BASE = '/api';
 
+// Callback for auth errors — set by React to navigate without full page reload
+let onAuthRedirect: ((path: string) => void) | null = null;
+
+export function setOnAuthRedirect(fn: (path: string) => void) {
+  onAuthRedirect = fn;
+}
+
 function getAuthHeaders(): Record<string, string> {
   const token = sessionStorage.getItem('rastro-token');
+  console.log('[api] getAuthHeaders rastro-token:', token ? `present (${token.slice(0, 8)}...)` : 'null');
   return token ? { 'Authorization': `Bearer ${token}` } : {};
 }
 
@@ -27,12 +35,19 @@ export async function fetchJson<T>(path: string, opts?: RequestInit): Promise<T>
 
   if (res.status === 401) {
     sessionStorage.removeItem('rastro-token');
-    window.location.href = '/';
     throw new Error('Session expired');
   }
 
   if (res.status === 403) {
-    window.location.href = '/activate';
+    const skipRedirect = (opts as any)?.__skipAuthRedirect;
+    console.log('[api] 403 received — skipRedirect:', skipRedirect);
+    if (!skipRedirect) {
+      if (onAuthRedirect) {
+        onAuthRedirect('/activate');
+      } else {
+        window.location.href = '/activate';
+      }
+    }
     throw new Error('License required');
   }
 
@@ -141,6 +156,11 @@ export function getSystemHealth() {
 
 export function getOverview() {
   return fetchJson<OverviewData>('/overview');
+}
+
+/** Preload variant — silently fails on 403 (used during Zustand rehydration before React renders) */
+export function getOverviewPreload() {
+  return fetchJson<OverviewData>('/overview', { __skipAuthRedirect: true } as any);
 }
 
 // --- Quick Wins ---
@@ -455,12 +475,53 @@ export function getDailyMinimal() {
 
 // ── Reports ──
 
-export function getReportsList(limit = 20, offset = 0) {
-  return fetchJson<{ items: import('../types').ReportItem[]; total: number }>(`/reports?limit=${limit}&offset=${offset}`);
+export function getReportsList(params?: {
+  limit?: number;
+  offset?: number;
+  status?: string;
+  search?: string;
+  sort_by?: string;
+  sort_order?: string;
+  date_from?: string;
+  date_to?: string;
+}) {
+  const p = new URLSearchParams();
+  if (params) {
+    if (params.limit) p.set('limit', String(params.limit));
+    if (params.offset) p.set('offset', String(params.offset));
+    if (params.status) p.set('status', params.status);
+    if (params.search) p.set('search', params.search);
+    if (params.sort_by) p.set('sort_by', params.sort_by);
+    if (params.sort_order) p.set('sort_order', params.sort_order);
+    if (params.date_from) p.set('date_from', params.date_from);
+    if (params.date_to) p.set('date_to', params.date_to);
+  }
+  const qs = p.toString();
+  return fetchJson<{ items: import('../types').ReportItem[]; total: number }>(`/reports${qs ? '?' + qs : ''}`);
 }
 
 export function getReportById(id: number) {
   return fetchJson<import('../types').ReportFull>(`/reports/${id}`);
+}
+
+export function updateReport(id: number, data: Partial<import('../types').ReportFull>) {
+  return fetchJson<import('../types').ReportFull>(`/reports/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+}
+
+export function createReport(data: { finding_ids: number[]; program?: string; target?: string; vulnerability?: string; severity?: string; notes?: string }) {
+  return fetchJson<import('../types').ReportFull>('/reports', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+}
+
+export function getReportStats() {
+  return fetchJson<import('../types').ReportStats>('/reports/stats');
 }
 
 // ── Investigations ──
@@ -610,6 +671,36 @@ export function getMemoryContext(target: any) {
 
 export function exportLearningProfile(fmt: 'json' | 'markdown' = 'json') {
   return fetchJson<any>(`/learning/export?fmt=${fmt}`);
+}
+
+// ── Program Discovery ────────────────────────────────────────────────
+
+export function getPrograms(filters?: PaginationFilters & { technology?: string }) {
+  const p = new URLSearchParams();
+  if (filters?.skip !== undefined) p.set('skip', String(filters.skip));
+  if (filters?.limit !== undefined) p.set('limit', String(filters.limit));
+  if (filters?.sort_by) p.set('sort_by', filters.sort_by);
+  if (filters?.sort_order) p.set('sort_order', filters.sort_order);
+  if (filters?.search) p.set('search', filters.search);
+  if (filters?.technology) p.set('technology', filters.technology);
+  const q = p.toString() ? `?${p}` : '';
+  return fetchJson<import('../types').PaginatedResult<import('../types').ProgramItem>>(`/discovery/programs${q}`);
+}
+
+export function getProgram(id: number) {
+  return fetchJson<import('../types').ProgramItem>(`/discovery/programs/${id}`);
+}
+
+export function getTechnologyDistribution() {
+  return fetchJson<import('../types').TechnologyDistribution[]>('/discovery/technologies');
+}
+
+export function fetchPublicPrograms(platforms?: string[]) {
+  return fetchJson<import('../types').FetchResult[]>('/discovery/fetch', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ platforms }),
+  });
 }
 
 // ── AI Settings ─────────────────────────────────────────────────────

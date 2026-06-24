@@ -55,6 +55,7 @@ from api.routers import (
     idor,
     investigations,
     settings_ai,
+    discovery,
 )
 from core_engines.learning.router import router as learning_router
 
@@ -151,10 +152,11 @@ async def lifespan(app: FastAPI):
     logger.info("Execution layer fully initialized")
 
     # Start background scan scheduler
+    scheduler = None
     try:
         from api.scheduler import ScanScheduler
         scheduler = ScanScheduler(interval_minutes=int(os.environ.get("RASTRO_SCAN_INTERVAL", "30")))
-        asyncio.create_task(scheduler.start())
+        scheduler._task = asyncio.create_task(scheduler.start())
         logger.info("Scan scheduler started")
     except Exception as exc:
         logger.warning("Scan scheduler failed to start (non-fatal): %s", exc)
@@ -194,14 +196,22 @@ async def lifespan(app: FastAPI):
     except Exception as exc:
         logger.warning("Notification bridges failed (non-fatal): %s", exc)
 
-    # Subscribe event bus → notification bridge
+    # Subscribe event bus -> notification bridge
     try:
         register_event_bridge()
-        logger.info("Event → notification bridge started")
+        logger.info("Event -> notification bridge started")
     except Exception as exc:
-        logger.warning("Event → notification bridge failed (non-fatal): %s", exc)
+        logger.warning("Event -> notification bridge failed (non-fatal): %s", exc)
 
     yield
+
+    # Graceful shutdown of background tasks
+    if scheduler is not None:
+        try:
+            await scheduler.stop()
+            logger.info("Scan scheduler stopped")
+        except Exception as exc:
+            logger.warning("Scan scheduler stop error: %s", exc)
 
 # Read version from VERSION file (single source of truth)
 _VERSION_FILE = Path(__file__).resolve().parent.parent / "VERSION"
@@ -276,6 +286,7 @@ app.include_router(ws.router)
 app.include_router(idor.router)
 app.include_router(investigations.router)
 app.include_router(settings_ai.router)
+app.include_router(discovery.router)
 
 
 APP_VERSION = _APP_VERSION

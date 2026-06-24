@@ -2,6 +2,7 @@ import { useReport, useFindings } from '../lib/query';
 import KPICard from '../components/layout/KPICard';
 import FavoriteButton from '../components/FavoriteButton';
 import { useState } from 'react';
+import { useIsMobile } from '../lib/useIsMobile';
 
 const btnStyle: React.CSSProperties = {
   background: '#7c3aed', border: 'none', borderRadius: 6,
@@ -14,6 +15,7 @@ const btnStyle2: React.CSSProperties = {
 };
 
 export default function ReportCenter() {
+  const isMobile = useIsMobile();
   const { data: findingsRes } = useFindings(undefined, undefined, { limit: 500 });
   const { refetch, isFetching } = useReport();
   const [showPreview, setShowPreview] = useState(false);
@@ -25,10 +27,14 @@ export default function ReportCenter() {
   const totalValue = findings.reduce((s, f) => s + f.payout, 0);
 
   const handleGenerate = async () => {
-    const res = await refetch();
-    if (res.data) {
-      setPreview(res.data.markdown);
-      setShowPreview(true);
+    try {
+      const res = await refetch();
+      if (res.data) {
+        setPreview(res.data.markdown);
+        setShowPreview(true);
+      }
+    } catch {
+      // report generation failed silently
     }
   };
 
@@ -53,13 +59,13 @@ export default function ReportCenter() {
         <p style={{ margin: '4px 0 0', fontSize: 13, color: '#7c8299' }}>Generate and export bug bounty reports</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 12, marginBottom: 20 }}>
         <KPICard label="Total Findings" value={totalFindings} />
         <KPICard label="High+Critical" value={confirmed} />
         <KPICard label="Est. Total Value" value={`$${totalValue.toLocaleString()}`} />
       </div>
 
-      <div style={{ display: 'flex', gap: 8, marginBottom: 20 }}>
+      <div style={{ display: 'flex', gap: 8, marginBottom: 20, flexWrap: 'wrap' }}>
         <button onClick={handleGenerate} disabled={isFetching} style={btnStyle}>
           {isFetching ? 'Generating…' : 'Generate Markdown Report'}
         </button>

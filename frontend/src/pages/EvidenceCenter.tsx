@@ -3,6 +3,7 @@ import { useEvidence } from '../lib/query';
 import { createColumnHelper } from '@tanstack/react-table';
 import DataTable from '../components/tables/DataTable';
 import FavoriteButton from '../components/FavoriteButton';
+import { useIsMobile } from '../lib/useIsMobile';
 import type { Evidence, PaginationState } from '../types';
 
 const helper = createColumnHelper<Evidence>();
@@ -46,9 +47,10 @@ function tryParseJson(raw: string | null): string | null {
 }
 
 function EvidenceExpanded({ ev }: { ev: Evidence }) {
+  const isMobile = useIsMobile();
   return (
     <div style={{ marginTop: 12 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 12 }}>
         <div>
           <h5 style={{ margin: '0 0 6px', fontSize: 11, color: '#7c8299', textTransform: 'uppercase', letterSpacing: 0.5 }}>Request</h5>
           <pre style={codeBlockStyle}>

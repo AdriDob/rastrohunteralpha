@@ -1,11 +1,12 @@
-import { useState } from 'react';
-import { usePipeline } from '../lib/query';
-import { useStore } from '../lib/store';
+import { useState, useCallback } from 'react';
+import { usePipeline, useCreateReport } from '../lib/query';
+import { useUI } from '../lib/store';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import DataTable from '../components/tables/DataTable';
 import KPICard from '../components/layout/KPICard';
 import { createColumnHelper } from '@tanstack/react-table';
 import type { Finding } from '../types';
+import { useIsMobile } from '../lib/useIsMobile';
 
 const helper = createColumnHelper<Finding>();
 const columns = [
@@ -17,6 +18,12 @@ const columns = [
   )}),
   helper.accessor('target_name', { header: 'Target' }),
   helper.accessor('payout', { header: 'Payout', cell: (c) => `$${c.getValue().toLocaleString()}` }),
+  helper.display({
+    id: 'actions',
+    header: '',
+    cell: ({ row }) => <PromoteButton finding={row.original} />,
+    enableSorting: false,
+  }),
 ];
 
 const stages = ['detected', 'validated', 'confirmed', 'reported'] as const;
@@ -27,11 +34,51 @@ const selectStyle: React.CSSProperties = {
   outline: 'none', marginBottom: 16,
 };
 
+const btnStyle: React.CSSProperties = {
+  padding: '4px 10px', borderRadius: 4, border: '1px solid #7c3aed',
+  background: '#12141f', color: '#a78bfa', fontSize: 10, fontWeight: 600,
+  cursor: 'pointer', whiteSpace: 'nowrap',
+};
+
+function PromoteButton({ finding }: { finding: Finding }) {
+  const createReport = useCreateReport();
+  const navigate = useNavigate();
+
+  const handlePromote = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+    createReport.mutate(
+      { finding_ids: [finding.id], target: finding.target_name },
+      {
+        onSuccess: (result) => {
+          navigate(`/reports/${result.id}`);
+        },
+        onError: () => {
+          // report promotion failed silently
+        },
+      },
+    );
+  }, [finding.id, finding.target_name, createReport, navigate]);
+
+  return (
+    <button
+      onClick={handlePromote}
+      disabled={createReport.isPending}
+      style={{
+        ...btnStyle,
+        opacity: createReport.isPending ? 0.5 : 1,
+      }}
+    >
+      {createReport.isPending ? '...' : 'Promote'}
+    </button>
+  );
+}
+
 export default function FindingsPipeline() {
   const [searchParams] = useSearchParams();
   const investigationId = searchParams.get('investigationId');
   const { data: pipeline } = usePipeline();
-  const setSelectedFinding = useStore((s) => s.setSelectedFinding);
+  const isMobile = useIsMobile();
+  const { setSelectedFinding } = useUI();
   const navigate = useNavigate();
   const [stage, setStage] = useState<string>('detected');
 
@@ -84,13 +131,13 @@ export default function FindingsPipeline() {
         </div>
       ) : (
         <>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', gap: 12, marginBottom: 20 }}>
             {stages.map((s) => (
               <KPICard key={s} label={s.charAt(0).toUpperCase() + s.slice(1)} value={counts[s]} />
             ))}
           </div>
 
-          <select value={stage} onChange={(e) => setStage(e.target.value)} style={selectStyle}>
+          <select value={stage} onChange={(e) => setStage(e.target.value)} style={{ ...selectStyle, width: isMobile ? '100%' : 240 }}>
             {stages.map((s) => (
               <option key={s} value={s}>{s.charAt(0).toUpperCase() + s.slice(1)}</option>
             ))}

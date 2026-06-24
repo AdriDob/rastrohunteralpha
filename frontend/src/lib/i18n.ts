@@ -33,6 +33,9 @@ export interface Translations {
   history_view: string;
   project_dashboard: string;
 
+  // Discovery & Programs
+  program_catalog: string;
+
   // Opportunities
   opportunity_radar: string;
   opportunity_intel: string;
@@ -83,6 +86,7 @@ export interface Translations {
 
   // Reports
   report_center: string;
+  report_history: string;
   generate_report: string;
   no_reports: string;
 

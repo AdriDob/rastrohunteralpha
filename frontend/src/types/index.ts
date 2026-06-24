@@ -1317,9 +1317,18 @@ export interface ReportItem {
   id: number;
   format: string;
   summary: string;
+  program: string;
+  target: string;
+  vulnerability: string;
   severity: string;
+  status: string;
+  estimated_reward: number;
+  confirmed_reward: number;
+  currency: string;
+  evidence_count: number;
   finding_ids: number[];
   created_at: string | null;
+  updated_at: string | null;
 }
 
 export interface ReportFull {
@@ -1328,8 +1337,71 @@ export interface ReportFull {
   format: string;
   content: Record<string, unknown> | null;
   finding_ids: number[];
+  program: string;
+  target: string;
+  vulnerability: string;
+  severity: string;
+  status: string;
+  estimated_reward: number;
+  confirmed_reward: number;
+  currency: string;
+  evidence_count: number;
+  notes: string;
+  timeline: Record<string, unknown>[];
+  attachments: string[];
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+export interface ReportStats {
+  total: number;
+  status_counts: Record<string, number>;
+  paid_count: number;
+  total_rewards: number;
+  estimated_rewards: number;
+}
+
+// ── Program Discovery types ──────────────────────────────────────────
+
+export interface ProgramItem {
+  id: number;
+  name: string;
+  domain: string | null;
+  source: string | null;
+  program_url: string | null;
+  quality_score: number | null;
+  roi_score: number | null;
+  opportunity_score: number | null;
+  technology_tags: string[];
+  cms_detected: string | null;
+  framework_detected: string | null;
+  wordpress_plugins_detected: string[];
+  saas_probability: number | null;
+  api_density: number | null;
+  graphql_detected: boolean | null;
+  multi_tenant: boolean | null;
+  admin_detected: boolean | null;
+  tags: string | null;
   created_at: string | null;
 }
+
+export interface TechnologyDistribution {
+  technology: string;
+  count: number;
+}
+
+export interface FetchResult {
+  platform: string;
+  fetched: number;
+  imported: number;
+}
+
+export const REPORT_STATUSES = [
+  'draft', 'ready', 'submitted', 'need_more_info',
+  'triaged', 'resolved', 'paid', 'duplicate', 'informative', 'na',
+] as const;
+
+export type ReportStatus = typeof REPORT_STATUSES[number];
 
 // ── IDOR result types ──
 

@@ -115,12 +115,9 @@ def get_data_dir() -> Path:
 
     - Windows: %APPDATA%/Rastro
     - macOS:   ~/Library/Application Support/Rastro
-    - Frozen:  next to the executable
+    - Frozen:  next to the executable (Linux only, Windows prioritizes APPDATA)
     - Default: ~/.rastro
     """
-    if is_frozen():
-        return get_executable_dir() / "data"
-
     if is_windows():
         base = os.environ.get("APPDATA", "")
         if base:
@@ -129,6 +126,9 @@ def get_data_dir() -> Path:
     if is_macos():
         base = Path.home() / "Library" / "Application Support"
         return base / "Rastro"
+
+    if is_frozen():
+        return get_executable_dir() / "data"
 
     return Path.home() / ".rastro"
 

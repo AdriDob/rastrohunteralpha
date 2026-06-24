@@ -12,6 +12,7 @@ Optimizations (cold start):
 from __future__ import annotations
 
 import logging
+import threading
 import time
 from typing import Any, Dict
 
@@ -22,6 +23,7 @@ logger = logging.getLogger("rastro.api.daily")
 router = APIRouter(prefix="/api/daily", tags=["daily"])
 
 _CACHE: Dict[str, Any] = {}
+_CACHE_LOCK = threading.Lock()
 _CACHE_TTL = 30
 _CACHE_KEY = "briefing"
 
@@ -44,7 +46,8 @@ def _get_orchestrator():
 @router.get("/briefing")
 async def daily_briefing():
     now = time.time()
-    cached = _CACHE.get(_CACHE_KEY)
+    with _CACHE_LOCK:
+        cached = _CACHE.get(_CACHE_KEY)
     if cached and (now - cached["ts"]) < _CACHE_TTL:
         return {"data": {"briefing": cached["data"], "cached": True}}
 
@@ -73,14 +76,17 @@ async def daily_briefing():
 
         reduced = reduce_briefing(daily_summary)
 
-        _CACHE[_CACHE_KEY] = {"data": reduced, "ts": now}
-        if len(_CACHE) > 10:
-            _CACHE.clear()
+        with _CACHE_LOCK:
+            _CACHE[_CACHE_KEY] = {"data": reduced, "ts": now}
+            if len(_CACHE) > 10:
+                stale_keys = [k for k, v in _CACHE.items() if k != _CACHE_KEY]
+                for k in stale_keys:
+                    del _CACHE[k]
 
         try:
             priority.ingest_user_signal("daily_briefing", "daily", weight=0.05)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.debug("Signal ingestion skipped: %s", e)
 
         return {"data": {"briefing": reduced, "cached": False}}
     except Exception as exc:

@@ -19,6 +19,8 @@ class AttackSurfaceArtifact(Bundle):
     auth_boundaries: List[Dict[str, Any]] = field(default_factory=list)
     multi_tenant_zones: List[Dict[str, Any]] = field(default_factory=list)
     graphql_surfaces: List[Dict[str, Any]] = field(default_factory=list)
+    technologies: List[Dict[str, Any]] = field(default_factory=list)
+    discovered_paths: List[str] = field(default_factory=list)
     total_surfaces: int = 0
     summary: str = ""
 
@@ -37,4 +39,6 @@ class AttackSurfaceArtifact(Bundle):
             auth_boundaries=list(getattr(surface_map, "auth_boundaries", [])),
             multi_tenant_zones=list(getattr(surface_map, "multi_tenant_zones", [])),
             graphql_surfaces=list(getattr(surface_map, "graphql_surfaces", [])),
+            technologies=list(getattr(surface_map, "technologies", [])),
+            discovered_paths=list(getattr(surface_map, "discovered_paths", [])),
         )

@@ -16,6 +16,10 @@ from typing import Any, Dict, Optional
 
 logger = logging.getLogger("rastro.desktop.settings")
 
+SETTINGS_VERSION = 1
+
+_LEGACY_PORTS = {5173}
+
 DEFAULT_SETTINGS: Dict[str, Any] = {
     "backend_port": 8000,
     "auto_start": False,
@@ -43,7 +47,8 @@ DEFAULT_SETTINGS: Dict[str, Any] = {
     "first_run": True,
     "onboarding_complete": False,
     "initial_boot_timestamp": None,
-    "installed_version": "0.4.0",
+    "installed_version": "1.5.0",
+    "settings_version": SETTINGS_VERSION,
     "uptime_history": [],
     "crash_count": 0,
     "recovery_count": 0,
@@ -82,6 +87,29 @@ class DesktopSettings:
                 self._data = merged
             except (json.JSONDecodeError, OSError) as exc:
                 logger.warning("Failed to load settings: %s", exc)
+        if self._migrate():
+            self.save()
+
+    def _migrate(self) -> bool:
+        """Run migrations for legacy/incompatible settings values.
+
+        Returns True if any changes were persisted.
+        """
+        changed = False
+        port = self._data.get("backend_port", 8000)
+        if port in _LEGACY_PORTS:
+            logger.info("Migrated legacy backend_port %d -> %d", port, 8000)
+            self._data["backend_port"] = 8000
+            changed = True
+        if self._data.get("settings_version") != SETTINGS_VERSION:
+            self._data["settings_version"] = SETTINGS_VERSION
+            changed = True
+        if self._data.get("installed_version") not in (None, "1.5.0"):
+            logger.info("Updated installed_version from %s to 1.5.0",
+                        self._data.get("installed_version"))
+            self._data["installed_version"] = "1.5.0"
+            changed = True
+        return changed
 
     def save(self) -> None:
         self._ensure_config_dir()

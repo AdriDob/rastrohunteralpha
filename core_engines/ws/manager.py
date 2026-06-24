@@ -4,6 +4,7 @@ import json
 import logging
 import time
 import uuid
+from threading import Lock
 from typing import Any, Dict, Optional, Set
 
 from fastapi import WebSocket
@@ -46,43 +47,54 @@ class WSClient:
 class WSManager:
     def __init__(self) -> None:
         self._clients: Dict[str, WSClient] = {}
+        self._lock = Lock()
 
     @property
     def active_count(self) -> int:
-        return len(self._clients)
+        with self._lock:
+            return len(self._clients)
 
     @property
     def clients(self) -> list[WSClient]:
-        return list(self._clients.values())
+        with self._lock:
+            return list(self._clients.values())
 
     async def connect(self, websocket: WebSocket, user_id: Optional[str] = None) -> WSClient:
         await websocket.accept()
         client = WSClient(websocket, user_id=user_id)
-        self._clients[client.id] = client
+        with self._lock:
+            self._clients[client.id] = client
         logger.info("WS client connected: %s (user=%s, total=%d)", client.id, user_id, self.active_count)
         return client
 
     def disconnect(self, client_id: str) -> None:
-        self._clients.pop(client_id, None)
+        with self._lock:
+            self._clients.pop(client_id, None)
         logger.info("WS client disconnected: %s (total=%d)", client_id, self.active_count)
 
     async def broadcast(self, event_type: str, payload: Dict[str, Any]) -> None:
         msg = json.dumps({"type": event_type, "payload": payload, "ts": time.time()})
         dead: list[str] = []
-        for cid, client in self._clients.items():
-            if not client.subscribed_to(event_type):
-                continue
-            try:
-                await client.websocket.send_text(msg)
-            except Exception:
-                dead.append(cid)
+        now = time.time()
+        with self._lock:
+            for cid, client in list(self._clients.items()):
+                if now - client._last_pong > 120:
+                    dead.append(cid)
+                    continue
+                if not client.subscribed_to(event_type):
+                    continue
+                try:
+                    await client.websocket.send_text(msg)
+                except Exception:
+                    dead.append(cid)
         for cid in dead:
             self.disconnect(cid)
 
     async def send_to(self, client_id: str, event_type: str, payload: Dict[str, Any]) -> bool:
-        client = self._clients.get(client_id)
-        if not client:
-            return False
+        with self._lock:
+            client = self._clients.get(client_id)
+            if not client:
+                return False
         try:
             await client.websocket.send_text(json.dumps({"type": event_type, "payload": payload, "ts": time.time()}))
             return True

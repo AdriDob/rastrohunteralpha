@@ -1,7 +1,7 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useTarget, useEndpoints } from '../lib/query';
-import { useStore } from '../lib/store';
+import { useUI, useAuth } from '../lib/store';
 import { updateSession } from '../lib/api';
 import FavoriteButton from '../components/FavoriteButton';
 import DataTable from '../components/tables/DataTable';
@@ -32,9 +32,8 @@ export default function TargetDetail() {
     skip: pagination.pageIndex * pagination.pageSize,
     limit: pagination.pageSize,
   });
-  const setSelectedEndpoint = useStore((s) => s.setSelectedEndpoint);
-  const setSession = useStore((s) => s.setSession);
-
+  const { setSelectedEndpoint } = useUI();
+  const { setSession } = useAuth();
   useEffect(() => {
     if (target) {
       updateSession({ current_target_id: target.id }).then(r => {

@@ -86,6 +86,8 @@ class AttackSurfaceMap:
     auth_boundaries: List[Dict[str, Any]]
     multi_tenant_zones: List[Dict[str, Any]]
     graphql_surfaces: List[Dict[str, Any]]
+    technologies: List[Dict[str, Any]] = field(default_factory=list)
+    discovered_paths: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -470,7 +472,12 @@ class AttackSurfaceMapper:
       - Multi-tenant zones
     """
 
-    def map(self, endpoints: List[Dict[str, Any]]) -> AttackSurfaceMap:
+    def map(
+        self,
+        endpoints: List[Dict[str, Any]],
+        technologies: Optional[List[Dict[str, Any]]] = None,
+        discovered_paths: Optional[List[str]] = None,
+    ) -> AttackSurfaceMap:
         idor_clusters: List[Dict[str, Any]] = []
         auth_boundaries: List[Dict[str, Any]] = []
         multi_tenant_zones: List[Dict[str, Any]] = []
@@ -500,6 +507,8 @@ class AttackSurfaceMapper:
             auth_boundaries=auth_boundaries,
             multi_tenant_zones=multi_tenant_zones,
             graphql_surfaces=graphql_surfaces,
+            technologies=technologies or [],
+            discovered_paths=discovered_paths or [],
         )
 
 

@@ -9,9 +9,10 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import threading
 import time
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set
+from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 
 logger = logging.getLogger("rastro.events")
 
@@ -57,6 +58,7 @@ class EventBus:
     """
 
     def __init__(self) -> None:
+        self._lock = threading.Lock()
         self._handlers: Dict[str, List[EventHandler]] = {}
         self._async_handlers: Dict[str, List[EventHandler]] = {}
         self._history: List[Dict[str, Any]] = []
@@ -66,31 +68,35 @@ class EventBus:
         """Register a sync handler for an event type.
         Use "*" to subscribe to all events.
         """
-        if event_type not in self._handlers:
-            self._handlers[event_type] = []
-        self._handlers[event_type].append(handler)
+        with self._lock:
+            if event_type not in self._handlers:
+                self._handlers[event_type] = []
+            self._handlers[event_type].append(handler)
 
     def subscribe_async(self, event_type: str, handler: EventHandler) -> None:
         """Register an async handler for an event type.
         Use "*" to subscribe to all events.
         """
-        if event_type not in self._async_handlers:
-            self._async_handlers[event_type] = []
-        self._async_handlers[event_type].append(handler)
+        with self._lock:
+            if event_type not in self._async_handlers:
+                self._async_handlers[event_type] = []
+            self._async_handlers[event_type].append(handler)
 
     def unsubscribe(self, event_type: str, handler: EventHandler) -> None:
         """Remove a handler from an event type."""
-        if event_type in self._handlers:
-            self._handlers[event_type] = [h for h in self._handlers[event_type] if h != handler]
-        if event_type in self._async_handlers:
-            self._async_handlers[event_type] = [h for h in self._async_handlers[event_type] if h != handler]
+        with self._lock:
+            if event_type in self._handlers:
+                self._handlers[event_type] = [h for h in self._handlers[event_type] if h != handler]
+            if event_type in self._async_handlers:
+                self._async_handlers[event_type] = [h for h in self._async_handlers[event_type] if h != handler]
 
     def publish(self, event_type: str, **payload: Any) -> None:
         """Publish an event. Classifies → routes through priority → dispatches."""
         priority = classify_event(event_type)
 
         payload["_priority"] = priority
-        _record_event(self._history, self._max_history, event_type, priority, payload)
+        with self._lock:
+            _record_event(self._history, self._max_history, event_type, priority, payload)
 
         if priority == "ignore":
             logger.debug("Ignored event: %s", event_type)
@@ -116,7 +122,8 @@ class EventBus:
             logger.debug("Priority routing skipped: %s", exc)
 
         # Sync handlers (exact match + wildcard)
-        handlers = self._handlers.get(event_type, []) + self._handlers.get("*", [])
+        with self._lock:
+            handlers = list(self._handlers.get(event_type, [])) + list(self._handlers.get("*", []))
         for handler in handlers:
             try:
                 handler(event_type=event_type, priority=priority, **payload)
@@ -124,30 +131,41 @@ class EventBus:
                 logger.warning("Event handler error on %s: %s", event_type, exc)
 
         # Async handlers — fire and forget (exact match + wildcard)
-        async_handlers = self._async_handlers.get(event_type, []) + self._async_handlers.get("*", [])
+        with self._lock:
+            async_handlers = list(self._async_handlers.get(event_type, [])) + list(self._async_handlers.get("*", []))
         if async_handlers:
             loop = _get_loop()
-            for handler in async_handlers:
-                try:
-                    asyncio.run_coroutine_threadsafe(
-                        handler(event_type=event_type, priority=priority, **payload), loop,
-                    )
-                except Exception as exc:
-                    logger.warning("Async event handler error on %s: %s", event_type, exc)
+            if loop is None or loop.is_closed():
+                logger.debug("No running event loop for async handlers of %s", event_type)
+            else:
+                for handler in async_handlers:
+                    try:
+                        fut = asyncio.run_coroutine_threadsafe(
+                            handler(event_type=event_type, priority=priority, **payload), loop,
+                        )
+                        fut.add_done_callback(
+                            lambda f: logger.warning("Async handler error on %s: %s", event_type, f.exception())
+                            if f.exception() else None
+                        )
+                    except Exception as exc:
+                        logger.warning("Async event handler error on %s: %s", event_type, exc)
 
     def get_history(self, event_type: Optional[str] = None, limit: int = 50) -> List[Dict[str, Any]]:
         """Get recent events, optionally filtered by type."""
-        if event_type:
-            return [e for e in self._history if e["type"] == event_type][-limit:]
-        return self._history[-limit:]
+        with self._lock:
+            if event_type:
+                return [e for e in self._history if e["type"] == event_type][-limit:]
+            return self._history[-limit:]
 
     def clear_history(self) -> None:
-        self._history.clear()
+        with self._lock:
+            self._history.clear()
 
     def handler_count(self, event_type: Optional[str] = None) -> int:
-        if event_type:
-            return len(self._handlers.get(event_type, [])) + len(self._async_handlers.get(event_type, []))
-        return sum(len(v) for v in self._handlers.values()) + sum(len(v) for v in self._async_handlers.values())
+        with self._lock:
+            if event_type:
+                return len(self._handlers.get(event_type, [])) + len(self._async_handlers.get(event_type, []))
+            return sum(len(v) for v in self._handlers.values()) + sum(len(v) for v in self._async_handlers.values())
 
 
 def _record_event(history: List[Dict[str, Any]], max_history: int, event_type: str, priority: str, payload: Dict[str, Any]) -> None:
@@ -161,11 +179,11 @@ def _record_event(history: List[Dict[str, Any]], max_history: int, event_type: s
         history[:] = history[-max_history:]
 
 
-def _get_loop() -> asyncio.AbstractEventLoop:
+def _get_loop() -> Optional[asyncio.AbstractEventLoop]:
     try:
         return asyncio.get_running_loop()
     except RuntimeError:
-        return asyncio.new_event_loop()
+        return None
 
 
 _BUS: Optional[EventBus] = None

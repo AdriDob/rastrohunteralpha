@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useStore } from '../lib/store';
+import { useStore, useUI } from '../lib/store';
+import { useIsMobile } from '../lib/useIsMobile';
 import { getTargets, getOpportunityTop, getAssistantRecommendations } from '../lib/api';
 import type { Target, OpportunityItem, AssistantRecommendation } from '../types';
 
@@ -85,13 +86,14 @@ const MODES: { key: Mode; label: string; icon: string }[] = [
 ];
 
 export default function CommandPalette() {
-  const { commandPaletteOpen, setCommandPaletteOpen, incrementCommandPaletteUsage, recentInvestigations } = useStore();
+  const { commandPaletteOpen, setCommandPaletteOpen, incrementCommandPaletteUsage, recentInvestigations } = useUI();
   const [query, setQuery] = useState('');
   const [items, setItems] = useState<CmdItem[]>([]);
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [mode, setMode] = useState<Mode>('all');
   const inputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const go = useCallback((path: string) => {
     setCommandPaletteOpen(false);
@@ -230,7 +232,7 @@ export default function CommandPalette() {
     >
       <div
         style={{
-          width: 620, maxHeight: '65vh', background: '#1a1d29',
+          width: isMobile ? '94vw' : 620, maxHeight: '65vh', background: '#1a1d29',
           border: '1px solid #2a2e3d', borderRadius: 12,
           boxShadow: '0 16px 48px rgba(0,0,0,0.6)',
           display: 'flex', flexDirection: 'column', overflow: 'hidden',

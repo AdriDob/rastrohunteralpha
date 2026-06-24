@@ -36,6 +36,9 @@ export default function InvestigationCenter() {
           setNewTargetId('');
           queryClient.invalidateQueries({ queryKey: ['investigations'] });
         },
+        onError: () => {
+          // creation failed silently
+        },
       },
     );
   };
@@ -44,6 +47,9 @@ export default function InvestigationCenter() {
     if (!confirm('Delete this investigation?')) return;
     deleteMutation.mutate(id, {
       onSuccess: () => queryClient.invalidateQueries({ queryKey: ['investigations'] }),
+      onError: () => {
+        // deletion failed silently
+      },
     });
   };
 

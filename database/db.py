@@ -37,6 +37,7 @@ def init_db():
 
     # Auto-migration for targets_intel (SQLite only)
     if IS_SQLITE:
+        session = None
         try:
             from sqlalchemy import text
             session = SessionLocal()
@@ -47,14 +48,46 @@ def init_db():
                 ("reward_score", "FLOAT DEFAULT 0.0"),
                 ("reward_confidence", "FLOAT DEFAULT 0.0"),
                 ("attack_surface_score", "FLOAT DEFAULT 0.0"),
-                ("evidence_potential_score", "FLOAT DEFAULT 0.0")
+                ("evidence_potential_score", "FLOAT DEFAULT 0.0"),
+                ("technology_tags", "VARCHAR DEFAULT ''"),
+                ("cms_detected", "VARCHAR"),
+                ("framework_detected", "VARCHAR"),
+                ("wordpress_plugins_detected", "VARCHAR"),
             ]
             for col_name, col_type in columns_to_add:
                 try:
                     session.execute(text(f"ALTER TABLE targets_intel ADD COLUMN {col_name} {col_type};"))
-                except Exception:
-                    pass
+                except Exception as exc:
+                    logger = __import__('logging').getLogger('rastro.db')
+                    logger.debug("Migration skip (targets_intel.%s): %s", col_name, exc)
+
+            # Auto-migration for reports table
+            report_columns = [
+                ("program", "VARCHAR DEFAULT ''"),
+                ("target", "VARCHAR DEFAULT ''"),
+                ("vulnerability", "VARCHAR DEFAULT ''"),
+                ("severity", "VARCHAR DEFAULT 'medium'"),
+                ("status", "VARCHAR DEFAULT 'draft'"),
+                ("estimated_reward", "FLOAT DEFAULT 0.0"),
+                ("confirmed_reward", "FLOAT DEFAULT 0.0"),
+                ("currency", "VARCHAR DEFAULT 'USD'"),
+                ("evidence_count", "INTEGER DEFAULT 0"),
+                ("notes", "TEXT DEFAULT ''"),
+                ("timeline", "TEXT DEFAULT '[]'"),
+                ("attachments", "TEXT DEFAULT '[]'"),
+                ("updated_at", "DATETIME"),
+            ]
+            for col_name, col_type in report_columns:
+                try:
+                    session.execute(text(f"ALTER TABLE reports ADD COLUMN {col_name} {col_type};"))
+                except Exception as exc:
+                    logger = __import__('logging').getLogger('rastro.db')
+                    logger.debug("Migration skip (reports.%s): %s", col_name, exc)
+
             session.commit()
-            session.close()
-        except Exception:
-            pass
+        except Exception as exc:
+            logger = __import__('logging').getLogger('rastro.db')
+            logger.warning("Migration block failed: %s", exc)
+        finally:
+            if session is not None:
+                session.close()

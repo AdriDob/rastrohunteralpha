@@ -604,6 +604,7 @@ def mark_all_notifications_read():
 # ─── Block 9b: Auto-notification generator ──────────────────────────
 
 _last_notification_check: Optional[datetime] = None
+_notification_check_lock = threading.Lock()
 
 
 def _generate_notifications() -> int:
@@ -614,8 +615,9 @@ def _generate_notifications() -> int:
     """
     global _last_notification_check
     now = datetime.now(timezone.utc)
-    since = _last_notification_check or (now - timedelta(hours=24))
-    _last_notification_check = now
+    with _notification_check_lock:
+        since = _last_notification_check or (now - timedelta(hours=24))
+        _last_notification_check = now
 
     session = db.SessionLocal()
     created = 0
@@ -676,8 +678,8 @@ def _notification_poller_loop(interval: int = 120):
             c = _generate_notifications()
             if c:
                 logger.info("Generated %d notifications", c)
-        except Exception:
-            pass
+        except Exception as e:
+            logger.warning("Notification poller error: %s", e)
         time.sleep(interval)
 
 

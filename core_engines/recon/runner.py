@@ -4,10 +4,13 @@ import logging
 from pathlib import Path
 from typing import Iterable, Any, Coroutine
 
+from .ffuf_runner import FfufRunner
+from .gau_runner import GauRunner
 from .httpx_runner import HttpxRunner
 from .katana_runner import KatanaRunner
 from .nuclei_runner import NucleiRunner
 from .parser import EndpointParser
+from .seclists_profiles import WORDLISTS, get_recommended_profiles, available_wordlists
 from .subfinder_runner import SubfinderRunner
 from .wayback_runner import WaybackRunner
 
@@ -38,6 +41,8 @@ class ReconRunner:
         self.katana = KatanaRunner(self.recon_dir)
         self.wayback = WaybackRunner(self.recon_dir)
         self.nuclei = NucleiRunner(self.recon_dir)
+        self.gau = GauRunner(self.recon_dir)
+        self.ffuf = FfufRunner(self.recon_dir)
 
         self.parser = EndpointParser()
 

@@ -12,13 +12,14 @@ from core_engines.license.hardware import get_hardware_id
 
 logger = logging.getLogger("rastro.license.store")
 
-_DEFAULT_DIR = Path.home() / ".rastro"
-_LICENSE_FILE = _DEFAULT_DIR / "license.json"
+def _get_license_file() -> Path:
+    from core_engines.platform.system import get_data_dir
+    return get_data_dir() / "license.json"
 
 
 class LicenseStore:
-    def __init__(self, path: Path = _LICENSE_FILE) -> None:
-        self._path = path
+    def __init__(self, path: Optional[Path] = None) -> None:
+        self._path = path or _get_license_file()
 
     def save(self, license_key: str, hardware_id: str) -> None:
         self._path.parent.mkdir(parents=True, exist_ok=True)

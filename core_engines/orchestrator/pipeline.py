@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from core_engines.ai.assistant import ScanAssistant
 from core_engines.analysis.investigation_graph import InvestigationGraphBuilder
@@ -15,6 +15,7 @@ from core_engines.memory.identity_graph import IdentityGraph
 from core_engines.reporting.report_engine import ProgramData, ReportEngine
 from core_engines.engine.priority_rebalancer import PriorityRebalancer
 from core_engines.engine.risk_model import AttackSurfaceMapper, ROIEstimator
+from core_engines.targets.technology import fingerprint_program
 from core_engines.engine.hypothesis.engine import HypothesisEngine
 from core_engines.engine.snapshot import PipelineSnapshot, from_pipeline_output
 from core_engines.validation.gate import Verdict
@@ -70,7 +71,18 @@ class Pipeline:
         # Attack surface mapping + ROI estimation for clean endpoints
         with timer("pipeline.surface_mapping"):
             LOG.info("Pipeline: mapping attack surface (%d clean)", len(clean))
-            surface_map = self.surface_mapper.map(clean)
+
+            # Detect technologies from target metadata
+            technologies = self._detect_technologies(target_id, target_name)
+            if technologies:
+                LOG.info("Pipeline: detected %d technologies for target", len(technologies))
+
+            # Extract suspicious discovered paths from clean endpoints
+            discovered_paths = self._extract_discovered_paths(clean)
+            if discovered_paths:
+                LOG.info("Pipeline: %d suspicious discovered paths found", len(discovered_paths))
+
+            surface_map = self.surface_mapper.map(clean, technologies=technologies, discovered_paths=discovered_paths)
             for ep in clean:
                 ep["roi"] = vars(self.roi_estimator.estimate(ep))
             LOG.info(
@@ -358,6 +370,66 @@ class Pipeline:
             result["params"] = params
             scored.append(result)
         return scored
+
+    @staticmethod
+    def _detect_technologies(target_id: int, target_name: str) -> List[Dict[str, Any]]:
+        """Detect technologies for a target from metadata and stored program intel."""
+        technologies: List[Dict[str, Any]] = []
+        if not target_id and not target_name:
+            return technologies
+
+        try:
+            from database.models import TargetIntel
+            from database.db import SessionLocal
+
+            session = SessionLocal()
+            try:
+                records = session.query(TargetIntel).filter(
+                    TargetIntel.name.ilike(f"%{target_name}%")
+                ).all()
+                for rec in records:
+                    if rec.technology_tags:
+                        for tag in rec.technology_tags.split(","):
+                            tag = tag.strip()
+                            if tag and not any(t.get("name") == tag for t in technologies):
+                                technologies.append({"name": tag, "version": "", "source": rec.source or "intel"})
+            finally:
+                session.close()
+        except Exception as exc:
+            LOG.debug("Pipeline: technology detection failed: %s", exc)
+
+        if not technologies and target_name:
+            try:
+                tags = fingerprint_program({"name": target_name})
+                for tag in tags:
+                    if not any(t.get("name") == tag for t in technologies):
+                        technologies.append({"name": tag, "version": "", "source": "fingerprint"})
+            except Exception as exc:
+                LOG.debug("Pipeline: fingerprint_program failed: %s", exc)
+
+        return technologies
+
+    @staticmethod
+    def _extract_discovered_paths(endpoints: List[Dict[str, Any]]) -> List[str]:
+        """Extract suspicious paths from clean endpoints for hypothesis generation."""
+        suspicious_suffixes = {
+            ".git/config", ".env", "wp-config.php.bak", "backup.sql",
+            "sitemap.xml", "robots.txt", "crossdomain.xml",
+            "client-access-policy.xml", "actuator/health", "actuator/env",
+            "swagger/v1/swagger.json", "api-docs", "graphql",
+            "console", "actuator/gateway/routes",
+        }
+        paths: List[str] = []
+        seen: set = set()
+        for ep in endpoints:
+            path = str(ep.get("path", ""))
+            lower = path.lower().strip("/").rstrip("/")
+            for suffix in suspicious_suffixes:
+                if lower.endswith(suffix) and path not in seen:
+                    seen.add(path)
+                    paths.append(path)
+                    break
+        return paths
 
     @staticmethod
     def _node_to_url(node_id: str, meta: Dict[str, Any]) -> str:

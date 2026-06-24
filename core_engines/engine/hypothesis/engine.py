@@ -54,7 +54,9 @@ class HypothesisEngine:
     ) -> HypothesisEngineOutput:
         LOG.info("HypothesisEngine.run: target=%s (%d endpoints)", target_name, len(endpoints))
 
-        hypotheses = self._stage_1_generate(target_id, target_name, endpoints, nuclei_findings)
+        technologies = (attack_surface_map or {}).get("technologies", []) if attack_surface_map else []
+        discovered_paths = (attack_surface_map or {}).get("discovered_paths", []) if attack_surface_map else []
+        hypotheses = self._stage_1_generate(target_id, target_name, endpoints, nuclei_findings, technologies, discovered_paths)
         LOG.info("Stage 1 (generate): %d hypotheses", len(hypotheses))
 
         hypotheses = self._stage_2_score(hypotheses)
@@ -113,8 +115,15 @@ class HypothesisEngine:
     def _stage_1_generate(
         self, target_id: int, target_name: str, endpoints: List[Dict[str, Any]],
         nuclei_findings: Optional[List[Dict[str, Any]]] = None,
+        technologies: Optional[List[Dict[str, Any]]] = None,
+        discovered_paths: Optional[List[str]] = None,
     ) -> List[Hypothesis]:
-        return generate_hypotheses(endpoints, target_id, target_name, nuclei_findings=nuclei_findings)
+        return generate_hypotheses(
+            endpoints, target_id, target_name,
+            nuclei_findings=nuclei_findings,
+            technologies=technologies,
+            discovered_paths=discovered_paths,
+        )
 
     def _stage_2_score(self, hypotheses: List[Hypothesis]) -> List[Hypothesis]:
         scored = []

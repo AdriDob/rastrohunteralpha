@@ -13,7 +13,8 @@ export default function FavoriteButton({ itemType, itemId, label }: Props) {
 
   useEffect(() => {
     getFavorites(itemType).then(r => {
-      const match = r.items.find(f => f.item_id === itemId);
+      const items = r?.items ?? [];
+      const match = items.find(f => f.item_id === itemId);
       if (match) setFavId(match.id);
     }).catch(() => {});
   }, [itemType, itemId]);

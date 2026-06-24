@@ -57,6 +57,9 @@ export default function InvestigationDetail() {
     if (!confirm('Delete this investigation?')) return;
     deleteMutation.mutate(inv.id, {
       onSuccess: () => navigate('/investigations'),
+      onError: () => {
+        // deletion failed silently
+      },
     });
   };
 
@@ -64,7 +67,12 @@ export default function InvestigationDetail() {
     const nextStatus = inv.status === 'active' ? 'paused' : inv.status === 'paused' ? 'active' : 'completed';
     updateMutation.mutate(
       { id: inv.id, payload: { status: nextStatus } },
-      { onSuccess: () => queryClient.invalidateQueries({ queryKey: ['investigationDashboard', invId] }) },
+      {
+        onSuccess: () => queryClient.invalidateQueries({ queryKey: ['investigationDashboard', invId] }),
+        onError: () => {
+          // status change failed silently
+        },
+      },
     );
   };
 

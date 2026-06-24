@@ -31,6 +31,9 @@ const en: Translations = {
   history_view: 'History',
   project_dashboard: 'Project Dashboard',
 
+  // Discovery & Programs
+  program_catalog: 'Program Catalog',
+
   // Opportunities
   opportunity_radar: 'Opportunity Radar',
   opportunity_intel: 'Opportunity Intelligence',
@@ -81,6 +84,7 @@ const en: Translations = {
 
   // Reports
   report_center: 'Report Center',
+  report_history: 'Report History',
   generate_report: 'Generate Report',
   no_reports: 'No reports generated.',
 

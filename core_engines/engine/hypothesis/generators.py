@@ -681,6 +681,179 @@ def generate_nuclei(
     return hypotheses
 
 
+TECHNOLOGY_HYPOTHESES: Dict[str, List[Dict[str, Any]]] = {
+    "wordpress": [
+        {"type": VulnerabilityType.MISCONFIGURATION, "vector": "xmlrpc",
+         "reasoning": "WordPress XML-RPC enabled — brute force / SSRF / pingback DDoS",
+         "evidence": ["XML-RPC endpoint commonly accessible without auth"],
+         "actions": ["Disable xmlrpc.php if not required", "Restrict to trusted IPs"]},
+        {"type": VulnerabilityType.INFO_LEAK, "vector": "wp-json",
+         "reasoning": "WordPress REST API exposes user enumeration via /wp/v2/users",
+         "evidence": ["REST API leaks usernames, author IDs, post metadata"],
+         "actions": ["Add .htaccess restriction to /wp-json/", "Use a WAF rule to block user enum"]},
+        {"type": VulnerabilityType.KNOWN_VULNERABILITY, "vector": "version_disclosure",
+         "reasoning": "WordPress version string visible — known CVEs may apply",
+         "evidence": ["Version leak in /readme.html, generator tag, or /wp-includes/"],
+         "actions": ["Remove generator tag from header", "Block /readme.html and /wp-admin/readme.html"]},
+    ],
+    "drupal": [
+        {"type": VulnerabilityType.MISCONFIGURATION, "vector": "drupal_debug",
+         "reasoning": "Drupal debug mode may expose configuration and DB credentials",
+         "evidence": ["Drupal detected — check for /CHANGELOG.txt, /INSTALL.txt"],
+         "actions": ["Disable debug mode in settings.php", "Remove install/upgrade files"]},
+    ],
+    "joomla": [
+        {"type": VulnerabilityType.INFO_LEAK, "vector": "joomla_manifest",
+         "reasoning": "Joomla version disclosure via /administrator/manifests/files/joomla.xml",
+         "evidence": ["Joomla detected — version can be fingerprinted from XML manifest"],
+         "actions": ["Restrict access to /administrator/", "Block XML manifest endpoints"]},
+    ],
+    "nginx": [
+        {"type": VulnerabilityType.MISCONFIGURATION, "vector": "nginx_alias_traversal",
+         "reasoning": "Misconfigured nginx alias directive may allow path traversal",
+         "evidence": ["Static file alias detected — test /static../ for directory escape"],
+         "actions": ["Use root instead of alias", "Ensure trailing slashes in location blocks"]},
+    ],
+    "php": [
+        {"type": VulnerabilityType.MISCONFIGURATION, "vector": "phpinfo",
+         "reasoning": "phpinfo() exposure leaks server configuration, credentials, and env vars",
+         "evidence": ["PHP detected — scan for phpinfo() pages on common paths"],
+         "actions": ["Remove phpinfo() files from production", "Block *.phps, phpinfo.php"]},
+    ],
+    "asp.net": [
+        {"type": VulnerabilityType.INFO_LEAK, "vector": "aspnet_trace",
+         "reasoning": "ASP.NET tracing/debug enabled — request details, cookies, session tokens exposed",
+         "evidence": ["ASP.NET detected — check /trace.axd, /elmah.axd"],
+         "actions": ["Disable <trace> in web.config", "Remove ELMAH in production"]},
+    ],
+    "amazonaws": [
+        {"type": VulnerabilityType.MISCONFIGURATION, "vector": "s3_bucket",
+         "reasoning": "AWS S3 bucket may be publicly readable/writable",
+         "evidence": ["Target uses AWS — test common bucket naming patterns"],
+         "actions": ["Verify S3 bucket policies", "Enable Block Public Access"]},
+    ],
+}
+
+
+def _tech_hyp_id(vt: str, tech: str, vector: str) -> str:
+    raw = f"tech:{vt}:{tech}:{vector}"
+    return hashlib.sha256(raw.encode()).hexdigest()[:12]
+
+
+def generate_from_technology(
+    technologies: List[Dict[str, Any]],
+    target_id: int,
+    target_name: str,
+) -> List[Hypothesis]:
+    hypotheses: List[Hypothesis] = []
+    seen: Set[str] = set()
+    for tech in technologies:
+        name = str(tech.get("name", "")).lower()
+        version = str(tech.get("version", ""))
+        patterns = TECHNOLOGY_HYPOTHESES.get(name)
+        if not patterns:
+            continue
+        for pat in patterns:
+            hid = _tech_hyp_id(pat["type"].value, name, pat["vector"])
+            if hid in seen:
+                continue
+            seen.add(hid)
+            evidence = list(pat["evidence"])
+            if version:
+                evidence.append(f"Detected version: {version}")
+            h = Hypothesis(
+                id=hid,
+                vulnerability_type=pat["type"],
+                target_id=target_id,
+                target_name=target_name,
+                endpoint=tech,
+                likelihood=0.45,
+                impact=0.50,
+                exploitability=0.40,
+                confidence=0.50,
+                priority_score=0.45,
+                evidence=evidence,
+                reasoning=pat["reasoning"],
+                suggested_actions=list(pat["actions"]),
+                source=HypothesisSource.RULE,
+                vector=pat["vector"],
+                attack_surface_labels=[name, pat["vector"]],
+            )
+            hypotheses.append(h)
+    return hypotheses
+
+
+def generate_from_discovered_paths(
+    paths: List[str],
+    target_id: int,
+    target_name: str,
+) -> List[Hypothesis]:
+    hypotheses: List[Hypothesis] = []
+    seen: Set[str] = set()
+    suspicious_endpoints = {
+        ".git/config": (VulnerabilityType.INFO_LEAK, "git_exposure",
+                        "Git repository exposed — source code and credentials at risk"),
+        ".env": (VulnerabilityType.INFO_LEAK, "env_exposure",
+                 "Environment file exposed — API keys, DB credentials, secrets"),
+        "wp-config.php.bak": (VulnerabilityType.INFO_LEAK, "wp_config_backup",
+                              "WordPress config backup exposed — DB credentials"),
+        "backup.sql": (VulnerabilityType.INFO_LEAK, "sql_backup",
+                       "Database backup exposed — all tables and credentials"),
+        "sitemap.xml": (VulnerabilityType.INFO_LEAK, "sitemap",
+                        "Sitemap exposes all application routes — attack surface mapping"),
+        "robots.txt": (VulnerabilityType.INFO_LEAK, "robots",
+                       "robots.txt may list disallowed admin/sensitive paths"),
+        "crossdomain.xml": (VulnerabilityType.MISCONFIGURATION, "crossdomain",
+                            "Flash crossdomain policy — may allow unintended cross-origin access"),
+        "client-access-policy.xml": (VulnerabilityType.MISCONFIGURATION, "client_access_policy",
+                                     "Silverlight access policy — may allow unintended cross-origin access"),
+        "actuator/health": (VulnerabilityType.INFO_LEAK, "actuator",
+                            "Spring Actuator health endpoint — application state and build info"),
+        "actuator/env": (VulnerabilityType.INFO_LEAK, "actuator_env",
+                         "Spring Actuator env — environment variables, secrets, DB URLs"),
+        "swagger/v1/swagger.json": (VulnerabilityType.INFO_LEAK, "swagger",
+                                    "Swagger/OpenAPI spec exposed — full API surface documentation"),
+        "api-docs": (VulnerabilityType.INFO_LEAK, "api_docs",
+                     "API documentation exposed — all endpoints, parameters, auth schemes"),
+        "graphql": (VulnerabilityType.INFO_LEAK, "graphql_endpoint",
+                    "GraphQL endpoint found — introspection may expose full schema"),
+        "console": (VulnerabilityType.MISCONFIGURATION, "admin_console",
+                    "Admin console exposed — potential for unauthorized access"),
+        "actuator/gateway/routes": (VulnerabilityType.INFO_LEAK, "gateway_routes",
+                                    "API Gateway routes exposed — internal service topology leaked"),
+    }
+    for path in paths:
+        lower = path.lower().strip("/").rstrip("/")
+        for suffix, (vt, vector, reason) in suspicious_endpoints.items():
+            if not lower.endswith(suffix):
+                continue
+            hid = hashlib.sha256(f"path:{vt.value}:{suffix}".encode()).hexdigest()[:12]
+            if hid in seen:
+                continue
+            seen.add(hid)
+            h = Hypothesis(
+                id=hid,
+                vulnerability_type=vt,
+                target_id=target_id,
+                target_name=target_name,
+                endpoint={"path": path, "method": "GET", "source": "discovered_paths"},
+                likelihood=0.60,
+                impact=0.55,
+                exploitability=0.50,
+                confidence=0.70,
+                priority_score=0.55,
+                evidence=[f"Path discovered: {path}"],
+                reasoning=reason,
+                suggested_actions=["Immediately restrict access to this path",
+                                   f"Verify if {path} is needed in production"],
+                source=HypothesisSource.RULE,
+                vector=vector,
+                attack_surface_labels=[suffix.split("/")[0], "exposed_path"],
+            )
+            hypotheses.append(h)
+    return hypotheses
+
+
 GENERATORS = [
     generate_idor,
     generate_auth_bypass,
@@ -699,6 +872,8 @@ def generate_hypotheses(
     target_id: int,
     target_name: str,
     nuclei_findings: Optional[List[Dict[str, Any]]] = None,
+    technologies: Optional[List[Dict[str, Any]]] = None,
+    discovered_paths: Optional[List[str]] = None,
 ) -> List[Hypothesis]:
     hypotheses: List[Hypothesis] = []
     seen = set()
@@ -716,6 +891,22 @@ def generate_hypotheses(
     if nuclei_findings:
         nuclei_h = generate_nuclei(nuclei_findings, target_id, target_name)
         for h in nuclei_h:
+            if h.id not in seen:
+                seen.add(h.id)
+                hypotheses.append(h)
+
+    # Technology-based hypotheses
+    if technologies:
+        tech_h = generate_from_technology(technologies, target_id, target_name)
+        for h in tech_h:
+            if h.id not in seen:
+                seen.add(h.id)
+                hypotheses.append(h)
+
+    # Discovered-path hypotheses
+    if discovered_paths:
+        path_h = generate_from_discovered_paths(discovered_paths, target_id, target_name)
+        for h in path_h:
             if h.id not in seen:
                 seen.add(h.id)
                 hypotheses.append(h)

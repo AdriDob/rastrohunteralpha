@@ -1,6 +1,6 @@
-const CACHE_STATIC = 'rastro-static-v1';
-const CACHE_API = 'rastro-api-v1';
-const CACHE_INTEL = 'rastro-intel-v1';
+const CACHE_STATIC = 'rastro-static-v3';
+const CACHE_API = 'rastro-api-v3';
+const CACHE_INTEL = 'rastro-intel-v3';
 
 const STATIC_ASSETS = [
   '/',
@@ -64,6 +64,13 @@ self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = request.url;
 
+  // Never cache non-GET requests (POST, PUT, DELETE, etc.)
+  // Cache API only supports GET requests.
+  if (request.method !== 'GET') {
+    event.respondWith(fetch(request));
+    return;
+  }
+
   if (isStaticAsset(url)) {
     event.respondWith(cacheFirst(request, CACHE_STATIC));
     return;
@@ -87,7 +94,7 @@ async function cacheFirst(request, cacheName) {
   if (cached) return cached;
   try {
     const response = await fetch(request);
-    if (response.ok) {
+    if (response.ok && request.method === 'GET') {
       const cache = await caches.open(cacheName);
       cache.put(request, response.clone());
     }
@@ -100,7 +107,7 @@ async function cacheFirst(request, cacheName) {
 async function networkFirst(request, cacheName) {
   try {
     const response = await fetch(request);
-    if (response.ok) {
+    if (response.ok && request.method === 'GET') {
       const cache = await caches.open(cacheName);
       cache.put(request, response.clone());
     }
@@ -120,7 +127,7 @@ async function staleWhileRevalidate(request, cacheName) {
   const cached = await cache.match(request);
   const fetchPromise = fetch(request)
     .then((response) => {
-      if (response.ok) cache.put(request, response.clone());
+      if (response.ok && request.method === 'GET') cache.put(request, response.clone());
       return response;
     })
     .catch(() => cached);

@@ -65,7 +65,7 @@ async def set_notification_preferences(request: Request):
 
         session = db.SessionLocal()
         try:
-            from database.models import InvestigatorProfile
+            from core_engines.learning.profile import InvestigatorProfile
             row = session.query(InvestigatorProfile).first()
             if row:
                 row.notification_preferences = prefs

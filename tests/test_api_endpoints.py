@@ -219,3 +219,25 @@ class TestContracts:
         assert resp.status_code == 200
         data = resp.json()
         assert "generated_at" in data
+
+
+class TestWebSocket:
+    def test_websocket_endpoint_registered(self, client):
+        """WebSocket /api/ws is registered and accepts connection with valid token."""
+        token = client.headers["Authorization"].removeprefix("Bearer ")
+        with client.websocket_connect(f"/api/ws?token={token}") as ws:
+            ws.send_json({"type": "ping"})
+            data = ws.receive_json()
+            assert data["type"] == "pong"
+
+    def test_websocket_rejects_no_token(self):
+        """WebSocket without token should close with code 4001."""
+        from fastapi.testclient import TestClient
+        from api.main import app
+        from starlette.websockets import WebSocketDisconnect
+
+        c = TestClient(app)
+        with pytest.raises(WebSocketDisconnect) as excinfo:
+            with c.websocket_connect("/api/ws") as ws:
+                ws.receive_text()
+        assert excinfo.value.code == 4001

@@ -8,11 +8,11 @@ Architecture:
   - Primary target: Windows 11. Also works on macOS and Linux (unmaintained).
 
 Startup:
-  BOOT → Set env vars → Start API (in-process uvicorn) → Mount frontend on API
-  → Wait healthy → Open browser → System tray → Event loop
+  BOOT -> Set env vars -> Start API (in-process uvicorn) -> Mount frontend on API
+  -> Wait healthy -> Open browser -> System tray -> Event loop
 
 Shutdown:
-  SIGINT/SIGTERM/tray quit → Stop uvicorn → Dispose DB → Stop tray → Exit
+  SIGINT/SIGTERM/tray quit -> Stop uvicorn -> Dispose DB -> Stop tray -> Exit
 
 PyInstaller produces: dist/Rastro/Rastro  (or dist/Rastro.exe on Windows)
 
@@ -171,8 +171,13 @@ def _wait_for_health(host: str, port: int, timeout: float = 30.0) -> bool:
 def _mount_frontend(app) -> bool:
     from pathlib import Path
     import logging
+    import mimetypes
     from core_engines.platform.system import get_frontend_dist_dir
     from fastapi.responses import FileResponse, JSONResponse
+
+    mimetypes.add_type("application/javascript", ".js")
+    mimetypes.add_type("text/css", ".css")
+    mimetypes.add_type("image/svg+xml", ".svg")
 
     dist_dir: Path = get_frontend_dist_dir()
     if not dist_dir.is_dir():
@@ -211,6 +216,44 @@ def _mount_frontend(app) -> bool:
     return True
 
 
+# ── Desktop session (auto-auth) ──────────────────────────────────────
+
+def _create_desktop_session(port: int) -> None:
+    """Create a desktop session token so the frontend can call private APIs.
+
+    The token is stored in settings (session_token) and is then passed
+    to the frontend via query param in the dashboard URL. This avoids
+    requiring manual login on a local desktop installation.
+    """
+    from core_engines.auth.auth_manager import get_auth_manager
+    from desktop.settings import get_settings
+
+    settings = get_settings()
+    device_id = settings.get("device_id")
+    if not device_id:
+        try:
+            device_id = settings.ensure_device_id()
+        except Exception as exc:
+            _lifecycle(_BOOT, "Device ID creation failed (non-critical): %s", exc)
+            return
+
+    try:
+        manager = get_auth_manager()
+        result = manager.authenticate(device_id, {
+            "desktop": True,
+            "port": port,
+            "frozen": getattr(sys, "frozen", False),
+        })
+        if result and "token" in result:
+            settings.set_auth_tokens(
+                session_token=result["token"],
+                refresh_token=result.get("refresh", ""),
+            )
+            _lifecycle(_BOOT, "Desktop session created (device=%s)", device_id)
+    except Exception as exc:
+        _lifecycle(_BOOT, "Session creation failed (non-critical): %s", exc)
+
+
 # ── Settings / first run ─────────────────────────────────────────────
 
 def _init_settings() -> int:
@@ -219,7 +262,8 @@ def _init_settings() -> int:
 
     settings = get_settings()
     port = settings.get("backend_port", 8000)
-    if not (1024 <= port <= 65535):
+    if not isinstance(port, int) or not (1024 <= port <= 65535):
+        _lifecycle(_BOOT, "Invalid backend_port %r, resetting to 8000", port)
         port = 8000
     run_first_time(settings)
     settings.record_boot()
@@ -236,8 +280,16 @@ def _open_desktop_window(host: str, port: int) -> bool:
     or if webview.start() returned without blocking — caller should fall
     back to browser mode.
     """
-    url = f"http://{host}:{port}"
-    _lifecycle(_BROWSER, "Opening desktop window → %s", url)
+    from desktop.settings import get_settings
+    from desktop.browser_opener import build_dashboard_url
+
+    settings = get_settings()
+    url = build_dashboard_url(
+        port=port,
+        token=settings.get("session_token"),
+        device_id=settings.get("device_id"),
+    )
+    _lifecycle(_BROWSER, "Opening desktop window -> %s", url)
     user_closed: threading.Event = threading.Event()
     start_ts = time.time()
 
@@ -276,32 +328,25 @@ def _open_browser(port: int) -> None:
     from desktop.notifications import notify_dashboard_ready
 
     settings = get_settings()
-    first_boot = (
-        settings.get("first_run_complete")
-        and settings.get("onboarding_complete") is not False
-    )
-
-    if first_boot:
-        ctx: dict = {
-            "port": port,
-            "token": settings.get("session_token"),
-            "device_id": settings.get("device_id"),
-        }
-        tab = settings.get("last_dashboard_tab")
-        if tab:
-            ctx["tab"] = tab
-        tid = settings.get("last_opened_target")
-        if tid:
-            ctx["target_id"] = int(tid)
-        if settings.get("onboarding_complete") is False:
-            ctx["onboarding"] = True
-        if open_dashboard(**ctx):
-            _lifecycle(_BROWSER, "Dashboard opened in browser")
-            notify_dashboard_ready()
-            return
-        _lifecycle(_BROWSER, "Failed to open browser")
-    else:
-        _lifecycle(_BROWSER, "Dashboard URL: %s", build_dashboard_url(port=port))
+    ctx: dict = {
+        "port": port,
+        "token": settings.get("session_token"),
+        "device_id": settings.get("device_id"),
+    }
+    tab = settings.get("last_dashboard_tab")
+    if tab:
+        ctx["tab"] = tab
+    tid = settings.get("last_opened_target")
+    if tid:
+        ctx["target_id"] = int(tid)
+    if settings.get("onboarding_complete") is False:
+        ctx["onboarding"] = True
+    if open_dashboard(**ctx):
+        _lifecycle(_BROWSER, "Dashboard opened in browser")
+        notify_dashboard_ready()
+        return
+    _lifecycle(_BROWSER, "Failed to open browser")
+    _lifecycle(_BROWSER, "Dashboard URL: %s", build_dashboard_url(port=port))
 
 
 # ── Tray (optional, never blocks) ────────────────────────────────────
@@ -362,10 +407,11 @@ def main() -> None:
     if getattr(sys, "frozen", False):
         exe_dir = Path(sys.executable).resolve().parent
         base_dir = str(getattr(sys, "_MEIPASS", exe_dir))
-        db_path = exe_dir / "database" / "rastro.db"
     else:
         base_dir = str(Path(__file__).resolve().parent.parent)
-        db_path = Path(base_dir) / "database" / "rastro.db"
+
+    from core_engines.platform.system import get_db_path
+    db_path = get_db_path()
 
     db_path.parent.mkdir(parents=True, exist_ok=True)
     os.environ["DATABASE_URL"] = f"sqlite:///{db_path}"
@@ -377,6 +423,17 @@ def main() -> None:
     host = "127.0.0.1"
     _lifecycle(_BOOT, "Backend port: %d", port)
 
+    # Set up signal handlers early (before server/threads start)
+    shutdown_event: threading.Event = threading.Event()
+
+    def _handle_signal(signum, frame):
+        if not shutdown_event.is_set():
+            _lifecycle(_SHUTDOWN, "Signal %d received", signum)
+        shutdown_event.set()
+
+    signal.signal(signal.SIGINT, _handle_signal)
+    signal.signal(signal.SIGTERM, _handle_signal)
+
     # ── Import app (env must be set first) ───────────────────────────
     _lifecycle(_API, "Starting API server")
     from api.main import app as api_app
@@ -387,7 +444,8 @@ def main() -> None:
         _lifecycle(_BOOT, "Rolled back to previous version after failed update")
     # Will be cleared after a successful boot
     threading.Thread(target=lambda: (
-        time.sleep(15), mark_update_success()
+        time.sleep(15),
+        mark_update_success() if callable(mark_update_success) else None
     ), daemon=True).start()
 
     # Mount frontend static assets on the same app
@@ -410,35 +468,27 @@ def main() -> None:
 
     # ── Background update check ──────────────────────────────────────
     def _background_update_check():
-        from desktop.updater import check_for_updates
-        release = check_for_updates()
-        if release:
-            _lifecycle(_BOOT, "Update available: v%s (current: v%s)",
-                       release.version, "1.0.0")
-            # In a real desktop app, this would trigger a notification
+        try:
+            from desktop.updater import check_for_updates
+            release = check_for_updates()
+            if release:
+                _lifecycle(_BOOT, "Update available: v%s (current: v%s)",
+                           release.version, "1.0.0")
+        except Exception as exc:
+            _lifecycle(_BOOT, "Update check failed (non-fatal): %s", exc)
     threading.Thread(target=_background_update_check, daemon=True).start()
+
+    # ── Create desktop session (auto-auth for local use) ─────────────
+    _create_desktop_session(port)
 
     # ── UI mode: desktop window or browser ──────────────────────────
     tray = None
 
     if browser_mode:
         _open_browser(port)
-
-        shutdown_event: threading.Event = threading.Event()
-
-        def _handle_signal(signum, frame):
-            if not shutdown_event.is_set():
-                _lifecycle(_SHUTDOWN, "Signal %d received", signum)
-            shutdown_event.set()
-
-        signal.signal(signal.SIGINT, _handle_signal)
-        signal.signal(signal.SIGTERM, _handle_signal)
-
         if not no_tray:
             tray = _start_tray(server, shutdown_event)
-
         _lifecycle(_READY, "Rastro Desktop ready (browser mode)")
-
         try:
             shutdown_event.wait()
         except KeyboardInterrupt:
@@ -448,22 +498,9 @@ def main() -> None:
         if not _open_desktop_window(host, port):
             _lifecycle(_BOOT, "Desktop UI unavailable, browser mode activated.")
             _open_browser(port)
-
-            shutdown_event: threading.Event = threading.Event()
-
-            def _handle_signal(signum, frame):
-                if not shutdown_event.is_set():
-                    _lifecycle(_SHUTDOWN, "Signal %d received", signum)
-                shutdown_event.set()
-
-            signal.signal(signal.SIGINT, _handle_signal)
-            signal.signal(signal.SIGTERM, _handle_signal)
-
             if not no_tray:
                 tray = _start_tray(server, shutdown_event)
-
             _lifecycle(_READY, "Rastro Desktop ready (browser fallback)")
-
             try:
                 shutdown_event.wait()
             except KeyboardInterrupt:

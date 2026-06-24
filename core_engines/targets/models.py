@@ -45,6 +45,11 @@ class TargetIntel(Base):
     tags = Column(String, nullable=True)
     notes = Column(Text, nullable=True)
 
+    technology_tags = Column(String, nullable=True, default="")
+    cms_detected = Column(String, nullable=True)
+    framework_detected = Column(String, nullable=True)
+    wordpress_plugins_detected = Column(String, nullable=True)
+
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 

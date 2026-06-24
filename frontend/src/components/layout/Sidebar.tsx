@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { useStore } from '../../lib/store';
+import { useUI } from '../../lib/store';
 import { useTheme } from '../../lib/theme';
 import { useI18n } from '../../lib/i18n';
 import type { Translations } from '../../lib/i18n';
 import NotificationsDropdown from '../NotificationsDropdown';
+import { useTargetsDTO } from '../../lib/query';
 
 interface NavItem {
   to: string;
@@ -26,7 +27,7 @@ const btnSmallStyle: React.CSSProperties = {
 };
 
 export function DesktopSidebar({ isExpanded }: { isExpanded: boolean }) {
-  const { toggleSidebar, recentInvestigations, favoriteTargets, assistantOpen, setAssistantOpen } = useStore();
+  const { toggleSidebar, recentInvestigations, favoriteTargets, assistantOpen, setAssistantOpen } = useUI();
   const { theme, setTheme } = useTheme();
   const { t, lang, setLang } = useI18n();
   const navigate = useNavigate();
@@ -111,7 +112,9 @@ export function DesktopSidebar({ isExpanded }: { isExpanded: boolean }) {
       titleKey: 'nav_intelligence',
       items: [
         { to: '/radar', labelKey: 'opportunity_radar', icon: '◎' },
+        { to: '/programs', labelKey: 'program_catalog', icon: '📋' },
         { to: '/reports', labelKey: 'report_center', icon: '📄' },
+        { to: '/reports/history', labelKey: 'report_history', icon: '📋' },
         { to: '/project-dashboard', labelKey: 'project_dashboard', icon: '◈' },
         { to: '/settings', labelKey: 'settings', icon: '⚙' },
       ],
@@ -119,6 +122,21 @@ export function DesktopSidebar({ isExpanded }: { isExpanded: boolean }) {
   ];
   const [collapsedSections, setCollapsedSections] = useState<Set<string>>(new Set());
   const [navFilter, setNavFilter] = useState('');
+  const { data: allTargets } = useTargetsDTO();
+  const validTargetIds = useMemo(() => {
+    if (!allTargets) return null;
+    return new Set(allTargets.items.map((t: { id: number }) => t.id));
+  }, [allTargets]);
+
+  const reconciledFavorites = useMemo(() => {
+    if (!validTargetIds) return favoriteTargets;
+    return favoriteTargets.filter(id => validTargetIds.has(id));
+  }, [favoriteTargets, validTargetIds]);
+
+  const reconciledRecent = useMemo(() => {
+    if (!validTargetIds) return recentInvestigations;
+    return recentInvestigations.filter(r => validTargetIds.has(r.targetId));
+  }, [recentInvestigations, validTargetIds]);
 
   const toggleSection = (title: string) => {
     setCollapsedSections(prev => {
@@ -132,8 +150,8 @@ export function DesktopSidebar({ isExpanded }: { isExpanded: boolean }) {
   const filterMatches = (label: string) =>
     !navFilter.trim() || label.toLowerCase().includes(navFilter.toLowerCase());
 
-  const favInvestigations = recentInvestigations.filter(r => favoriteTargets.includes(r.targetId));
-  const recentOnly = recentInvestigations.filter(r => !favoriteTargets.includes(r.targetId));
+  const favInvestigations = reconciledRecent.filter(r => reconciledFavorites.includes(r.targetId));
+  const recentOnly = reconciledRecent.filter(r => !reconciledFavorites.includes(r.targetId));
 
   return (
     <aside

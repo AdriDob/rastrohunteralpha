@@ -12,8 +12,12 @@ const verdictColors: Record<string, string> = {
 };
 
 export default function IDORResultPanel({ result, onClose }: Props) {
-  const allItems = [...result.vulnerable, ...result.blocked, ...result.inconclusive];
-  const vulnerableCount = result.vulnerable.length;
+  if (!result) return null;
+  const vulnerable = result.vulnerable ?? [];
+  const blocked = result.blocked ?? [];
+  const inconclusive = result.inconclusive ?? [];
+  const allItems = [...vulnerable, ...blocked, ...inconclusive];
+  const vulnerableCount = vulnerable.length;
 
   return (
     <div style={{

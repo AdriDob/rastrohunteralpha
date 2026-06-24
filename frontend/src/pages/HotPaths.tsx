@@ -1,5 +1,5 @@
 import { useEndpoints } from '../lib/query';
-import { useStore } from '../lib/store';
+import { useUI } from '../lib/store';
 import { useNavigate } from 'react-router-dom';
 import DataTable from '../components/tables/DataTable';
 import { createColumnHelper } from '@tanstack/react-table';
@@ -18,7 +18,7 @@ const columns = [
 
 export default function HotPaths() {
   const { data: res } = useEndpoints(null, { limit: 500, sort_by: 'risk_score', sort_order: 'desc' });
-  const setSelectedEndpoint = useStore((s) => s.setSelectedEndpoint);
+  const { setSelectedEndpoint } = useUI();
   const navigate = useNavigate();
 
   const all = res?.items ?? [];

@@ -20,6 +20,10 @@ class VulnerabilityType(str, Enum):
     BUSINESS_LOGIC = "business_logic"
     FILE_OPERATION = "file_operation"
     SSTI = "ssti"
+    MISCONFIGURATION = "misconfiguration"
+    KNOWN_VULNERABILITY = "known_vulnerability"
+    INFO_LEAK = "info_leak"
+    SUBDOMAIN_TAKEOVER = "subdomain_takeover"
 
 
 class HypothesisSource(str, Enum):

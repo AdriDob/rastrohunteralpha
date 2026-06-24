@@ -28,7 +28,12 @@ export default function Activation() {
 
   useEffect(() => {
     checkLicense().then((s) => {
-      if (s.valid) setActivated(true);
+      if (s.valid) {
+        setActivated(true);
+        setTimeout(() => { window.location.href = '/'; }, 1500);
+      }
+      setChecking(false);
+    }).catch(() => {
       setChecking(false);
     });
   }, []);
@@ -38,13 +43,18 @@ export default function Activation() {
     setError('');
     if (!key.trim()) { setError('Please enter a license key'); return; }
     setLoading(true);
-    const result = await activateLicense(key.trim());
-    setLoading(false);
-    if (result.ok) {
-      setActivated(true);
-      window.location.href = '/';
-    } else {
-      setError(result.error || 'Activation failed');
+    try {
+      const result = await activateLicense(key.trim());
+      setLoading(false);
+      if (result.ok) {
+        setActivated(true);
+        window.location.href = '/';
+      } else {
+        setError(result.error || 'Activation failed');
+      }
+    } catch {
+      setLoading(false);
+      setError('Network error. Please try again.');
     }
   };
 

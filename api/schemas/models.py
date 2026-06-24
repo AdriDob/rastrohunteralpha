@@ -310,6 +310,13 @@ class ReportNewOut(BaseModel):
     id: int
     investigation_id: Optional[int] = None
     format: str
+    program: str = ""
+    target: str = ""
+    vulnerability: str = ""
+    severity: str = "medium"
+    status: str = "draft"
+    estimated_reward: float = 0.0
+    confirmed_reward: float = 0.0
     created_at: Optional[str] = None
 
 
@@ -319,13 +326,59 @@ class ReportFullOut(BaseModel):
     format: str
     content: Optional[Dict[str, Any]] = None
     finding_ids: List[int] = []
+    program: str = ""
+    target: str = ""
+    vulnerability: str = ""
+    severity: str = "medium"
+    status: str = "draft"
+    estimated_reward: float = 0.0
+    confirmed_reward: float = 0.0
+    currency: str = "USD"
+    evidence_count: int = 0
+    notes: str = ""
+    timeline: List[Dict[str, Any]] = []
+    attachments: List[str] = []
     created_at: Optional[str] = None
+    updated_at: Optional[str] = None
 
 
 class ReportListItem(BaseModel):
     id: int
     format: str
     summary: str = ""
-    severity: str = ""
+    program: str = ""
+    target: str = ""
+    vulnerability: str = ""
+    severity: str = "medium"
+    status: str = "draft"
+    estimated_reward: float = 0.0
+    confirmed_reward: float = 0.0
+    currency: str = "USD"
+    evidence_count: int = 0
     finding_ids: List[int] = []
     created_at: Optional[str] = None
+    updated_at: Optional[str] = None
+
+
+class ReportUpdate(BaseModel):
+    status: Optional[str] = None
+    program: Optional[str] = None
+    target: Optional[str] = None
+    vulnerability: Optional[str] = None
+    severity: Optional[str] = None
+    estimated_reward: Optional[float] = None
+    confirmed_reward: Optional[float] = None
+    currency: Optional[str] = None
+    evidence_count: Optional[int] = None
+    notes: Optional[str] = None
+    timeline: Optional[List[Dict[str, Any]]] = None
+    attachments: Optional[List[str]] = None
+
+
+class ReportCreate(BaseModel):
+    finding_ids: List[int]
+    program: str = ""
+    target: str = ""
+    vulnerability: str = ""
+    severity: str = "medium"
+    notes: str = ""

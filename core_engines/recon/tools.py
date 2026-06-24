@@ -14,8 +14,8 @@ logger = logging.getLogger("rastro.recon.tools")
 _GO_BIN_ENV = os.environ.get("GOPATH", str(Path.home() / "go"))
 GO_BIN = Path(_GO_BIN_ENV) / "bin"
 
-# Tools installed via `go install projectdiscovery/...` — prefer go bin path
-GO_TOOLS = {"httpx", "katana", "subfinder", "waybackurls"}
+# Tools installed via `go install ...` — prefer go bin path
+GO_TOOLS = {"httpx", "katana", "subfinder", "waybackurls", "gau"}
 
 
 def _resolve_tool(tool_name: str) -> str | None:
@@ -33,10 +33,12 @@ TOOL_CHECKS = {
     "httpx": ["httpx", "-version"],
     "waybackurls": ["waybackurls", "-h"],
     "nuclei": ["nuclei", "-version"],
+    "gau": ["gau", "--version"],
+    "ffuf": ["ffuf", "-V"],
 }
 
 CRITICAL_TOOLS = ["subfinder", "katana", "httpx"]
-OPTIONAL_TOOLS = ["waybackurls", "nuclei"]
+OPTIONAL_TOOLS = ["waybackurls", "nuclei", "gau", "ffuf"]
 
 
 def check_tool_available(tool_name: str) -> bool:

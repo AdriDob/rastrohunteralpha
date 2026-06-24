@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useState } from 'react';
-import { useStore } from '../lib/store';
+import { useUI } from '../lib/store';
 import { createInvestigation } from '../lib/api';
 import type { OpportunityItem, Target, ScoreBreakdown, EVHData } from '../types';
 
@@ -25,7 +25,7 @@ interface Props {
 
 function MissionCard({ data }: { data: MissionData }) {
   const navigate = useNavigate();
-  const { setSelectedTarget, addRecentInvestigation } = useStore();
+  const { setSelectedTarget, addRecentInvestigation } = useUI();
   const [creating, setCreating] = useState(false);
 
   const handleStart = async () => {

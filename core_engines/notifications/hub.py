@@ -23,6 +23,7 @@ from __future__ import annotations
 
 import json
 import logging
+import threading
 import time
 from dataclasses import dataclass, field
 from enum import Enum
@@ -71,6 +72,7 @@ class NotificationHub:
     """Central notification router. Channels register via subscribe()."""
 
     def __init__(self) -> None:
+        self._lock = threading.Lock()
         self._channels: Dict[str, List[ChannelHandler]] = {
             "desktop": [],
             "web": [],
@@ -82,21 +84,26 @@ class NotificationHub:
         self._digest_buffer: List[Notification] = []
         self._dedup_tracker: Dict[Tuple[str, Optional[str]], float] = {}
         self._dedup_window: float = DEDUP_WINDOW
+        self._dedup_max_entries = 10000
         self._db_bridge: Optional[Callable[[Notification], None]] = None
         self._listeners: List[Callable[[Notification], None]] = []
 
     def set_digest_mode(self, enabled: bool) -> None:
         """Toggle digest mode. When on, notifications are batched instead of routed live."""
-        self._digest_mode = enabled
+        with self._lock:
+            self._digest_mode = enabled
 
     def is_digest_mode(self) -> bool:
-        return self._digest_mode
+        with self._lock:
+            return self._digest_mode
 
     def set_dedup_window(self, seconds: float) -> None:
-        self._dedup_window = seconds
+        with self._lock:
+            self._dedup_window = seconds
 
     def get_dedup_window(self) -> float:
-        return self._dedup_window
+        with self._lock:
+            return self._dedup_window
 
     def register_db_bridge(self, callback: Callable[[Notification], None]) -> None:
         """Register a callback that persists notifications to the SQL database."""
@@ -104,28 +111,34 @@ class NotificationHub:
 
     def subscribe(self, channel: str, handler: ChannelHandler) -> None:
         """Register a handler for a notification channel."""
-        if channel not in self._channels:
-            self._channels[channel] = []
-        self._channels[channel].append(handler)
+        with self._lock:
+            if channel not in self._channels:
+                self._channels[channel] = []
+            self._channels[channel].append(handler)
         logger.debug("Handler registered for channel '%s'", channel)
 
     def unsubscribe(self, channel: str, handler: ChannelHandler) -> None:
         """Remove a handler from a channel."""
-        if channel in self._channels:
-            self._channels[channel] = [h for h in self._channels[channel] if h != handler]
+        with self._lock:
+            if channel in self._channels:
+                self._channels[channel] = [h for h in self._channels[channel] if h != handler]
 
     def add_listener(self, fn: Callable[[Notification], None]) -> None:
-        self._listeners.append(fn)
+        with self._lock:
+            self._listeners.append(fn)
 
     def _is_duplicate(self, notif: Notification) -> bool:
         if not notif.dedup_key:
             return False
         key = (notif.type, notif.dedup_key)
-        last = self._dedup_tracker.get(key)
         now = time.time()
-        if last is not None and (now - last) < self._dedup_window:
-            return True
-        self._dedup_tracker[key] = now
+        with self._lock:
+            if len(self._dedup_tracker) >= self._dedup_max_entries:
+                self._dedup_tracker.clear()
+            last = self._dedup_tracker.get(key)
+            if last is not None and (now - last) < self._dedup_window:
+                return True
+            self._dedup_tracker[key] = now
         return False
 
     def send(self, notif: Notification) -> Optional[Notification]:
@@ -140,9 +153,10 @@ class NotificationHub:
             logger.debug("Deduped notification: %s / dedup_key=%s", notif.type, notif.dedup_key)
             return None
 
-        self._history.append(notif)
-        if len(self._history) > self._max_history:
-            self._history = self._history[-self._max_history:]
+        with self._lock:
+            self._history.append(notif)
+            if len(self._history) > self._max_history:
+                self._history = self._history[-self._max_history:]
 
         if self._db_bridge:
             try:
@@ -151,21 +165,24 @@ class NotificationHub:
                 logger.warning("DB bridge error: %s", exc)
 
         if self._digest_mode:
-            self._digest_buffer.append(notif)
+            with self._lock:
+                self._digest_buffer.append(notif)
             logger.debug("Buffered notification for digest: %s", notif.type)
             return notif
 
         self._route(notif)
-        for fn in self._listeners:
-            try:
-                fn(notif)
-            except Exception:
-                pass
+        with self._lock:
+            for fn in self._listeners:
+                try:
+                    fn(notif)
+                except Exception as exc:
+                    logger.warning("Listener error: %s", exc)
         return notif
 
     def _route(self, notif: Notification) -> None:
         for channel in notif.channels:
-            handlers = self._channels.get(channel, [])
+            with self._lock:
+                handlers = list(self._channels.get(channel, []))
             for handler in handlers:
                 try:
                     handler(notif.type, {
@@ -183,10 +200,11 @@ class NotificationHub:
 
     def flush_digest(self) -> List[Dict[str, Any]]:
         """Flush buffered notifications and return a digest summary."""
-        if not self._digest_buffer:
-            return []
-        buffer = self._digest_buffer[:]
-        self._digest_buffer.clear()
+        with self._lock:
+            if not self._digest_buffer:
+                return []
+            buffer = self._digest_buffer[:]
+            self._digest_buffer.clear()
 
         groups: Dict[str, List[Notification]] = {}
         for n in buffer:
@@ -237,16 +255,20 @@ class NotificationHub:
         return self.send(notif)
 
     def get_history(self, limit: int = 50) -> List[Notification]:
-        return self._history[-limit:]
+        with self._lock:
+            return self._history[-limit:]
 
     def get_history_by_type(self, type_: str, limit: int = 20) -> List[Notification]:
-        return [n for n in self._history if n.type == type_][-limit:]
+        with self._lock:
+            return [n for n in self._history if n.type == type_][-limit:]
 
     def clear_dedup(self) -> None:
-        self._dedup_tracker.clear()
+        with self._lock:
+            self._dedup_tracker.clear()
 
     def get_digest_buffer_size(self) -> int:
-        return len(self._digest_buffer)
+        with self._lock:
+            return len(self._digest_buffer)
 
 
 _HUB: Optional[NotificationHub] = None

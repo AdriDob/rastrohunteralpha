@@ -1,7 +1,7 @@
 import json
 import ast
 import logging
-from sqlalchemy import Boolean, Column, Integer, String, DateTime, Text, ForeignKey
+from sqlalchemy import Boolean, Column, Integer, String, DateTime, Text, ForeignKey, Float
 from sqlalchemy.sql import func
 
 from .db import Base
@@ -624,7 +624,7 @@ class ValidationRun(Base):
 
 
 class Report(Base):
-    """Generated report for an investigation."""
+    """Generated report with full history tracking."""
     __tablename__ = "reports"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -643,6 +643,28 @@ class Report(Base):
 
     # JSON array of finding IDs included in this report
     finding_ids = Column(Text, nullable=True)
+
+    program = Column(String, nullable=True, index=True, default="")
+    target = Column(String, nullable=True, index=True, default="")
+    vulnerability = Column(String, nullable=True, default="")
+    severity = Column(String, nullable=True, default="medium")
+    status = Column(String, nullable=True, default="draft", index=True)
+
+    estimated_reward = Column(Float, nullable=True, default=0.0)
+    confirmed_reward = Column(Float, nullable=True, default=0.0)
+    currency = Column(String, nullable=True, default="USD")
+
+    evidence_count = Column(Integer, nullable=True, default=0)
+    notes = Column(Text, nullable=True, default="")
+
+    timeline = Column(Text, nullable=True, default="[]")
+    attachments = Column(Text, nullable=True, default="[]")
+
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
 
     created_at = Column(
         DateTime(timezone=True),

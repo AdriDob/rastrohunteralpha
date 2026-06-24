@@ -22,9 +22,19 @@ class MemoryPatternLibrary:
     RETENTION_DAYS = 90
 
     def __init__(self):
-        self.session = SessionLocal()
         self._extractor = PatternExtractor()
         self._scorer = LearningScorer()
+
+    def _session(self):
+        session = SessionLocal()
+        try:
+            yield session
+            session.commit()
+        except Exception:
+            session.rollback()
+            raise
+        finally:
+            session.close()
 
     def record_confirmed_finding(
         self,
@@ -61,13 +71,14 @@ class MemoryPatternLibrary:
         )
 
         # Store in memory
-        record = MemoryRecord(
-            category="vuln_pattern",
-            key=f"{pattern['vulnerability_type']}:{pattern['entity_type']}",
-            details=json.dumps(pattern),
-        )
-        self.session.add(record)
-        self.session.commit()
+        for sess in self._session():
+            record = MemoryRecord(
+                category="vuln_pattern",
+                key=f"{pattern['vulnerability_type']}:{pattern['entity_type']}",
+                details=json.dumps(pattern),
+            )
+            sess.add(record)
+            break
 
         return pattern
 
@@ -92,13 +103,14 @@ class MemoryPatternLibrary:
             "timestamp": datetime.now().isoformat(),
         }
 
-        record = MemoryRecord(
-            category="endpoint_profile",
-            key=f"{target_name}:{normalized_path}",
-            details=json.dumps(profile),
-        )
-        self.session.add(record)
-        self.session.commit()
+        for sess in self._session():
+            record = MemoryRecord(
+                category="endpoint_profile",
+                key=f"{target_name}:{normalized_path}",
+                details=json.dumps(profile),
+            )
+            sess.add(record)
+            break
 
     def find_similar_endpoints(
         self,
@@ -114,12 +126,13 @@ class MemoryPatternLibrary:
         """
         normalized = PatternExtractor.normalize_endpoint_path(endpoint_path)
 
-        # Query profiles
-        profiles = (
-            self.session.query(MemoryRecord)
-            .filter(MemoryRecord.category == "endpoint_profile")
-            .all()
-        )
+        for sess in self._session():
+            profiles = (
+                sess.query(MemoryRecord)
+                .filter(MemoryRecord.category == "endpoint_profile")
+                .all()
+            )
+            break
 
         similar = []
         for record in profiles:
@@ -166,11 +179,13 @@ class MemoryPatternLibrary:
         
         Returns list of successful mutations from similar findings.
         """
-        patterns = (
-            self.session.query(MemoryRecord)
-            .filter(MemoryRecord.category == "vuln_pattern")
-            .all()
-        )
+        for sess in self._session():
+            patterns = (
+                sess.query(MemoryRecord)
+                .filter(MemoryRecord.category == "vuln_pattern")
+                .all()
+            )
+            break
 
         templates = []
         for record in patterns:
@@ -206,11 +221,13 @@ class MemoryPatternLibrary:
         normalized_path = PatternExtractor.normalize_endpoint_path(endpoint_path)
         auth_smells = []
 
-        patterns = (
-            self.session.query(MemoryRecord)
-            .filter(MemoryRecord.category == "vuln_pattern")
-            .all()
-        )
+        for sess in self._session():
+            patterns = (
+                sess.query(MemoryRecord)
+                .filter(MemoryRecord.category == "vuln_pattern")
+                .all()
+            )
+            break
 
         similar_patterns = []
         for record in patterns:
@@ -240,18 +257,14 @@ class MemoryPatternLibrary:
         entity_type: Optional[str],
     ) -> float:
         """Estimate payout for finding based on type and history."""
-        # Query historical payouts for similar findings
-        historical_record = MemoryRecord(
-            category="finding_payout",
-            key=f"{finding_type}:{entity_type}",
-        )
-
-        historical_payouts = (
-            self.session.query(MemoryRecord)
-            .filter(MemoryRecord.category == "finding_payout")
-            .filter(MemoryRecord.key == f"{finding_type}:{entity_type}")
-            .all()
-        )
+        for sess in self._session():
+            historical_payouts = (
+                sess.query(MemoryRecord)
+                .filter(MemoryRecord.category == "finding_payout")
+                .filter(MemoryRecord.key == f"{finding_type}:{entity_type}")
+                .all()
+            )
+            break
 
         payouts = []
         for record in historical_payouts:
@@ -278,53 +291,68 @@ class MemoryPatternLibrary:
         amount: float,
     ) -> None:
         """Record actual payout for learning."""
-        record = MemoryRecord(
-            category="finding_payout",
-            key=f"{finding_type}:{entity_type}",
-            details=json.dumps({"amount": amount, "timestamp": datetime.now().isoformat()}),
-        )
-        self.session.add(record)
-        self.session.commit()
+        for sess in self._session():
+            record = MemoryRecord(
+                category="finding_payout",
+                key=f"{finding_type}:{entity_type}",
+                details=json.dumps({"amount": amount, "timestamp": datetime.now().isoformat()}),
+            )
+            sess.add(record)
+            break
 
     def cleanup_old_records(self) -> int:
         """Remove records older than retention period."""
         cutoff = datetime.now() - timedelta(days=self.RETENTION_DAYS)
 
-        deleted = (
-            self.session.query(MemoryRecord)
-            .filter(MemoryRecord.created_at < cutoff)
-            .delete()
-        )
-        self.session.commit()
+        for sess in self._session():
+            deleted = (
+                sess.query(MemoryRecord)
+                .filter(MemoryRecord.created_at < cutoff)
+                .delete()
+            )
+            break
 
         return deleted
 
     def close(self):
-        self.session.close()
+        pass  # sessions are per-method now
 
 
 # Backwards compatibility: original MemoryEngine still available
 class MemoryEngine:
-    def __init__(self):
-        self.session = SessionLocal()
+    def _session(self):
+        session = SessionLocal()
+        try:
+            yield session
+            session.commit()
+        except Exception:
+            session.rollback()
+            raise
+        finally:
+            session.close()
 
     def remember(
         self, category: str, key: str, details: dict[str, Any]
     ) -> MemoryRecord:
         record = MemoryRecord(category=category, key=key, details=str(details))
-        self.session.add(record)
-        self.session.commit()
-        self.session.refresh(record)
+        for sess in self._session():
+            sess.add(record)
+            sess.commit()
+            sess.refresh(record)
+            return record
         return record
 
     def recent(self, category: str, limit: int = 20) -> list[MemoryRecord]:
-        return (
-            self.session.query(MemoryRecord)
-            .filter(MemoryRecord.category == category)
-            .order_by(MemoryRecord.created_at.desc())
-            .limit(limit)
-            .all()
-        )
+        for sess in self._session():
+            result = (
+                sess.query(MemoryRecord)
+                .filter(MemoryRecord.category == category)
+                .order_by(MemoryRecord.created_at.desc())
+                .limit(limit)
+                .all()
+            )
+            return result
+        return []
 
     def close(self):
-        self.session.close()
+        pass  # sessions are per-method now

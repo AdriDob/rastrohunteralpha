@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { setAuthToken } from './lib/api';
-import { useStore } from './lib/store';
+import { setAuthToken, setOnAuthRedirect } from './lib/api';
+import { useUI } from './lib/store';
 import { StateContinuityProvider } from './lib/stateContinuity';
 import { GlobalErrorBoundaryUI } from './components/ui/GlobalErrorBoundaryUI';
 import Layout from './components/layout/Layout';
@@ -41,10 +41,13 @@ const PersonalIntelligence = lazy(() => import('./pages/PersonalIntelligence'));
 const ProjectDashboard = lazy(() => import('./pages/ProjectDashboard'));
 const InvestigationCenter = lazy(() => import('./pages/InvestigationCenter'));
 const InvestigationDetail = lazy(() => import('./pages/InvestigationDetail'));
+const ReportHistory = lazy(() => import('./pages/ReportHistory'));
+const ReportDetail = lazy(() => import('./pages/ReportDetail'));
 const Settings = lazy(() => import('./pages/Settings'));
+const ProgramCatalog = lazy(() => import('./pages/ProgramCatalog'));
 
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { refetchOnWindowFocus: false, staleTime: 30_000 } },
+  defaultOptions: { queries: { refetchOnWindowFocus: false, staleTime: 30_000, gcTime: 10 * 60 * 1000 } },
 });
 
 const SETTINGS_KEY = 'rastro-desktop-settings';
@@ -77,17 +80,29 @@ function saveSettings(theme: string, lang: Language) {
   } catch {}
 }
 
+function AuthErrorHandler() {
+  const navigate = useNavigate();
+  useEffect(() => {
+    setOnAuthRedirect((path) => navigate(path, { replace: true }));
+    return () => setOnAuthRedirect(null as any);
+  }, [navigate]);
+  return null;
+}
+
 function AppInitializer() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const addRecentInvestigation = useStore((s) => s.addRecentInvestigation);
+  const { addRecentInvestigation } = useUI();
 
   useEffect(() => {
     const token = searchParams.get('token');
     const targetId = searchParams.get('target_id');
+    console.log('[AppInitializer] URL token param:', token, 'targetId:', targetId, 'href:', window.location.href);
 
     if (token) {
+      console.log('[AppInitializer] calling setAuthToken with:', token);
       setAuthToken(token);
+      console.log('[AppInitializer] after setAuthToken, sessionStorage has token:', sessionStorage.getItem('rastro-token'));
     }
 
     if (targetId) {
@@ -98,8 +113,10 @@ function AppInitializer() {
     }
 
     if (token || targetId) {
+      console.log('[AppInitializer] navigating to / with replace');
       navigate('/', { replace: true });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return null;
@@ -144,10 +161,26 @@ export default function App() {
   const [themeName, setThemeName] = useState(() => loadSettings().theme);
   const [lang, setLang] = useState<Language>(() => loadSettings().lang);
   const [bootComplete, setBootComplete] = useState(() => {
-    return sessionStorage.getItem('rastro-boot-complete') === 'true';
+    const val = sessionStorage.getItem('rastro-boot-complete') === 'true';
+    console.log('[App] bootComplete initialized to', val, `(sessionStorage key="${sessionStorage.getItem('rastro-boot-complete')}")`);
+    return val;
   });
 
+  // Declared unconditionally at the top level — NO early returns before hooks.
+  // Initializer functions read URL params / localStorage lazily on first render.
+  const [showOnboarding, setShowOnboarding] = useState(
+    () => {
+      if (localStorage.getItem('rastro-onboarding-complete') === 'true') return false;
+      const onboardingParam = new URLSearchParams(window.location.search).get('onboarding');
+      return onboardingParam === '1';
+    }
+  );
+  const [showTour, setShowTour] = useState(
+    () => localStorage.getItem('rastro-tour-complete') !== 'true'
+  );
+
   const handleBootComplete = useCallback(() => {
+    console.log('[App] handleBootComplete called, setting bootComplete=true');
     setBootComplete(true);
     sessionStorage.setItem('rastro-boot-complete', 'true');
   }, []);
@@ -179,16 +212,11 @@ export default function App() {
     available: [detective_dark, aurora_light],
   }), [theme, setTheme]);
 
+  console.log(`[App] render bootComplete=${bootComplete} showOnboarding=${showOnboarding} showTour=${showTour} url=${window.location.href}`);
+
   if (!bootComplete) {
     return <BootScreen onComplete={handleBootComplete} />;
   }
-
-  const [showOnboarding, setShowOnboarding] = useState(
-    () => localStorage.getItem('rastro-onboarding-complete') !== 'true'
-  );
-  const [showTour, setShowTour] = useState(
-    () => localStorage.getItem('rastro-tour-complete') !== 'true'
-  );
 
   if (showOnboarding) {
     return (
@@ -210,6 +238,7 @@ export default function App() {
           <GlobalErrorBoundaryUI>
             <StateContinuityProvider>
               <BrowserRouter>
+                <AuthErrorHandler />
                 <AppInitializer />
                 <WSBridge />
                 <Routes>
@@ -248,7 +277,10 @@ export default function App() {
                     <Route path="/intelligence" element={<Suspense fallback={fallback}><IntelligenceDashboard /></Suspense>} />
                     <Route path="/personal-intelligence" element={<Suspense fallback={fallback}><PersonalIntelligence /></Suspense>} />
                     <Route path="/radar" element={<Suspense fallback={fallback}><OpportunityRadar /></Suspense>} />
+                    <Route path="/programs" element={<Suspense fallback={fallback}><ProgramCatalog /></Suspense>} />
                     <Route path="/reports" element={<Suspense fallback={fallback}><ReportCenter /></Suspense>} />
+                    <Route path="/reports/history" element={<Suspense fallback={fallback}><ReportHistory /></Suspense>} />
+                    <Route path="/reports/:id" element={<Suspense fallback={fallback}><ReportDetail /></Suspense>} />
                     <Route path="/project-dashboard" element={<Suspense fallback={fallback}><ProjectDashboard /></Suspense>} />
                     <Route path="/investigations" element={<Suspense fallback={fallback}><InvestigationCenter /></Suspense>} />
                     <Route path="/investigation/:id" element={<Suspense fallback={fallback}><InvestigationDetail /></Suspense>} />

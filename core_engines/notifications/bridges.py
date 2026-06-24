@@ -9,7 +9,7 @@ logger = logging.getLogger("rastro.notifications.bridges")
 
 
 def register_db_bridge() -> None:
-    """Connect NotificationHub → SQL database persistence."""
+    """Connect NotificationHub -> SQL database persistence."""
     from core_engines.notifications.hub import get_hub
     from core_engines.notifications.db_bridge import persist_notification
 
@@ -135,7 +135,7 @@ def register_event_bridge() -> None:
 
     bus = get_event_bus()
     bus.subscribe_async("*", _on_event)
-    logger.info("Event → notification bridge started")
+    logger.info("Event -> notification bridge started")
 
 
 def register_ws_forwarder() -> None:
