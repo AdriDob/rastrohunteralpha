@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react
 import { BrowserRouter, Routes, Route, useNavigate, useSearchParams } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { setAuthToken, setOnAuthRedirect } from './lib/api';
-import { useUI } from './lib/store';
+import { useUI, useLicense } from './lib/store';
 import { StateContinuityProvider } from './lib/stateContinuity';
 import { GlobalErrorBoundaryUI } from './components/ui/GlobalErrorBoundaryUI';
 import Layout from './components/layout/Layout';
@@ -89,6 +89,18 @@ function AuthErrorHandler() {
   return null;
 }
 
+function LicenseGate() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { licenseValid } = useLicense();
+  useEffect(() => {
+    if (licenseValid === false && location.pathname !== '/activate') {
+      navigate('/activate', { replace: true });
+    }
+  }, [licenseValid, navigate, location]);
+  return null;
+}
+
 function AppInitializer() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -165,6 +177,7 @@ export default function App() {
     console.log('[App] bootComplete initialized to', val, `(sessionStorage key="${sessionStorage.getItem('rastro-boot-complete')}")`);
     return val;
   });
+  const { licenseValid, licenseError } = useLicense();
 
   // Declared unconditionally at the top level — NO early returns before hooks.
   // Initializer functions read URL params / localStorage lazily on first render.
@@ -215,7 +228,45 @@ export default function App() {
   console.log(`[App] render bootComplete=${bootComplete} showOnboarding=${showOnboarding} showTour=${showTour} url=${window.location.href}`);
 
   if (!bootComplete) {
-    return <BootScreen onComplete={handleBootComplete} />;
+    const bootErr = licenseValid === false
+      ? (licenseError || 'No active license detected. Please activate Rastro to continue.')
+      : null;
+    return <BootScreen onComplete={handleBootComplete} licenseError={bootErr} />;
+  }
+
+  // License gate: if license is known invalid after boot, redirect
+  if (licenseValid === false && !showOnboarding && !showTour) {
+    return (
+      <div style={{
+        position: 'fixed', inset: 0, zIndex: 9999,
+        display: 'flex', flexDirection: 'column',
+        alignItems: 'center', justifyContent: 'center',
+        gap: 24, background: '#13151d',
+      }}>
+        <div style={{
+          width: 48, height: 48, borderRadius: '50%',
+          background: 'rgba(239,68,68,0.15)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: 24,
+        }}>⚠</div>
+        <div style={{ fontSize: 15, fontWeight: 600, color: '#ef4444' }}>
+          License required
+        </div>
+        <div style={{ fontSize: 13, color: '#7c8299', textAlign: 'center', maxWidth: 360, lineHeight: 1.5 }}>
+          {licenseError || 'No active license detected.'}
+        </div>
+        <button
+          onClick={() => window.location.href = '/activate'}
+          style={{
+            padding: '10px 28px', borderRadius: 8, border: 'none',
+            background: '#7c3aed', color: '#fff', fontSize: 14, fontWeight: 600,
+            cursor: 'pointer', marginTop: 8,
+          }}
+        >
+          Activate license
+        </button>
+      </div>
+    );
   }
 
   if (showOnboarding) {
@@ -239,6 +290,7 @@ export default function App() {
             <StateContinuityProvider>
               <BrowserRouter>
                 <AuthErrorHandler />
+                <LicenseGate />
                 <AppInitializer />
                 <WSBridge />
                 <Routes>

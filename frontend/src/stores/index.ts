@@ -65,6 +65,25 @@ export const useStore = create<AppStore>()(
                   console.log('[onRehydrateStorage] setAuthToken done, sessionStorage rastro-token:', sessionStorage.getItem('rastro-token'));
                 }
 
+                // Check license status before proceeding
+                console.log('[onRehydrateStorage] checking license status');
+                try {
+                  const licRes = await fetch('/api/license/status');
+                  const licData = await licRes.json();
+                  const licValid = licData?.data?.valid === true;
+                  console.log('[onRehydrateStorage] license valid:', licValid);
+                  if (!licValid) {
+                    console.log('[onRehydrateStorage] license invalid — setting licenseValid=false, skipping overview');
+                    useStore.setState({ licenseValid: false, licenseLoading: false });
+                    setHydrating(false);
+                    setHydrated(true);
+                    return; // prevent dashboard render
+                  }
+                } catch (licErr) {
+                  console.log('[onRehydrateStorage] license check failed:', licErr);
+                  // backend not reachable — keep stale state
+                }
+
                 console.log('[onRehydrateStorage] calling getOverviewPreload');
                 const { getOverviewPreload } = await import('../lib/api');
                 const overview = await getOverviewPreload();

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 
 interface BootScreenProps {
   onComplete: () => void;
+  licenseError?: string | null;
 }
 
 const BOOT_PHASES = [
@@ -13,16 +14,20 @@ const BOOT_PHASES = [
   { label: 'Initializing assistant', duration: 300 },
 ];
 
-export default function BootScreen({ onComplete }: BootScreenProps) {
+export default function BootScreen({ onComplete, licenseError }: BootScreenProps) {
   const [phase, setPhase] = useState(() => {
     console.log('[BootScreen] phase initialized to 0');
     return 0;
   });
   const [fadeOut, setFadeOut] = useState(false);
 
-  console.log(`[BootScreen] render phase=${phase} fadeOut=${fadeOut}`);
+  console.log(`[BootScreen] render phase=${phase} fadeOut=${fadeOut} licenseError=${licenseError}`);
 
   useEffect(() => {
+    if (licenseError) {
+      console.log('[BootScreen] license error — halting boot');
+      return;
+    }
     if (phase >= BOOT_PHASES.length) {
       console.log('[BootScreen] ALL PHASES DONE, starting fadeOut');
       setFadeOut(true);
@@ -44,7 +49,7 @@ export default function BootScreen({ onComplete }: BootScreenProps) {
       console.log(`[BootScreen] cleanup timer for phase ${phase}`);
       clearTimeout(t);
     };
-  }, [phase, onComplete]);
+  }, [phase, onComplete, licenseError]);
 
   return (
     <div style={{
@@ -63,42 +68,69 @@ export default function BootScreen({ onComplete }: BootScreenProps) {
         <span style={{ color: '#7c3aed' }}>R</span>astro
       </div>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: 280 }}>
-        {BOOT_PHASES.map((p, i) => {
-          const status = i < phase ? 'done' : i === phase ? 'active' : 'pending';
-          return (
-            <div key={p.label} style={{
-              display: 'flex', alignItems: 'center', gap: 12,
-              opacity: status === 'pending' ? 0.3 : 1,
-              transition: 'all 0.3s ease',
-            }}>
-              <div style={{
-                width: 20, height: 20, borderRadius: '50%',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 10, fontWeight: 700,
-                background: status === 'done' ? '#22c55e'
-                  : status === 'active' ? '#7c3aed' : '#2a2e3d',
-                color: status === 'pending' ? '#4a4f63' : '#fff',
+      {licenseError ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 24, width: 320, alignItems: 'center' }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: '50%',
+            background: 'rgba(239,68,68,0.15)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 24,
+          }}>⚠</div>
+          <div style={{ fontSize: 15, fontWeight: 600, color: '#ef4444' }}>
+            License required
+          </div>
+          <div style={{ fontSize: 13, color: '#7c8299', textAlign: 'center', lineHeight: 1.5 }}>
+            {licenseError}
+          </div>
+          <button
+            onClick={() => window.location.href = '/activate'}
+            style={{
+              padding: '10px 28px', borderRadius: 8, border: 'none',
+              background: '#7c3aed', color: '#fff', fontSize: 14, fontWeight: 600,
+              cursor: 'pointer', marginTop: 8,
+            }}
+          >
+            Activate license
+          </button>
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: 280 }}>
+          {BOOT_PHASES.map((p, i) => {
+            const status = i < phase ? 'done' : i === phase ? 'active' : 'pending';
+            return (
+              <div key={p.label} style={{
+                display: 'flex', alignItems: 'center', gap: 12,
+                opacity: status === 'pending' ? 0.3 : 1,
                 transition: 'all 0.3s ease',
               }}>
-                {status === 'done' ? '✓' : status === 'active' ? '○' : '·'}
-              </div>
-              <div style={{ fontSize: 13, color: status === 'pending' ? '#4a4f63' : '#e2e4e9' }}>
-                {p.label}
-              </div>
-              {status === 'active' && (
                 <div style={{
-                  width: 12, height: 12, borderRadius: '50%',
-                  border: '2px solid #7c3aed',
-                  borderTopColor: 'transparent',
-                  animation: 'spin 0.8s linear infinite',
-                  marginLeft: 'auto',
-                }} />
-              )}
-            </div>
-          );
-        })}
-      </div>
+                  width: 20, height: 20, borderRadius: '50%',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 10, fontWeight: 700,
+                  background: status === 'done' ? '#22c55e'
+                    : status === 'active' ? '#7c3aed' : '#2a2e3d',
+                  color: status === 'pending' ? '#4a4f63' : '#fff',
+                  transition: 'all 0.3s ease',
+                }}>
+                  {status === 'done' ? '✓' : status === 'active' ? '○' : '·'}
+                </div>
+                <div style={{ fontSize: 13, color: status === 'pending' ? '#4a4f63' : '#e2e4e9' }}>
+                  {p.label}
+                </div>
+                {status === 'active' && (
+                  <div style={{
+                    width: 12, height: 12, borderRadius: '50%',
+                    border: '2px solid #7c3aed',
+                    borderTopColor: 'transparent',
+                    animation: 'spin 0.8s linear infinite',
+                    marginLeft: 'auto',
+                  }} />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
 
       <style>{`
         @keyframes spin { to { transform: rotate(360deg); } }
