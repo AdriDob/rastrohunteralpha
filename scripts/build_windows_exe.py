@@ -18,7 +18,7 @@ WSL_TEMP = Path("/mnt/c/Users/adrie/AppData/Local/Temp/rastro_build")
 # Windows paths (used when calling Windows executables)
 WIN_TEMP = r"C:\Users\adrie\AppData\Local\Temp\rastro_build"
 
-INCLUDED_DIRS = {"desktop", "api", "core_engines", "database", "ai"}
+INCLUDED_DIRS = {"desktop", "api", "core_engines", "database"}
 
 def copy_project_to_windows():
     dest = WSL_TEMP
@@ -85,7 +85,6 @@ PyInstaller.__main__.run([
     '--collect-all', 'core_engines',
     '--collect-all', 'api',
     '--collect-all', 'database',
-    '--collect-all', 'ai',
     os.path.join(_BASE, 'run.py'),
 ])
 """

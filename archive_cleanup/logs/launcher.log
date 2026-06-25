@@ -1,0 +1,39 @@
+2026-06-12 14:36:47 [BOOT] Rastro Desktop — PID: 43035
+2026-06-12 14:36:47 [BOOT] Frozen: False, Python: 3.14.4, OS: linux
+2026-06-12 14:36:48 [BOOT] Backend port: 8000
+2026-06-12 14:36:48 [API] Starting API server
+2026-06-12 14:36:50 [FRONTEND] Frontend mounted from /home/adrie/projects/Rastro/frontend/dist
+2026-06-12 14:36:50 [API] Server thread started on 127.0.0.1:8000
+2026-06-12 14:36:50 [API] Server listening on 127.0.0.1:8000
+2026-06-12 14:36:51 [HEALTHY] Backend healthy on port 8000
+2026-06-12 14:36:51 [BROWSER] Dashboard URL: http://127.0.0.1:8000/
+2026-06-12 14:36:51 [READY] Rastro Desktop ready
+2026-06-12 14:37:02 [SHUTDOWN] Signal 15 received
+2026-06-12 14:37:02 [SHUTDOWN] Stopping server...
+2026-06-12 14:37:02 [SHUTDOWN] Rastro Desktop stopped
+2026-06-12 14:48:43 [BOOT] Rastro Desktop — PID: 50173
+2026-06-12 14:48:43 [BOOT] Frozen: False, Python: 3.14.4, OS: linux
+2026-06-12 14:48:44 [BOOT] Backend port: 8000
+2026-06-12 14:48:44 [API] Starting API server
+2026-06-12 14:48:45 [FRONTEND] Frontend mounted from /home/adrie/projects/Rastro/frontend/dist
+2026-06-12 14:48:45 [API] Server thread started on 127.0.0.1:8000
+2026-06-12 14:48:45 [API] Server listening on 127.0.0.1:8000
+2026-06-12 14:48:45 [HEALTHY] Backend healthy on port 8000
+2026-06-12 14:48:45 [BROWSER] Dashboard URL: http://127.0.0.1:8000/
+2026-06-12 14:48:45 [READY] Rastro Desktop ready
+2026-06-12 14:48:51 [SHUTDOWN] Signal 15 received
+2026-06-12 14:48:51 [SHUTDOWN] Stopping server...
+2026-06-12 14:48:51 [SHUTDOWN] Rastro Desktop stopped
+2026-06-12 14:48:52 [BOOT] Rastro Desktop — PID: 50226
+2026-06-12 14:48:52 [BOOT] Frozen: False, Python: 3.14.4, OS: linux
+2026-06-12 14:48:52 [BOOT] Backend port: 8000
+2026-06-12 14:48:52 [API] Starting API server
+2026-06-12 14:48:54 [FRONTEND] Frontend mounted from /home/adrie/projects/Rastro/frontend/dist
+2026-06-12 14:48:54 [API] Server thread started on 127.0.0.1:8000
+2026-06-12 14:48:54 [API] Server listening on 127.0.0.1:8000
+2026-06-12 14:48:54 [HEALTHY] Backend healthy on port 8000
+2026-06-12 14:48:54 [BROWSER] Dashboard URL: http://127.0.0.1:8000/
+2026-06-12 14:48:54 [READY] Rastro Desktop ready
+2026-06-12 14:49:02 [SHUTDOWN] Signal 15 received
+2026-06-12 14:49:02 [SHUTDOWN] Stopping server...
+2026-06-12 14:49:02 [SHUTDOWN] Rastro Desktop stopped

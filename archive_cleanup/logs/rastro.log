@@ -1,0 +1,1729 @@
+2026-06-12 14:36:47,683 [rastro.desktop] INFO: [BOOT] Rastro Desktop — PID: 43035
+2026-06-12 14:36:47,684 [rastro.desktop] INFO: [BOOT] Frozen: False, Python: 3.14.4, OS: linux
+2026-06-12 14:36:48,612 [rastro.desktop] INFO: [BOOT] Backend port: 8000
+2026-06-12 14:36:48,612 [rastro.desktop] INFO: [API] Starting API server
+2026-06-12 14:36:50,578 [rastro.desktop] INFO: [FRONTEND] Frontend mounted from /home/adrie/projects/Rastro/frontend/dist
+2026-06-12 14:36:50,579 [rastro.desktop] INFO: [API] Server thread started on 127.0.0.1:8000
+2026-06-12 14:36:50,665 [asyncio] DEBUG: Using selector: EpollSelector
+2026-06-12 14:36:50,823 [rastro.api] INFO: Database initialized
+2026-06-12 14:36:50,826 [rastro.events] INFO: Event bus initialized
+2026-06-12 14:36:50,843 [rastro.api] INFO: Event bus and system state initialized
+2026-06-12 14:36:50,850 [rastro.product_rules] WARNING: [ERROR] scorecard-reachable: Scorecard has no data yet (expected on first boot)
+2026-06-12 14:36:50,850 [rastro.api] INFO: Product behavior rules checked
+2026-06-12 14:36:50,850 [rastro.identity] INFO: Restored identity: 9286fab9-c2bd-4b09-958e-deeebbc46176
+2026-06-12 14:36:50,850 [rastro.api] INFO: Identity system initialized: 9286fab9-c2bd-4b09-958e-deeebbc46176
+2026-06-12 14:36:50,851 [rastro.orchestrator.assistant] INFO: Suppressed 0 noise items (threshold=0.15)
+2026-06-12 14:36:50,851 [rastro.api] INFO: Assistant orchestrator initialized
+2026-06-12 14:36:50,851 [rastro.api] INFO: Execution tracker initialized
+2026-06-12 14:36:50,851 [rastro.api] INFO: Outcome tracker initialized
+2026-06-12 14:36:50,882 [rastro.api] INFO: System scorecard initialized
+2026-06-12 14:36:50,882 [rastro.api] INFO: Explanation engine initialized
+2026-06-12 14:36:50,882 [rastro.api] INFO: Decision trace collector initialized
+2026-06-12 14:36:50,882 [rastro.api] INFO: Memory store initialized
+2026-06-12 14:36:50,882 [rastro.api] INFO: Decision memory initialized
+2026-06-12 14:36:50,882 [rastro.api] INFO: Insight archive initialized
+2026-06-12 14:36:50,882 [rastro.api] INFO: Priority engine memory consumption: consumed
+2026-06-12 14:36:50,882 [rastro.api] INFO: Execution layer fully initialized
+2026-06-12 14:36:50,883 [rastro.desktop] INFO: [API] Server listening on 127.0.0.1:8000
+2026-06-12 14:36:51,714 [httpcore.connection] DEBUG: connect_tcp.started host='127.0.0.1' port=8000 local_address=None timeout=2.0 socket_options=None
+2026-06-12 14:36:51,714 [httpcore.connection] DEBUG: connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x79a7353d2660>
+2026-06-12 14:36:51,714 [httpcore.http11] DEBUG: send_request_headers.started request=<Request [b'GET']>
+2026-06-12 14:36:51,714 [httpcore.http11] DEBUG: send_request_headers.complete
+2026-06-12 14:36:51,714 [httpcore.http11] DEBUG: send_request_body.started request=<Request [b'GET']>
+2026-06-12 14:36:51,715 [httpcore.http11] DEBUG: send_request_body.complete
+2026-06-12 14:36:51,715 [httpcore.http11] DEBUG: receive_response_headers.started request=<Request [b'GET']>
+2026-06-12 14:36:51,720 [httpcore.http11] DEBUG: receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'date', b'Fri, 12 Jun 2026 14:36:50 GMT'), (b'server', b'uvicorn'), (b'content-length', b'52'), (b'content-type', b'application/json')])
+2026-06-12 14:36:51,721 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/health "HTTP/1.1 200 OK"
+2026-06-12 14:36:51,721 [httpcore.http11] DEBUG: receive_response_body.started request=<Request [b'GET']>
+2026-06-12 14:36:51,721 [httpcore.http11] DEBUG: receive_response_body.complete
+2026-06-12 14:36:51,721 [httpcore.http11] DEBUG: response_closed.started
+2026-06-12 14:36:51,721 [httpcore.http11] DEBUG: response_closed.complete
+2026-06-12 14:36:51,721 [httpcore.connection] DEBUG: close.started
+2026-06-12 14:36:51,721 [httpcore.connection] DEBUG: close.complete
+2026-06-12 14:36:51,721 [rastro.desktop] INFO: [HEALTHY] Backend healthy on port 8000
+2026-06-12 14:36:51,728 [rastro.desktop] INFO: [BROWSER] Dashboard URL: http://127.0.0.1:8000/
+2026-06-12 14:36:51,728 [rastro.desktop] INFO: [READY] Rastro Desktop ready
+2026-06-12 14:37:02,628 [rastro.desktop] INFO: [SHUTDOWN] Signal 15 received
+2026-06-12 14:37:02,629 [rastro.desktop] INFO: [SHUTDOWN] Stopping server...
+2026-06-12 14:37:02,629 [rastro.desktop] INFO: [SHUTDOWN] Rastro Desktop stopped
+2026-06-12 14:48:43,505 [rastro.desktop] INFO: [BOOT] Rastro Desktop — PID: 50173
+2026-06-12 14:48:43,506 [rastro.desktop] INFO: [BOOT] Frozen: False, Python: 3.14.4, OS: linux
+2026-06-12 14:48:44,312 [rastro.desktop] INFO: [BOOT] Backend port: 8000
+2026-06-12 14:48:44,313 [rastro.desktop] INFO: [API] Starting API server
+2026-06-12 14:48:45,351 [rastro.desktop] INFO: [FRONTEND] Frontend mounted from /home/adrie/projects/Rastro/frontend/dist
+2026-06-12 14:48:45,357 [rastro.desktop] INFO: [API] Server thread started on 127.0.0.1:8000
+2026-06-12 14:48:45,403 [asyncio] DEBUG: Using selector: EpollSelector
+2026-06-12 14:48:45,444 [rastro.api] INFO: Database initialized
+2026-06-12 14:48:45,444 [rastro.events] INFO: Event bus initialized
+2026-06-12 14:48:45,445 [rastro.api] INFO: Event bus and system state initialized
+2026-06-12 14:48:45,446 [rastro.product_rules] WARNING: [ERROR] scorecard-reachable: Scorecard has no data yet (expected on first boot)
+2026-06-12 14:48:45,446 [rastro.api] INFO: Product behavior rules checked
+2026-06-12 14:48:45,446 [rastro.identity] INFO: Restored identity: 9286fab9-c2bd-4b09-958e-deeebbc46176
+2026-06-12 14:48:45,447 [rastro.api] INFO: Identity system initialized: 9286fab9-c2bd-4b09-958e-deeebbc46176
+2026-06-12 14:48:45,447 [rastro.orchestrator.assistant] INFO: Suppressed 0 noise items (threshold=0.15)
+2026-06-12 14:48:45,447 [rastro.api] INFO: Assistant orchestrator initialized
+2026-06-12 14:48:45,447 [rastro.api] INFO: Execution tracker initialized
+2026-06-12 14:48:45,447 [rastro.api] INFO: Outcome tracker initialized
+2026-06-12 14:48:45,456 [rastro.api] INFO: System scorecard initialized
+2026-06-12 14:48:45,456 [rastro.api] INFO: Explanation engine initialized
+2026-06-12 14:48:45,456 [rastro.api] INFO: Decision trace collector initialized
+2026-06-12 14:48:45,456 [rastro.api] INFO: Memory store initialized
+2026-06-12 14:48:45,456 [rastro.api] INFO: Decision memory initialized
+2026-06-12 14:48:45,456 [rastro.api] INFO: Insight archive initialized
+2026-06-12 14:48:45,456 [rastro.api] INFO: Priority engine memory consumption: consumed
+2026-06-12 14:48:45,456 [rastro.api] INFO: Execution layer fully initialized
+2026-06-12 14:48:45,669 [rastro.desktop] INFO: [API] Server listening on 127.0.0.1:8000
+2026-06-12 14:48:45,865 [httpcore.connection] DEBUG: connect_tcp.started host='127.0.0.1' port=8000 local_address=None timeout=2.0 socket_options=None
+2026-06-12 14:48:45,871 [httpcore.connection] DEBUG: connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x70c401502510>
+2026-06-12 14:48:45,871 [httpcore.http11] DEBUG: send_request_headers.started request=<Request [b'GET']>
+2026-06-12 14:48:45,871 [httpcore.http11] DEBUG: send_request_headers.complete
+2026-06-12 14:48:45,871 [httpcore.http11] DEBUG: send_request_body.started request=<Request [b'GET']>
+2026-06-12 14:48:45,872 [httpcore.http11] DEBUG: send_request_body.complete
+2026-06-12 14:48:45,872 [httpcore.http11] DEBUG: receive_response_headers.started request=<Request [b'GET']>
+2026-06-12 14:48:45,877 [httpcore.http11] DEBUG: receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'date', b'Fri, 12 Jun 2026 14:48:45 GMT'), (b'server', b'uvicorn'), (b'content-length', b'52'), (b'content-type', b'application/json')])
+2026-06-12 14:48:45,877 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/health "HTTP/1.1 200 OK"
+2026-06-12 14:48:45,878 [httpcore.http11] DEBUG: receive_response_body.started request=<Request [b'GET']>
+2026-06-12 14:48:45,878 [httpcore.http11] DEBUG: receive_response_body.complete
+2026-06-12 14:48:45,878 [httpcore.http11] DEBUG: response_closed.started
+2026-06-12 14:48:45,878 [httpcore.http11] DEBUG: response_closed.complete
+2026-06-12 14:48:45,878 [httpcore.connection] DEBUG: close.started
+2026-06-12 14:48:45,878 [httpcore.connection] DEBUG: close.complete
+2026-06-12 14:48:45,878 [rastro.desktop] INFO: [HEALTHY] Backend healthy on port 8000
+2026-06-12 14:48:45,879 [rastro.desktop] INFO: [BROWSER] Dashboard URL: http://127.0.0.1:8000/
+2026-06-12 14:48:45,880 [rastro.desktop] INFO: [READY] Rastro Desktop ready
+2026-06-12 14:48:51,424 [rastro.desktop] INFO: [SHUTDOWN] Signal 15 received
+2026-06-12 14:48:51,425 [rastro.desktop] INFO: [SHUTDOWN] Stopping server...
+2026-06-12 14:48:51,425 [rastro.desktop] INFO: [SHUTDOWN] Rastro Desktop stopped
+2026-06-12 14:48:52,168 [rastro.desktop] INFO: [BOOT] Rastro Desktop — PID: 50226
+2026-06-12 14:48:52,168 [rastro.desktop] INFO: [BOOT] Frozen: False, Python: 3.14.4, OS: linux
+2026-06-12 14:48:52,975 [rastro.desktop] INFO: [BOOT] Backend port: 8000
+2026-06-12 14:48:52,975 [rastro.desktop] INFO: [API] Starting API server
+2026-06-12 14:48:54,025 [rastro.desktop] INFO: [FRONTEND] Frontend mounted from /home/adrie/projects/Rastro/frontend/dist
+2026-06-12 14:48:54,055 [rastro.desktop] INFO: [API] Server thread started on 127.0.0.1:8000
+2026-06-12 14:48:54,076 [asyncio] DEBUG: Using selector: EpollSelector
+2026-06-12 14:48:54,110 [rastro.api] INFO: Database initialized
+2026-06-12 14:48:54,111 [rastro.events] INFO: Event bus initialized
+2026-06-12 14:48:54,117 [rastro.api] INFO: Event bus and system state initialized
+2026-06-12 14:48:54,118 [rastro.product_rules] WARNING: [ERROR] scorecard-reachable: Scorecard has no data yet (expected on first boot)
+2026-06-12 14:48:54,118 [rastro.api] INFO: Product behavior rules checked
+2026-06-12 14:48:54,118 [rastro.identity] INFO: Restored identity: 9286fab9-c2bd-4b09-958e-deeebbc46176
+2026-06-12 14:48:54,119 [rastro.api] INFO: Identity system initialized: 9286fab9-c2bd-4b09-958e-deeebbc46176
+2026-06-12 14:48:54,119 [rastro.orchestrator.assistant] INFO: Suppressed 0 noise items (threshold=0.15)
+2026-06-12 14:48:54,119 [rastro.api] INFO: Assistant orchestrator initialized
+2026-06-12 14:48:54,119 [rastro.api] INFO: Execution tracker initialized
+2026-06-12 14:48:54,119 [rastro.api] INFO: Outcome tracker initialized
+2026-06-12 14:48:54,129 [rastro.api] INFO: System scorecard initialized
+2026-06-12 14:48:54,129 [rastro.api] INFO: Explanation engine initialized
+2026-06-12 14:48:54,129 [rastro.api] INFO: Decision trace collector initialized
+2026-06-12 14:48:54,129 [rastro.api] INFO: Memory store initialized
+2026-06-12 14:48:54,129 [rastro.api] INFO: Decision memory initialized
+2026-06-12 14:48:54,129 [rastro.api] INFO: Insight archive initialized
+2026-06-12 14:48:54,129 [rastro.api] INFO: Priority engine memory consumption: consumed
+2026-06-12 14:48:54,129 [rastro.api] INFO: Execution layer fully initialized
+2026-06-12 14:48:54,362 [rastro.desktop] INFO: [API] Server listening on 127.0.0.1:8000
+2026-06-12 14:48:54,523 [httpcore.connection] DEBUG: connect_tcp.started host='127.0.0.1' port=8000 local_address=None timeout=2.0 socket_options=None
+2026-06-12 14:48:54,524 [httpcore.connection] DEBUG: connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7bbb2a502510>
+2026-06-12 14:48:54,524 [httpcore.http11] DEBUG: send_request_headers.started request=<Request [b'GET']>
+2026-06-12 14:48:54,524 [httpcore.http11] DEBUG: send_request_headers.complete
+2026-06-12 14:48:54,524 [httpcore.http11] DEBUG: send_request_body.started request=<Request [b'GET']>
+2026-06-12 14:48:54,524 [httpcore.http11] DEBUG: send_request_body.complete
+2026-06-12 14:48:54,524 [httpcore.http11] DEBUG: receive_response_headers.started request=<Request [b'GET']>
+2026-06-12 14:48:54,530 [httpcore.http11] DEBUG: receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'date', b'Fri, 12 Jun 2026 14:48:54 GMT'), (b'server', b'uvicorn'), (b'content-length', b'52'), (b'content-type', b'application/json')])
+2026-06-12 14:48:54,530 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/health "HTTP/1.1 200 OK"
+2026-06-12 14:48:54,530 [httpcore.http11] DEBUG: receive_response_body.started request=<Request [b'GET']>
+2026-06-12 14:48:54,530 [httpcore.http11] DEBUG: receive_response_body.complete
+2026-06-12 14:48:54,531 [httpcore.http11] DEBUG: response_closed.started
+2026-06-12 14:48:54,531 [httpcore.http11] DEBUG: response_closed.complete
+2026-06-12 14:48:54,531 [httpcore.connection] DEBUG: close.started
+2026-06-12 14:48:54,531 [httpcore.connection] DEBUG: close.complete
+2026-06-12 14:48:54,531 [rastro.desktop] INFO: [HEALTHY] Backend healthy on port 8000
+2026-06-12 14:48:54,532 [rastro.desktop] INFO: [BROWSER] Dashboard URL: http://127.0.0.1:8000/
+2026-06-12 14:48:54,532 [rastro.desktop] INFO: [READY] Rastro Desktop ready
+2026-06-12 14:49:02,118 [rastro.desktop] INFO: [SHUTDOWN] Signal 15 received
+2026-06-12 14:49:02,118 [rastro.desktop] INFO: [SHUTDOWN] Stopping server...
+2026-06-12 14:49:02,119 [rastro.desktop] INFO: [SHUTDOWN] Rastro Desktop stopped
+2026-06-13 10:00:24,363 [rastro.desktop] INFO: [BOOT] Rastro Desktop — PID: 224538
+2026-06-13 10:00:24,366 [rastro.desktop] INFO: [BOOT] Frozen: False, Python: 3.14.4, OS: linux
+2026-06-21 05:50:29,198 [rastro.desktop] INFO: [BOOT] Rastro Desktop — PID: 40361
+2026-06-21 05:50:29,209 [rastro.desktop] INFO: [BOOT] Frozen: False, Python: 3.14.4, OS: linux
+2026-06-21 05:50:30,136 [rastro.desktop] INFO: [BOOT] Backend port: 8000
+2026-06-21 05:50:30,136 [rastro.desktop] INFO: [API] Starting API server
+2026-06-21 05:50:31,720 [rastro.desktop] INFO: [FRONTEND] Frontend mounted from /home/adrie/projects/Rastro/frontend/dist (routes: 2)
+2026-06-21 05:50:31,731 [rastro.desktop] INFO: [API] Server thread started on 127.0.0.1:8000
+2026-06-21 05:50:31,832 [rastro.api] INFO: Database initialized
+2026-06-21 05:50:31,832 [rastro.events] INFO: Event bus initialized
+2026-06-21 05:50:31,838 [rastro.api] INFO: Event bus and system state initialized
+2026-06-21 05:50:31,839 [rastro.product_rules] WARNING: [ERROR] scorecard-reachable: Scorecard has no data yet (expected on first boot)
+2026-06-21 05:50:31,839 [rastro.api] INFO: Product behavior rules checked
+2026-06-21 05:50:31,839 [rastro.identity] INFO: Restored identity: 9286fab9-c2bd-4b09-958e-deeebbc46176
+2026-06-21 05:50:31,840 [rastro.api] INFO: Identity system initialized: 9286fab9-c2bd-4b09-958e-deeebbc46176
+2026-06-21 05:50:31,840 [rastro.orchestrator.assistant] INFO: Suppressed 0 noise items (threshold=0.15)
+2026-06-21 05:50:31,840 [rastro.api] INFO: Assistant orchestrator initialized
+2026-06-21 05:50:31,840 [rastro.api] INFO: Execution tracker initialized
+2026-06-21 05:50:31,840 [rastro.api] INFO: Outcome tracker initialized
+2026-06-21 05:50:31,905 [rastro.api] INFO: System scorecard initialized
+2026-06-21 05:50:31,905 [rastro.api] INFO: Explanation engine initialized
+2026-06-21 05:50:31,905 [rastro.api] INFO: Decision trace collector initialized
+2026-06-21 05:50:31,905 [rastro.api] INFO: Memory store initialized
+2026-06-21 05:50:31,905 [rastro.api] INFO: Decision memory initialized
+2026-06-21 05:50:31,905 [rastro.api] INFO: Insight archive initialized
+2026-06-21 05:50:31,905 [rastro.api] INFO: Priority engine memory consumption: consumed
+2026-06-21 05:50:31,905 [rastro.opportunity.engine] INFO: OpportunityEngine initialised (v2 — layered scoring)
+2026-06-21 05:50:31,905 [rastro.opportunity.engine] INFO: Provider manual discovered 0 opportunities
+2026-06-21 05:50:31,906 [rastro.opportunity.providers] INFO: Discovered 20 public opportunities (paid-first: 17 with rewards)
+2026-06-21 05:50:31,906 [rastro.opportunity.engine] INFO: Provider public_programs discovered 20 opportunities
+2026-06-21 05:50:31,907 [rastro.opportunity.engine] INFO: Provider github_security discovered 2 opportunities
+2026-06-21 05:50:31,907 [rastro.opportunity.engine] INFO: Provider huntr discovered 2 opportunities
+2026-06-21 05:50:31,907 [rastro.opportunity.engine] INFO: Provider all_sources discovered 24 opportunities
+2026-06-21 05:50:31,915 [rastro.api] INFO: Opportunity engine initialized with 48 opportunities
+2026-06-21 05:50:31,916 [rastro.api] INFO: Execution layer fully initialized
+2026-06-21 05:50:31,921 [rastro.api] INFO: Scan scheduler started
+2026-06-21 05:50:31,927 [rastro.operations] INFO: Notification poller thread started
+2026-06-21 05:50:31,927 [rastro.api] INFO: Notification poller started
+2026-06-21 05:50:31,928 [rastro.ws] INFO: WS manager initialized
+2026-06-21 05:50:31,928 [rastro.ws.bridge] INFO: Event bus -> WebSocket bridge started
+2026-06-21 05:50:31,928 [rastro.api] INFO: WS event bridge started
+2026-06-21 05:50:31,929 [rastro.notifications.bridges] INFO: DB bridge registered on NotificationHub
+2026-06-21 05:50:31,929 [rastro.notifications.bridges] INFO: Desktop channel registered on NotificationHub
+2026-06-21 05:50:31,945 [rastro.notifications.bridges] INFO: Email channel skipped — not configured
+2026-06-21 05:50:32,173 [rastro.notifications.bridges] INFO: FCM channel skipped — not configured
+2026-06-21 05:50:32,174 [rastro.notifications.bridges] INFO: WS forwarder registered on NotificationHub
+2026-06-21 05:50:32,174 [rastro.api] INFO: Notification bridges registered
+2026-06-21 05:50:32,174 [rastro.notifications.bridges] INFO: Event -> notification bridge started
+2026-06-21 05:50:32,174 [rastro.api] INFO: Event -> notification bridge started
+2026-06-21 05:50:32,174 [rastro.scheduler] INFO: Scan scheduler started (interval=1800s)
+2026-06-21 05:50:32,190 [rastro.scheduler] INFO: Scheduler: scanning 244 targets
+2026-06-21 05:50:32,220 [rastro.main] INFO: Verifying recon tools for mode FAST...
+2026-06-21 05:50:32,613 [rastro.recon.tools] INFO: Tool 'subfinder' found at /home/adrie/go/bin/subfinder
+2026-06-21 05:50:32,614 [rastro.recon.tools] INFO: Tool 'katana' found at /home/adrie/.local/bin/katana
+2026-06-21 05:50:32,614 [rastro.recon.tools] INFO: Tool 'httpx' found at /home/adrie/projects/Rastro/.venv/bin/httpx
+2026-06-21 05:50:32,614 [rastro.recon.tools] INFO: Optional tool 'waybackurls' available
+2026-06-21 05:50:33,000 [rastro.recon.tools] INFO: Optional tool 'nuclei' available
+2026-06-21 05:50:33,658 [rastro.recon.tools] INFO: Optional tool 'ffuf' available
+2026-06-21 05:50:33,702 [rastro.main] INFO: Started scan run 14 for target Airbyte
+2026-06-21 05:50:34,646 [rastro.main] INFO: Running recon pipeline with timeout 600s...
+2026-06-21 05:50:34,646 [rastro.recon] INFO: Starting recon pipeline for api.airbyte.com in mode FAST
+2026-06-21 05:50:34,646 [rastro.recon] INFO: Starting tool: subfinder
+2026-06-21 05:50:34,765 [rastro.desktop] INFO: [API] Server listening on 127.0.0.1:8000
+2026-06-21 05:50:35,006 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/health "HTTP/1.1 200 OK"
+2026-06-21 05:50:35,006 [rastro.desktop] INFO: [HEALTHY] Backend healthy on port 8000
+2026-06-21 05:50:35,030 [rastro.desktop] INFO: [BOOT] Desktop session created (device=ADRI-8f2cb265)
+2026-06-21 05:50:35,051 [rastro.frontend] INFO: serve_root called
+2026-06-21 05:50:35,051 [rastro.frontend] INFO:   serving index.html
+2026-06-21 05:50:42,292 [rastro.desktop.browser_opener] INFO: Opened browser: http://127.0.0.1:8000/?token=eyJkYXRhIjp7Im1ldGEiOnsiZGVza3RvcCI6dHJ1ZSwiZnJvemVuIjpmYWxzZSwicG9ydCI6ODAwMH0sInN1YiI6IkFEUkktOGYyY2IyNjUifSwiZXhwIjoxNzgyMTA3NDM1LCJpYXQiOjE3ODIwMjEwMzV9.06d522d67bae99b12995b0b76e0fb5bab030f7dd9c8bcf9bf141f0216682d6d7&device_id=ADRI-8f2cb265&onboarding=1
+2026-06-21 05:50:42,292 [rastro.desktop] INFO: [BROWSER] Dashboard opened in browser
+2026-06-21 05:50:42,317 [rastro.desktop.notifications] INFO: [NOTIFICATION] Rastro: Dashboard ready — opening browser
+2026-06-21 05:50:42,988 [rastro.desktop.tray] INFO: System tray started (persistent)
+2026-06-21 05:50:42,988 [rastro.desktop] INFO: [TRAY] System tray initialized
+2026-06-21 05:50:42,988 [rastro.desktop] INFO: [READY] Rastro Desktop ready (browser mode)
+2026-06-21 05:50:43,058 [rastro.frontend] INFO: serve_root called
+2026-06-21 05:50:43,058 [rastro.frontend] INFO:   serving index.html
+2026-06-21 05:50:43,061 [pystray._base] ERROR: Failed to dock icon
+Traceback (most recent call last):
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 162, in _update_icon
+    self._assert_docked()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 395, in _assert_docked
+    assert self._systray_manager
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+2026-06-21 05:50:43,070 [pystray._base] ERROR: Failed to dock icon
+Traceback (most recent call last):
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 143, in _show
+    self._assert_docked()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 395, in _assert_docked
+    assert self._systray_manager
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+2026-06-21 05:50:43,131 [rastro.frontend] INFO: serve_frontend called: full_path=assets/index-COCFXdYb.js
+2026-06-21 05:50:43,131 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/index-COCFXdYb.js
+2026-06-21 05:50:43,144 [rastro.frontend] INFO: serve_frontend called: full_path=assets/api-CC0qmw2T.js
+2026-06-21 05:50:43,145 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/api-CC0qmw2T.js
+2026-06-21 05:50:43,150 [rastro.frontend] INFO: serve_frontend called: full_path=assets/query-CAqgmDKk.js
+2026-06-21 05:50:43,150 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/query-CAqgmDKk.js
+2026-06-21 05:50:44,818 [rastro.frontend] INFO: serve_frontend called: full_path=service-worker.js
+2026-06-21 05:50:44,818 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/service-worker.js
+2026-06-21 05:50:44,846 [rastro.frontend] INFO: serve_frontend called: full_path=index.html
+2026-06-21 05:50:44,846 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/index.html
+2026-06-21 05:50:44,847 [rastro.frontend] INFO: serve_frontend called: full_path=manifest.json
+2026-06-21 05:50:44,847 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/manifest.json
+2026-06-21 05:50:44,854 [rastro.frontend] INFO: serve_root called
+2026-06-21 05:50:44,855 [rastro.frontend] INFO:   serving index.html
+2026-06-21 05:50:44,874 [rastro.frontend] INFO: serve_frontend called: full_path=icon-192.png
+2026-06-21 05:50:44,874 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/icon-192.png
+2026-06-21 05:50:44,875 [rastro.frontend] INFO: serve_frontend called: full_path=icon-512.png
+2026-06-21 05:50:44,876 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/icon-512.png
+2026-06-21 05:50:44,879 [rastro.frontend] INFO: serve_frontend called: full_path=favicon.svg
+2026-06-21 05:50:44,879 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/favicon.svg
+2026-06-21 05:50:48,861 [rastro.recon] INFO: Tool completed: subfinder
+2026-06-21 05:50:48,861 [rastro.recon] INFO: Starting tool: wayback
+2026-06-21 05:50:48,862 [rastro.desktop] INFO: [SHUTDOWN] Signal 15 received
+2026-06-21 05:50:48,863 [rastro.desktop] INFO: [SHUTDOWN] Stopping server...
+2026-06-21 05:50:48,867 [rastro.desktop.tray] INFO: System tray stopped
+2026-06-21 05:50:48,867 [rastro.desktop] INFO: [SHUTDOWN] Rastro Desktop stopped
+2026-06-24 05:39:58,665 [rastro.desktop] INFO: [BOOT] Rastro Desktop — PID: 40966
+2026-06-24 05:39:58,674 [rastro.desktop] INFO: [BOOT] Frozen: False, Python: 3.14.4, OS: linux
+2026-06-24 05:39:59,724 [rastro.desktop] INFO: [BOOT] Backend port: 8000
+2026-06-24 05:39:59,724 [rastro.desktop] INFO: [API] Starting API server
+2026-06-24 05:40:03,280 [rastro.desktop] INFO: [FRONTEND] Frontend mounted from /home/adrie/projects/Rastro/frontend/dist (routes: 2)
+2026-06-24 05:40:03,286 [rastro.desktop] INFO: [API] Server thread started on 127.0.0.1:8000
+2026-06-24 05:40:03,601 [asyncio] DEBUG: Using selector: EpollSelector
+2026-06-24 05:40:03,930 [rastro.api] INFO: Database initialized
+2026-06-24 05:40:03,930 [rastro.events] INFO: Event bus initialized
+2026-06-24 05:40:03,942 [rastro.api] INFO: Event bus and system state initialized
+2026-06-24 05:40:03,949 [rastro.product_rules] WARNING: [ERROR] scorecard-reachable: Scorecard has no data yet (expected on first boot)
+2026-06-24 05:40:03,949 [rastro.api] INFO: Product behavior rules checked
+2026-06-24 05:40:03,955 [rastro.identity] INFO: Restored identity: 9286fab9-c2bd-4b09-958e-deeebbc46176
+2026-06-24 05:40:03,955 [rastro.api] INFO: Identity system initialized: 9286fab9-c2bd-4b09-958e-deeebbc46176
+2026-06-24 05:40:03,955 [rastro.orchestrator.assistant] INFO: Suppressed 0 noise items (threshold=0.15)
+2026-06-24 05:40:03,955 [rastro.api] INFO: Assistant orchestrator initialized
+2026-06-24 05:40:03,955 [rastro.api] INFO: Execution tracker initialized
+2026-06-24 05:40:03,955 [rastro.api] INFO: Outcome tracker initialized
+2026-06-24 05:40:04,106 [rastro.api] INFO: System scorecard initialized
+2026-06-24 05:40:04,107 [rastro.api] INFO: Explanation engine initialized
+2026-06-24 05:40:04,107 [rastro.api] INFO: Decision trace collector initialized
+2026-06-24 05:40:04,107 [rastro.api] INFO: Memory store initialized
+2026-06-24 05:40:04,107 [rastro.api] INFO: Decision memory initialized
+2026-06-24 05:40:04,107 [rastro.api] INFO: Insight archive initialized
+2026-06-24 05:40:04,107 [rastro.api] INFO: Priority engine memory consumption: consumed
+2026-06-24 05:40:04,107 [rastro.opportunity.engine] INFO: OpportunityEngine initialised (v2 — layered scoring)
+2026-06-24 05:40:04,107 [rastro.opportunity.engine] INFO: Provider manual discovered 0 opportunities
+2026-06-24 05:40:04,107 [rastro.opportunity.providers] INFO: Discovered 20 public opportunities (paid-first: 17 with rewards)
+2026-06-24 05:40:04,107 [rastro.opportunity.engine] INFO: Provider public_programs discovered 20 opportunities
+2026-06-24 05:40:04,108 [rastro.opportunity.engine] INFO: Provider github_security discovered 2 opportunities
+2026-06-24 05:40:04,108 [rastro.opportunity.engine] INFO: Provider huntr discovered 2 opportunities
+2026-06-24 05:40:04,108 [rastro.opportunity.engine] INFO: Provider all_sources discovered 24 opportunities
+2026-06-24 05:40:04,111 [rastro.api] INFO: Opportunity engine initialized with 48 opportunities
+2026-06-24 05:40:04,111 [rastro.api] INFO: Execution layer fully initialized
+2026-06-24 05:40:04,112 [rastro.api] INFO: Scan scheduler started
+2026-06-24 05:40:04,118 [rastro.operations] INFO: Notification poller thread started
+2026-06-24 05:40:04,118 [rastro.api] INFO: Notification poller started
+2026-06-24 05:40:04,126 [rastro.ws] INFO: WS manager initialized
+2026-06-24 05:40:04,126 [rastro.ws.bridge] INFO: Event bus -> WebSocket bridge started
+2026-06-24 05:40:04,126 [rastro.api] INFO: WS event bridge started
+2026-06-24 05:40:04,134 [rastro.notifications.bridges] INFO: DB bridge registered on NotificationHub
+2026-06-24 05:40:04,134 [rastro.notifications.bridges] INFO: Desktop channel registered on NotificationHub
+2026-06-24 05:40:04,220 [rastro.notifications.bridges] INFO: Email channel skipped — not configured
+2026-06-24 05:40:04,786 [rastro.notifications.bridges] INFO: FCM channel skipped — not configured
+2026-06-24 05:40:04,786 [rastro.notifications.bridges] INFO: WS forwarder registered on NotificationHub
+2026-06-24 05:40:04,786 [rastro.api] INFO: Notification bridges registered
+2026-06-24 05:40:04,786 [rastro.notifications.bridges] INFO: Event -> notification bridge started
+2026-06-24 05:40:04,786 [rastro.api] INFO: Event -> notification bridge started
+2026-06-24 05:40:04,787 [rastro.scheduler] INFO: Scan scheduler started (interval=1800s)
+2026-06-24 05:40:04,790 [rastro.scheduler] INFO: Scheduler: scanning 245 targets
+2026-06-24 05:40:04,855 [rastro.main] INFO: Verifying recon tools for mode FAST...
+2026-06-24 05:40:05,326 [rastro.recon.tools] INFO: Tool 'subfinder' found at /home/adrie/go/bin/subfinder
+2026-06-24 05:40:05,327 [rastro.recon.tools] INFO: Tool 'katana' found at /home/adrie/.local/bin/katana
+2026-06-24 05:40:05,327 [rastro.recon.tools] INFO: Tool 'httpx' found at /home/adrie/projects/Rastro/.venv/bin/httpx
+2026-06-24 05:40:05,327 [rastro.recon.tools] INFO: Optional tool 'waybackurls' available
+2026-06-24 05:40:05,779 [rastro.recon.tools] INFO: Optional tool 'nuclei' available
+2026-06-24 05:40:06,522 [rastro.recon.tools] INFO: Optional tool 'ffuf' available
+2026-06-24 05:40:06,590 [rastro.main] INFO: Started scan run 37 for target Airbyte
+2026-06-24 05:40:07,955 [rastro.main] INFO: Running recon pipeline with timeout 600s...
+2026-06-24 05:40:07,955 [rastro.recon] INFO: Starting recon pipeline for api.airbyte.com in mode FAST
+2026-06-24 05:40:07,955 [rastro.recon] INFO: Starting tool: subfinder
+2026-06-24 05:40:08,136 [rastro.desktop] INFO: [API] Server listening on 127.0.0.1:8000
+2026-06-24 05:40:08,420 [httpcore.connection] DEBUG: connect_tcp.started host='127.0.0.1' port=8000 local_address=None timeout=2.0 socket_options=None
+2026-06-24 05:40:08,421 [httpcore.connection] DEBUG: connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7e705c217380>
+2026-06-24 05:40:08,421 [httpcore.http11] DEBUG: send_request_headers.started request=<Request [b'GET']>
+2026-06-24 05:40:08,421 [httpcore.http11] DEBUG: send_request_headers.complete
+2026-06-24 05:40:08,421 [httpcore.http11] DEBUG: send_request_body.started request=<Request [b'GET']>
+2026-06-24 05:40:08,421 [httpcore.http11] DEBUG: send_request_body.complete
+2026-06-24 05:40:08,421 [httpcore.http11] DEBUG: receive_response_headers.started request=<Request [b'GET']>
+2026-06-24 05:40:08,449 [httpcore.http11] DEBUG: receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'date', b'Wed, 24 Jun 2026 05:40:07 GMT'), (b'server', b'uvicorn'), (b'content-length', b'52'), (b'content-type', b'application/json')])
+2026-06-24 05:40:08,450 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/health "HTTP/1.1 200 OK"
+2026-06-24 05:40:08,450 [httpcore.http11] DEBUG: receive_response_body.started request=<Request [b'GET']>
+2026-06-24 05:40:08,450 [httpcore.http11] DEBUG: receive_response_body.complete
+2026-06-24 05:40:08,450 [httpcore.http11] DEBUG: response_closed.started
+2026-06-24 05:40:08,450 [httpcore.http11] DEBUG: response_closed.complete
+2026-06-24 05:40:08,450 [httpcore.connection] DEBUG: close.started
+2026-06-24 05:40:08,450 [httpcore.connection] DEBUG: close.complete
+2026-06-24 05:40:08,450 [rastro.desktop] INFO: [HEALTHY] Backend healthy on port 8000
+2026-06-24 05:40:08,475 [rastro.desktop] INFO: [BOOT] Desktop session created (device=ADRI-8f2cb265)
+2026-06-24 05:40:08,475 [rastro.desktop] INFO: [READY] Rastro Desktop ready (desktop window)
+2026-06-24 05:40:08,482 [rastro.desktop] INFO: [BROWSER] Opening desktop window -> http://127.0.0.1:8000/?token=eyJkYXRhIjp7Im1ldGEiOnsiZGVza3RvcCI6dHJ1ZSwiZnJvemVuIjpmYWxzZSwicG9ydCI6ODAwMH0sInN1YiI6IkFEUkktOGYyY2IyNjUifSwiZXhwIjoxNzgyMzY2MDA4LCJpYXQiOjE3ODIyNzk2MDh9.0e7dac6c1487c83af0f667cd7121b11ad3def824e57deaf5291ec505a3f0dc71&device_id=ADRI-8f2cb265
+2026-06-24 05:40:08,483 [rastro.desktop] INFO: [BROWSER] webview.create_window() starting...
+2026-06-24 05:40:08,483 [rastro.desktop] INFO: [BROWSER] Desktop window failed ('Window' object has no attribute 'closed'), falling back to browser
+2026-06-24 05:40:08,483 [rastro.desktop] INFO: [BOOT] Desktop UI unavailable, browser mode activated.
+2026-06-24 05:40:17,009 [rastro.desktop.browser_opener] INFO: Opened browser: http://127.0.0.1:8000/?token=eyJkYXRhIjp7Im1ldGEiOnsiZGVza3RvcCI6dHJ1ZSwiZnJvemVuIjpmYWxzZSwicG9ydCI6ODAwMH0sInN1YiI6IkFEUkktOGYyY2IyNjUifSwiZXhwIjoxNzgyMzY2MDA4LCJpYXQiOjE3ODIyNzk2MDh9.0e7dac6c1487c83af0f667cd7121b11ad3def824e57deaf5291ec505a3f0dc71&device_id=ADRI-8f2cb265&onboarding=1
+2026-06-24 05:40:17,009 [rastro.desktop] INFO: [BROWSER] Dashboard opened in browser
+2026-06-24 05:40:17,033 [rastro.desktop.notifications] INFO: [NOTIFICATION] Rastro: Dashboard ready — opening browser
+2026-06-24 05:40:17,840 [rastro.desktop.tray] INFO: System tray started (persistent)
+2026-06-24 05:40:17,840 [rastro.desktop] INFO: [TRAY] System tray initialized
+2026-06-24 05:40:17,840 [rastro.desktop] INFO: [READY] Rastro Desktop ready (browser fallback)
+2026-06-24 05:40:17,898 [pystray._base] ERROR: Failed to dock icon
+Traceback (most recent call last):
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 162, in _update_icon
+    self._assert_docked()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 395, in _assert_docked
+    assert self._systray_manager
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+2026-06-24 05:40:17,914 [pystray._base] ERROR: Failed to dock icon
+Traceback (most recent call last):
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 143, in _show
+    self._assert_docked()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 395, in _assert_docked
+    assert self._systray_manager
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+2026-06-24 05:40:18,031 [rastro.frontend] INFO: serve_root called
+2026-06-24 05:40:18,032 [rastro.frontend] INFO:   serving index.html
+2026-06-24 05:40:18,093 [rastro.frontend] INFO: serve_frontend called: full_path=assets/index-Bybr3EI9.js
+2026-06-24 05:40:18,093 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/index-Bybr3EI9.js
+2026-06-24 05:40:18,107 [rastro.frontend] INFO: serve_frontend called: full_path=assets/jsx-runtime-BseJUIpC.js
+2026-06-24 05:40:18,107 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/jsx-runtime-BseJUIpC.js
+2026-06-24 05:40:18,108 [rastro.frontend] INFO: serve_frontend called: full_path=assets/api-CPTP3yz9.js
+2026-06-24 05:40:18,108 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/api-CPTP3yz9.js
+2026-06-24 05:40:18,109 [rastro.frontend] INFO: serve_frontend called: full_path=assets/query-BBpqc807.js
+2026-06-24 05:40:18,109 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/query-BBpqc807.js
+2026-06-24 05:40:18,109 [rastro.frontend] INFO: serve_frontend called: full_path=assets/index-B6VybSjd.css
+2026-06-24 05:40:18,109 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/index-B6VybSjd.css
+2026-06-24 05:40:18,129 [rastro.frontend] INFO: serve_frontend called: full_path=manifest.json
+2026-06-24 05:40:18,129 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/manifest.json
+2026-06-24 05:40:18,255 [rastro.frontend] INFO: serve_frontend called: full_path=favicon.svg
+2026-06-24 05:40:18,256 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/favicon.svg
+2026-06-24 05:40:18,256 [rastro.frontend] INFO: serve_frontend called: full_path=icon-192.png
+2026-06-24 05:40:18,257 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/icon-192.png
+2026-06-24 05:40:19,849 [rastro.frontend] INFO: serve_frontend called: full_path=service-worker.js
+2026-06-24 05:40:19,849 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/service-worker.js
+2026-06-24 05:40:20,797 [rastro.frontend] INFO: serve_frontend called: full_path=assets/KPICard-hwM5aC38.js
+2026-06-24 05:40:20,797 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/KPICard-hwM5aC38.js
+2026-06-24 05:40:20,797 [rastro.frontend] INFO: serve_frontend called: full_path=assets/Skeleton-BBrxNivq.js
+2026-06-24 05:40:20,797 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/Skeleton-BBrxNivq.js
+2026-06-24 05:40:20,798 [rastro.frontend] INFO: serve_frontend called: full_path=assets/Badge-CzoNk_7P.js
+2026-06-24 05:40:20,798 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/Badge-CzoNk_7P.js
+2026-06-24 05:40:20,799 [rastro.frontend] INFO: serve_frontend called: full_path=assets/Panel-DIRwhdsd.js
+2026-06-24 05:40:20,799 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/Panel-DIRwhdsd.js
+2026-06-24 05:40:20,800 [rastro.frontend] INFO: serve_frontend called: full_path=assets/MissionControl-CTEAEZHj.js
+2026-06-24 05:40:20,800 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/MissionControl-CTEAEZHj.js
+2026-06-24 05:40:21,000 [rastro.frontend] INFO: serve_frontend called: full_path=api/system/state
+2026-06-24 05:40:21,001 [rastro.frontend] INFO:   serving index.html
+2026-06-24 05:40:21,028 [rastro.ws] INFO: WS client connected: 4dad26a6053a (user=ADRI-8f2cb265, total=1)
+2026-06-24 05:40:21,036 [rastro.api] ERROR: Unhandled error on /api/operations/notifications: (sqlite3.OperationalError) no such column: notifications.title
+[SQL: SELECT notifications.id AS notifications_id, notifications.notification_type AS notifications_notification_type, notifications.title AS notifications_title, notifications.message AS notifications_message, notifications.severity AS notifications_severity, notifications.priority AS notifications_priority, notifications.linked_type AS notifications_linked_type, notifications.linked_id AS notifications_linked_id, notifications.dedup_key AS notifications_dedup_key, notifications.is_read AS notifications_is_read, notifications.delivered_via AS notifications_delivered_via, notifications.created_at AS notifications_created_at 
+FROM notifications 
+WHERE notifications.is_read = ? ORDER BY notifications.created_at DESC
+ LIMIT ? OFFSET ?]
+[parameters: ('false', 50, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-24 05:40:21,036 [uvicorn.error] ERROR: Exception in ASGI application
+Traceback (most recent call last):
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such column: notifications.title
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/uvicorn/protocols/http/httptools_impl.py", line 421, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.scope, self.receive, self.send
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/uvicorn/middleware/proxy_headers.py", line 62, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/fastapi/applications.py", line 1159, in __call__
+    await super().__call__(scope, receive, send)
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/applications.py", line 90, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/middleware/base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+                                   ~~~~~~~~~~~~~~~~~~^^
+  File "/usr/lib/python3.14/contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/_utils.py", line 87, in collapse_excgroups
+    raise exc
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adrie/projects/Rastro/api/middleware/auth_middleware.py", line 73, in dispatch
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/middleware/base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+                                   ~~~~~~~~~~~~~~~~~~^^
+  File "/usr/lib/python3.14/contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/_utils.py", line 87, in collapse_excgroups
+    raise exc
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adrie/projects/Rastro/api/middleware/rate_limit_middleware.py", line 29, in dispatch
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/middleware/cors.py", line 88, in __call__
+    await self.app(scope, receive, send)
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/routing.py", line 680, in app
+    await route.handle(scope, receive, send)
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/routing.py", line 276, in handle
+    await self.app(scope, receive, send)
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 134, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 120, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 674, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 330, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/concurrency.py", line 32, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/anyio/to_thread.py", line 63, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        func, args, abandon_on_cancel=abandon_on_cancel, limiter=limiter
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 2518, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 1002, in run
+    result = context.run(func, *args)
+  File "/home/adrie/projects/Rastro/api/routers/operations.py", line 557, in list_notifications
+    items = q.order_by(models.Notification.created_at.desc()).limit(limit).all()
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/sqlalchemy/orm/query.py", line 2711, in all
+    return self._iter().all()  # type: ignore
+           ~~~~~~~~~~^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/sqlalchemy/orm/query.py", line 2864, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+                                                  ~~~~~~~~~~~~~~~~~~~~^
+        statement,
+        ^^^^^^^^^^
+        params,
+        ^^^^^^^
+        execution_options={"_sa_orm_load_options": self.load_options},
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py", line 2372, in execute
+    return self._execute_internal(
+           ~~~~~~~~~~~~~~~~~~~~~~^
+        statement,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        _add_event=_add_event,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py", line 2270, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self,
+        ^^^^^
+    ...<4 lines>...
+        conn,
+        ^^^^^
+    )
+    ^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/sqlalchemy/orm/context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+        statement, params or {}, execution_options=execution_options
+    )
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py", line 1421, in execute
+    return meth(
+        self,
+        distilled_parameters,
+        execution_options or NO_OPTIONS,
+    )
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/sqlalchemy/sql/elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self, distilled_params, execution_options
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+        dialect,
+    ...<8 lines>...
+        cache_hit=cache_hit,
+    )
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        dialect, context, statement, parameters
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        e, str_statement, effective_parameters, cursor, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such column: notifications.title
+[SQL: SELECT notifications.id AS notifications_id, notifications.notification_type AS notifications_notification_type, notifications.title AS notifications_title, notifications.message AS notifications_message, notifications.severity AS notifications_severity, notifications.priority AS notifications_priority, notifications.linked_type AS notifications_linked_type, notifications.linked_id AS notifications_linked_id, notifications.dedup_key AS notifications_dedup_key, notifications.is_read AS notifications_is_read, notifications.delivered_via AS notifications_delivered_via, notifications.created_at AS notifications_created_at 
+FROM notifications 
+WHERE notifications.is_read = ? ORDER BY notifications.created_at DESC
+ LIMIT ? OFFSET ?]
+[parameters: ('false', 50, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-24 05:40:21,945 [rastro.api] ERROR: Unhandled error on /api/operations/notifications: (sqlite3.OperationalError) no such column: notifications.title
+[SQL: SELECT notifications.id AS notifications_id, notifications.notification_type AS notifications_notification_type, notifications.title AS notifications_title, notifications.message AS notifications_message, notifications.severity AS notifications_severity, notifications.priority AS notifications_priority, notifications.linked_type AS notifications_linked_type, notifications.linked_id AS notifications_linked_id, notifications.dedup_key AS notifications_dedup_key, notifications.is_read AS notifications_is_read, notifications.delivered_via AS notifications_delivered_via, notifications.created_at AS notifications_created_at 
+FROM notifications 
+WHERE notifications.is_read = ? ORDER BY notifications.created_at DESC
+ LIMIT ? OFFSET ?]
+[parameters: ('false', 50, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-24 05:40:21,945 [uvicorn.error] ERROR: Exception in ASGI application
+Traceback (most recent call last):
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+sqlite3.OperationalError: no such column: notifications.title
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/uvicorn/protocols/http/httptools_impl.py", line 421, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        self.scope, self.receive, self.send
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/uvicorn/middleware/proxy_headers.py", line 62, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/fastapi/applications.py", line 1159, in __call__
+    await super().__call__(scope, receive, send)
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/applications.py", line 90, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/middleware/base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+                                   ~~~~~~~~~~~~~~~~~~^^
+  File "/usr/lib/python3.14/contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/_utils.py", line 87, in collapse_excgroups
+    raise exc
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adrie/projects/Rastro/api/middleware/auth_middleware.py", line 73, in dispatch
+    return await call_next(request)
+           ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/middleware/base.py", line 191, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+                                   ~~~~~~~~~~~~~~~~~~^^
+  File "/usr/lib/python3.14/contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/_utils.py", line 87, in collapse_excgroups
+    raise exc
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/middleware/base.py", line 193, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adrie/projects/Rastro/api/middleware/rate_limit_middleware.py", line 29, in dispatch
+    response = await call_next(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/middleware/base.py", line 168, in call_next
+    raise app_exc from app_exc.__cause__ or app_exc.__context__
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/middleware/cors.py", line 88, in __call__
+    await self.app(scope, receive, send)
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/fastapi/middleware/asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/routing.py", line 660, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/routing.py", line 680, in app
+    await route.handle(scope, receive, send)
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/routing.py", line 276, in handle
+    await self.app(scope, receive, send)
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 134, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 120, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 674, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<3 lines>...
+    )
+    ^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/fastapi/routing.py", line 330, in run_endpoint_function
+    return await run_in_threadpool(dependant.call, **values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/starlette/concurrency.py", line 32, in run_in_threadpool
+    return await anyio.to_thread.run_sync(func)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/anyio/to_thread.py", line 63, in run_sync
+    return await get_async_backend().run_sync_in_worker_thread(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        func, args, abandon_on_cancel=abandon_on_cancel, limiter=limiter
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 2518, in run_sync_in_worker_thread
+    return await future
+           ^^^^^^^^^^^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/anyio/_backends/_asyncio.py", line 1002, in run
+    result = context.run(func, *args)
+  File "/home/adrie/projects/Rastro/api/routers/operations.py", line 557, in list_notifications
+    items = q.order_by(models.Notification.created_at.desc()).limit(limit).all()
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/sqlalchemy/orm/query.py", line 2711, in all
+    return self._iter().all()  # type: ignore
+           ~~~~~~~~~~^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/sqlalchemy/orm/query.py", line 2864, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+                                                  ~~~~~~~~~~~~~~~~~~~~^
+        statement,
+        ^^^^^^^^^^
+        params,
+        ^^^^^^^
+        execution_options={"_sa_orm_load_options": self.load_options},
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py", line 2372, in execute
+    return self._execute_internal(
+           ~~~~~~~~~~~~~~~~~~~~~~^
+        statement,
+        ^^^^^^^^^^
+    ...<4 lines>...
+        _add_event=_add_event,
+        ^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/sqlalchemy/orm/session.py", line 2270, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self,
+        ^^^^^
+    ...<4 lines>...
+        conn,
+        ^^^^^
+    )
+    ^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/sqlalchemy/orm/context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+        statement, params or {}, execution_options=execution_options
+    )
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py", line 1421, in execute
+    return meth(
+        self,
+        distilled_parameters,
+        execution_options or NO_OPTIONS,
+    )
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/sqlalchemy/sql/elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        self, distilled_params, execution_options
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py", line 1643, in _execute_clauseelement
+    ret = self._execute_context(
+        dialect,
+    ...<8 lines>...
+        cache_hit=cache_hit,
+    )
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py", line 1848, in _execute_context
+    return self._exec_single_context(
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^
+        dialect, context, statement, parameters
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py", line 1988, in _exec_single_context
+    self._handle_dbapi_exception(
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~^
+        e, str_statement, effective_parameters, cursor, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py", line 2365, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/sqlalchemy/engine/base.py", line 1969, in _exec_single_context
+    self.dialect.do_execute(
+    ~~~~~~~~~~~~~~~~~~~~~~~^
+        cursor, str_statement, effective_parameters, context
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/sqlalchemy/engine/default.py", line 952, in do_execute
+    cursor.execute(statement, parameters)
+    ~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^
+sqlalchemy.exc.OperationalError: (sqlite3.OperationalError) no such column: notifications.title
+[SQL: SELECT notifications.id AS notifications_id, notifications.notification_type AS notifications_notification_type, notifications.title AS notifications_title, notifications.message AS notifications_message, notifications.severity AS notifications_severity, notifications.priority AS notifications_priority, notifications.linked_type AS notifications_linked_type, notifications.linked_id AS notifications_linked_id, notifications.dedup_key AS notifications_dedup_key, notifications.is_read AS notifications_is_read, notifications.delivered_via AS notifications_delivered_via, notifications.created_at AS notifications_created_at 
+FROM notifications 
+WHERE notifications.is_read = ? ORDER BY notifications.created_at DESC
+ LIMIT ? OFFSET ?]
+[parameters: ('false', 50, 0)]
+(Background on this error at: https://sqlalche.me/e/20/e3q8)
+2026-06-24 05:40:26,901 [rastro.recon] INFO: Tool completed: subfinder
+2026-06-24 05:40:26,901 [rastro.recon] INFO: Starting tool: wayback
+2026-06-24 05:40:27,431 [rastro.recon] INFO: Starting tool: katana
+2026-06-24 05:40:28,342 [rastro.desktop] INFO: [SHUTDOWN] Signal 15 received
+2026-06-24 05:40:28,375 [rastro.recon] INFO: Tool completed: wayback
+2026-06-24 05:40:28,471 [rastro.desktop] INFO: [SHUTDOWN] Stopping server...
+2026-06-24 05:40:28,488 [rastro.recon] INFO: Tool completed: katana
+2026-06-24 05:40:28,493 [rastro.desktop.tray] INFO: System tray stopped
+2026-06-24 05:40:28,501 [rastro.desktop] INFO: [SHUTDOWN] Rastro Desktop stopped
+2026-06-24 05:42:02,665 [rastro.desktop] INFO: [BOOT] Rastro Desktop — PID: 41968
+2026-06-24 05:42:02,665 [rastro.desktop] INFO: [BOOT] Frozen: False, Python: 3.14.4, OS: linux
+2026-06-24 05:42:03,466 [rastro.desktop] INFO: [BOOT] Backend port: 8000
+2026-06-24 05:42:03,466 [rastro.desktop] INFO: [API] Starting API server
+2026-06-24 05:42:04,877 [rastro.desktop] INFO: [FRONTEND] Frontend mounted from /home/adrie/projects/Rastro/frontend/dist (routes: 2)
+2026-06-24 05:42:04,897 [rastro.desktop] INFO: [API] Server thread started on 127.0.0.1:8000
+2026-06-24 05:42:04,931 [asyncio] DEBUG: Using selector: EpollSelector
+2026-06-24 05:42:04,980 [rastro.api] INFO: Database initialized
+2026-06-24 05:42:04,980 [rastro.events] INFO: Event bus initialized
+2026-06-24 05:42:04,982 [rastro.api] INFO: Event bus and system state initialized
+2026-06-24 05:42:04,983 [rastro.product_rules] WARNING: [ERROR] scorecard-reachable: Scorecard has no data yet (expected on first boot)
+2026-06-24 05:42:04,983 [rastro.api] INFO: Product behavior rules checked
+2026-06-24 05:42:04,983 [rastro.identity] INFO: Restored identity: 9286fab9-c2bd-4b09-958e-deeebbc46176
+2026-06-24 05:42:04,983 [rastro.api] INFO: Identity system initialized: 9286fab9-c2bd-4b09-958e-deeebbc46176
+2026-06-24 05:42:04,983 [rastro.orchestrator.assistant] INFO: Suppressed 0 noise items (threshold=0.15)
+2026-06-24 05:42:04,984 [rastro.api] INFO: Assistant orchestrator initialized
+2026-06-24 05:42:04,984 [rastro.api] INFO: Execution tracker initialized
+2026-06-24 05:42:04,984 [rastro.api] INFO: Outcome tracker initialized
+2026-06-24 05:42:05,042 [rastro.api] INFO: System scorecard initialized
+2026-06-24 05:42:05,042 [rastro.api] INFO: Explanation engine initialized
+2026-06-24 05:42:05,042 [rastro.api] INFO: Decision trace collector initialized
+2026-06-24 05:42:05,042 [rastro.api] INFO: Memory store initialized
+2026-06-24 05:42:05,042 [rastro.api] INFO: Decision memory initialized
+2026-06-24 05:42:05,042 [rastro.api] INFO: Insight archive initialized
+2026-06-24 05:42:05,042 [rastro.api] INFO: Priority engine memory consumption: consumed
+2026-06-24 05:42:05,042 [rastro.opportunity.engine] INFO: OpportunityEngine initialised (v2 — layered scoring)
+2026-06-24 05:42:05,042 [rastro.opportunity.engine] INFO: Provider manual discovered 0 opportunities
+2026-06-24 05:42:05,043 [rastro.opportunity.providers] INFO: Discovered 20 public opportunities (paid-first: 17 with rewards)
+2026-06-24 05:42:05,043 [rastro.opportunity.engine] INFO: Provider public_programs discovered 20 opportunities
+2026-06-24 05:42:05,043 [rastro.opportunity.engine] INFO: Provider github_security discovered 2 opportunities
+2026-06-24 05:42:05,043 [rastro.opportunity.engine] INFO: Provider huntr discovered 2 opportunities
+2026-06-24 05:42:05,043 [rastro.opportunity.engine] INFO: Provider all_sources discovered 24 opportunities
+2026-06-24 05:42:05,052 [rastro.api] INFO: Opportunity engine initialized with 48 opportunities
+2026-06-24 05:42:05,052 [rastro.api] INFO: Execution layer fully initialized
+2026-06-24 05:42:05,053 [rastro.api] INFO: Scan scheduler started
+2026-06-24 05:42:05,053 [rastro.operations] INFO: Notification poller thread started
+2026-06-24 05:42:05,053 [rastro.api] INFO: Notification poller started
+2026-06-24 05:42:05,053 [rastro.ws] INFO: WS manager initialized
+2026-06-24 05:42:05,054 [rastro.ws.bridge] INFO: Event bus -> WebSocket bridge started
+2026-06-24 05:42:05,054 [rastro.api] INFO: WS event bridge started
+2026-06-24 05:42:05,059 [rastro.notifications.bridges] INFO: DB bridge registered on NotificationHub
+2026-06-24 05:42:05,059 [rastro.notifications.bridges] INFO: Desktop channel registered on NotificationHub
+2026-06-24 05:42:05,071 [rastro.notifications.bridges] INFO: Email channel skipped — not configured
+2026-06-24 05:42:05,235 [rastro.notifications.bridges] INFO: FCM channel skipped — not configured
+2026-06-24 05:42:05,235 [rastro.notifications.bridges] INFO: WS forwarder registered on NotificationHub
+2026-06-24 05:42:05,235 [rastro.api] INFO: Notification bridges registered
+2026-06-24 05:42:05,235 [rastro.notifications.bridges] INFO: Event -> notification bridge started
+2026-06-24 05:42:05,235 [rastro.api] INFO: Event -> notification bridge started
+2026-06-24 05:42:05,235 [rastro.scheduler] INFO: Scan scheduler started (interval=1800s)
+2026-06-24 05:42:05,244 [rastro.scheduler] INFO: Scheduler: scanning 245 targets
+2026-06-24 05:42:05,253 [rastro.main] INFO: Verifying recon tools for mode FAST...
+2026-06-24 05:42:05,418 [rastro.recon.tools] INFO: Tool 'subfinder' found at /home/adrie/go/bin/subfinder
+2026-06-24 05:42:05,419 [rastro.recon.tools] INFO: Tool 'katana' found at /home/adrie/.local/bin/katana
+2026-06-24 05:42:05,419 [rastro.recon.tools] INFO: Tool 'httpx' found at /home/adrie/projects/Rastro/.venv/bin/httpx
+2026-06-24 05:42:05,419 [rastro.recon.tools] INFO: Optional tool 'waybackurls' available
+2026-06-24 05:42:05,491 [rastro.recon.tools] INFO: Optional tool 'nuclei' available
+2026-06-24 05:42:05,718 [rastro.recon.tools] INFO: Optional tool 'ffuf' available
+2026-06-24 05:42:05,765 [rastro.main] INFO: Started scan run 38 for target Airbyte
+2026-06-24 05:42:07,045 [rastro.main] INFO: Running recon pipeline with timeout 600s...
+2026-06-24 05:42:07,046 [rastro.recon] INFO: Starting recon pipeline for api.airbyte.com in mode FAST
+2026-06-24 05:42:07,046 [rastro.recon] INFO: Starting tool: subfinder
+2026-06-24 05:42:07,324 [rastro.desktop] INFO: [API] Server listening on 127.0.0.1:8000
+2026-06-24 05:42:07,390 [httpcore.connection] DEBUG: connect_tcp.started host='127.0.0.1' port=8000 local_address=None timeout=2.0 socket_options=None
+2026-06-24 05:42:07,390 [httpcore.connection] DEBUG: connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x76dd633d70e0>
+2026-06-24 05:42:07,390 [httpcore.http11] DEBUG: send_request_headers.started request=<Request [b'GET']>
+2026-06-24 05:42:07,391 [httpcore.http11] DEBUG: send_request_headers.complete
+2026-06-24 05:42:07,391 [httpcore.http11] DEBUG: send_request_body.started request=<Request [b'GET']>
+2026-06-24 05:42:07,391 [httpcore.http11] DEBUG: send_request_body.complete
+2026-06-24 05:42:07,391 [httpcore.http11] DEBUG: receive_response_headers.started request=<Request [b'GET']>
+2026-06-24 05:42:07,401 [httpcore.http11] DEBUG: receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'date', b'Wed, 24 Jun 2026 05:42:07 GMT'), (b'server', b'uvicorn'), (b'content-length', b'52'), (b'content-type', b'application/json')])
+2026-06-24 05:42:07,402 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/health "HTTP/1.1 200 OK"
+2026-06-24 05:42:07,402 [httpcore.http11] DEBUG: receive_response_body.started request=<Request [b'GET']>
+2026-06-24 05:42:07,402 [httpcore.http11] DEBUG: receive_response_body.complete
+2026-06-24 05:42:07,402 [httpcore.http11] DEBUG: response_closed.started
+2026-06-24 05:42:07,402 [httpcore.http11] DEBUG: response_closed.complete
+2026-06-24 05:42:07,402 [httpcore.connection] DEBUG: close.started
+2026-06-24 05:42:07,402 [httpcore.connection] DEBUG: close.complete
+2026-06-24 05:42:07,402 [rastro.desktop] INFO: [HEALTHY] Backend healthy on port 8000
+2026-06-24 05:42:07,420 [rastro.desktop] INFO: [BOOT] Desktop session created (device=ADRI-8f2cb265)
+2026-06-24 05:42:07,420 [rastro.desktop] INFO: [READY] Rastro Desktop ready (desktop window)
+2026-06-24 05:42:07,421 [rastro.desktop] INFO: [BROWSER] Opening desktop window -> http://127.0.0.1:8000/?token=eyJkYXRhIjp7Im1ldGEiOnsiZGVza3RvcCI6dHJ1ZSwiZnJvemVuIjpmYWxzZSwicG9ydCI6ODAwMH0sInN1YiI6IkFEUkktOGYyY2IyNjUifSwiZXhwIjoxNzgyMzY2MTI3LCJpYXQiOjE3ODIyNzk3Mjd9.bf34931d230834311a32848a36c9290542e80ce6d8487fe92a1c342592012dc5&device_id=ADRI-8f2cb265
+2026-06-24 05:42:07,421 [rastro.desktop] INFO: [BROWSER] webview.create_window() starting...
+2026-06-24 05:42:07,422 [rastro.desktop] INFO: [BROWSER] Desktop window failed ('Window' object has no attribute 'closed'), falling back to browser
+2026-06-24 05:42:07,422 [rastro.desktop] INFO: [BOOT] Desktop UI unavailable, browser mode activated.
+2026-06-24 05:42:10,758 [rastro.recon] INFO: Tool completed: subfinder
+2026-06-24 05:42:10,758 [rastro.recon] INFO: Starting tool: wayback
+2026-06-24 05:42:11,107 [rastro.recon] INFO: Starting tool: katana
+2026-06-24 05:42:15,583 [rastro.desktop.browser_opener] INFO: Opened browser: http://127.0.0.1:8000/?token=eyJkYXRhIjp7Im1ldGEiOnsiZGVza3RvcCI6dHJ1ZSwiZnJvemVuIjpmYWxzZSwicG9ydCI6ODAwMH0sInN1YiI6IkFEUkktOGYyY2IyNjUifSwiZXhwIjoxNzgyMzY2MTI3LCJpYXQiOjE3ODIyNzk3Mjd9.bf34931d230834311a32848a36c9290542e80ce6d8487fe92a1c342592012dc5&device_id=ADRI-8f2cb265&onboarding=1
+2026-06-24 05:42:15,583 [rastro.desktop] INFO: [BROWSER] Dashboard opened in browser
+2026-06-24 05:42:15,584 [rastro.desktop.notifications] INFO: [NOTIFICATION] Rastro: Dashboard ready — opening browser
+2026-06-24 05:42:15,753 [rastro.desktop.tray] INFO: System tray started (persistent)
+2026-06-24 05:42:15,753 [rastro.desktop] INFO: [TRAY] System tray initialized
+2026-06-24 05:42:15,753 [rastro.desktop] INFO: [READY] Rastro Desktop ready (browser fallback)
+2026-06-24 05:42:15,838 [pystray._base] ERROR: Failed to dock icon
+Traceback (most recent call last):
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 162, in _update_icon
+    self._assert_docked()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 395, in _assert_docked
+    assert self._systray_manager
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+2026-06-24 05:42:15,839 [pystray._base] ERROR: Failed to dock icon
+Traceback (most recent call last):
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 143, in _show
+    self._assert_docked()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 395, in _assert_docked
+    assert self._systray_manager
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+2026-06-24 05:42:16,449 [rastro.frontend] INFO: serve_root called
+2026-06-24 05:42:16,450 [rastro.frontend] INFO:   serving index.html
+2026-06-24 05:42:16,531 [rastro.frontend] INFO: serve_frontend called: full_path=assets/index-Bybr3EI9.js
+2026-06-24 05:42:16,531 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/index-Bybr3EI9.js
+2026-06-24 05:42:16,542 [rastro.frontend] INFO: serve_frontend called: full_path=assets/jsx-runtime-BseJUIpC.js
+2026-06-24 05:42:16,542 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/jsx-runtime-BseJUIpC.js
+2026-06-24 05:42:16,549 [rastro.frontend] INFO: serve_frontend called: full_path=assets/index-B6VybSjd.css
+2026-06-24 05:42:16,549 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/index-B6VybSjd.css
+2026-06-24 05:42:16,550 [rastro.frontend] INFO: serve_frontend called: full_path=assets/api-CPTP3yz9.js
+2026-06-24 05:42:16,551 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/api-CPTP3yz9.js
+2026-06-24 05:42:16,560 [rastro.frontend] INFO: serve_frontend called: full_path=assets/query-BBpqc807.js
+2026-06-24 05:42:16,560 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/query-BBpqc807.js
+2026-06-24 05:42:16,561 [rastro.frontend] INFO: serve_frontend called: full_path=manifest.json
+2026-06-24 05:42:16,561 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/manifest.json
+2026-06-24 05:42:16,698 [rastro.frontend] INFO: serve_frontend called: full_path=icon-192.png
+2026-06-24 05:42:16,698 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/icon-192.png
+2026-06-24 05:42:18,254 [rastro.frontend] INFO: serve_frontend called: full_path=service-worker.js
+2026-06-24 05:42:18,254 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/service-worker.js
+2026-06-24 05:42:19,223 [rastro.frontend] INFO: serve_frontend called: full_path=assets/KPICard-hwM5aC38.js
+2026-06-24 05:42:19,223 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/KPICard-hwM5aC38.js
+2026-06-24 05:42:19,223 [rastro.frontend] INFO: serve_frontend called: full_path=assets/Panel-DIRwhdsd.js
+2026-06-24 05:42:19,223 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/Panel-DIRwhdsd.js
+2026-06-24 05:42:19,224 [rastro.frontend] INFO: serve_frontend called: full_path=assets/Skeleton-BBrxNivq.js
+2026-06-24 05:42:19,224 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/Skeleton-BBrxNivq.js
+2026-06-24 05:42:19,225 [rastro.frontend] INFO: serve_frontend called: full_path=assets/MissionControl-CTEAEZHj.js
+2026-06-24 05:42:19,225 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/MissionControl-CTEAEZHj.js
+2026-06-24 05:42:19,225 [rastro.frontend] INFO: serve_frontend called: full_path=assets/Badge-CzoNk_7P.js
+2026-06-24 05:42:19,225 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/Badge-CzoNk_7P.js
+2026-06-24 05:42:19,441 [rastro.frontend] INFO: serve_frontend called: full_path=api/system/state
+2026-06-24 05:42:19,442 [rastro.frontend] INFO:   serving index.html
+2026-06-24 05:42:19,482 [rastro.ws] INFO: WS client connected: 4fe84c4b8ce4 (user=ADRI-8f2cb265, total=1)
+2026-06-24 05:42:22,480 [rastro.desktop] INFO: [SHUTDOWN] Signal 15 received
+2026-06-24 05:42:22,480 [rastro.desktop] INFO: [SHUTDOWN] Stopping server...
+2026-06-24 05:42:22,484 [rastro.ws] INFO: WS client disconnected: 4fe84c4b8ce4 (total=0)
+2026-06-24 05:42:22,492 [rastro.recon] INFO: Tool completed: wayback
+2026-06-24 05:42:22,833 [rastro.desktop.tray] INFO: System tray stopped
+2026-06-24 05:42:22,833 [rastro.desktop] INFO: [SHUTDOWN] Rastro Desktop stopped
+2026-06-24 05:42:33,783 [rastro.desktop] INFO: [BOOT] Rastro Desktop — PID: 42235
+2026-06-24 05:42:33,784 [rastro.desktop] INFO: [BOOT] Frozen: False, Python: 3.14.4, OS: linux
+2026-06-24 05:42:34,564 [rastro.desktop] INFO: [BOOT] Backend port: 8000
+2026-06-24 05:42:34,564 [rastro.desktop] INFO: [API] Starting API server
+2026-06-24 05:42:36,004 [rastro.desktop] INFO: [FRONTEND] Frontend mounted from /home/adrie/projects/Rastro/frontend/dist (routes: 2)
+2026-06-24 05:42:36,054 [asyncio] DEBUG: Using selector: EpollSelector
+2026-06-24 05:42:36,072 [rastro.desktop] INFO: [API] Server thread started on 127.0.0.1:8000
+2026-06-24 05:42:36,108 [rastro.api] INFO: Database initialized
+2026-06-24 05:42:36,108 [rastro.events] INFO: Event bus initialized
+2026-06-24 05:42:36,110 [rastro.api] INFO: Event bus and system state initialized
+2026-06-24 05:42:36,111 [rastro.product_rules] WARNING: [ERROR] scorecard-reachable: Scorecard has no data yet (expected on first boot)
+2026-06-24 05:42:36,111 [rastro.api] INFO: Product behavior rules checked
+2026-06-24 05:42:36,111 [rastro.identity] INFO: Restored identity: 9286fab9-c2bd-4b09-958e-deeebbc46176
+2026-06-24 05:42:36,111 [rastro.api] INFO: Identity system initialized: 9286fab9-c2bd-4b09-958e-deeebbc46176
+2026-06-24 05:42:36,111 [rastro.orchestrator.assistant] INFO: Suppressed 0 noise items (threshold=0.15)
+2026-06-24 05:42:36,116 [rastro.api] INFO: Assistant orchestrator initialized
+2026-06-24 05:42:36,116 [rastro.api] INFO: Execution tracker initialized
+2026-06-24 05:42:36,116 [rastro.api] INFO: Outcome tracker initialized
+2026-06-24 05:42:36,168 [rastro.api] INFO: System scorecard initialized
+2026-06-24 05:42:36,169 [rastro.api] INFO: Explanation engine initialized
+2026-06-24 05:42:36,169 [rastro.api] INFO: Decision trace collector initialized
+2026-06-24 05:42:36,169 [rastro.api] INFO: Memory store initialized
+2026-06-24 05:42:36,169 [rastro.api] INFO: Decision memory initialized
+2026-06-24 05:42:36,169 [rastro.api] INFO: Insight archive initialized
+2026-06-24 05:42:36,169 [rastro.api] INFO: Priority engine memory consumption: consumed
+2026-06-24 05:42:36,169 [rastro.opportunity.engine] INFO: OpportunityEngine initialised (v2 — layered scoring)
+2026-06-24 05:42:36,169 [rastro.opportunity.engine] INFO: Provider manual discovered 0 opportunities
+2026-06-24 05:42:36,169 [rastro.opportunity.providers] INFO: Discovered 20 public opportunities (paid-first: 17 with rewards)
+2026-06-24 05:42:36,170 [rastro.opportunity.engine] INFO: Provider public_programs discovered 20 opportunities
+2026-06-24 05:42:36,170 [rastro.opportunity.engine] INFO: Provider github_security discovered 2 opportunities
+2026-06-24 05:42:36,170 [rastro.opportunity.engine] INFO: Provider huntr discovered 2 opportunities
+2026-06-24 05:42:36,170 [rastro.opportunity.engine] INFO: Provider all_sources discovered 24 opportunities
+2026-06-24 05:42:36,179 [rastro.api] INFO: Opportunity engine initialized with 48 opportunities
+2026-06-24 05:42:36,179 [rastro.api] INFO: Execution layer fully initialized
+2026-06-24 05:42:36,179 [rastro.api] INFO: Scan scheduler started
+2026-06-24 05:42:36,185 [rastro.operations] INFO: Notification poller thread started
+2026-06-24 05:42:36,185 [rastro.api] INFO: Notification poller started
+2026-06-24 05:42:36,185 [rastro.ws] INFO: WS manager initialized
+2026-06-24 05:42:36,185 [rastro.ws.bridge] INFO: Event bus -> WebSocket bridge started
+2026-06-24 05:42:36,185 [rastro.api] INFO: WS event bridge started
+2026-06-24 05:42:36,186 [rastro.notifications.bridges] INFO: DB bridge registered on NotificationHub
+2026-06-24 05:42:36,186 [rastro.notifications.bridges] INFO: Desktop channel registered on NotificationHub
+2026-06-24 05:42:36,203 [rastro.notifications.bridges] INFO: Email channel skipped — not configured
+2026-06-24 05:42:36,356 [rastro.notifications.bridges] INFO: FCM channel skipped — not configured
+2026-06-24 05:42:36,356 [rastro.notifications.bridges] INFO: WS forwarder registered on NotificationHub
+2026-06-24 05:42:36,357 [rastro.api] INFO: Notification bridges registered
+2026-06-24 05:42:36,357 [rastro.notifications.bridges] INFO: Event -> notification bridge started
+2026-06-24 05:42:36,357 [rastro.api] INFO: Event -> notification bridge started
+2026-06-24 05:42:36,357 [rastro.scheduler] INFO: Scan scheduler started (interval=1800s)
+2026-06-24 05:42:36,366 [rastro.scheduler] INFO: Scheduler: scanning 245 targets
+2026-06-24 05:42:36,375 [rastro.main] INFO: Verifying recon tools for mode FAST...
+2026-06-24 05:42:36,891 [rastro.recon.tools] INFO: Tool 'subfinder' found at /home/adrie/go/bin/subfinder
+2026-06-24 05:42:36,892 [rastro.recon.tools] INFO: Tool 'katana' found at /home/adrie/.local/bin/katana
+2026-06-24 05:42:36,892 [rastro.recon.tools] INFO: Tool 'httpx' found at /home/adrie/projects/Rastro/.venv/bin/httpx
+2026-06-24 05:42:36,892 [rastro.recon.tools] INFO: Optional tool 'waybackurls' available
+2026-06-24 05:42:37,410 [rastro.recon.tools] INFO: Optional tool 'nuclei' available
+2026-06-24 05:42:38,039 [rastro.recon.tools] INFO: Optional tool 'ffuf' available
+2026-06-24 05:42:38,082 [rastro.main] INFO: Started scan run 39 for target Airbyte
+2026-06-24 05:42:39,362 [rastro.main] INFO: Running recon pipeline with timeout 600s...
+2026-06-24 05:42:39,362 [rastro.recon] INFO: Starting recon pipeline for api.airbyte.com in mode FAST
+2026-06-24 05:42:39,362 [rastro.recon] INFO: Starting tool: subfinder
+2026-06-24 05:42:39,416 [rastro.desktop] INFO: [API] Server listening on 127.0.0.1:8000
+2026-06-24 05:42:39,467 [httpcore.connection] DEBUG: connect_tcp.started host='127.0.0.1' port=8000 local_address=None timeout=2.0 socket_options=None
+2026-06-24 05:42:39,467 [httpcore.connection] DEBUG: connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x756ec6d270e0>
+2026-06-24 05:42:39,467 [httpcore.http11] DEBUG: send_request_headers.started request=<Request [b'GET']>
+2026-06-24 05:42:39,480 [httpcore.http11] DEBUG: send_request_headers.complete
+2026-06-24 05:42:39,480 [httpcore.http11] DEBUG: send_request_body.started request=<Request [b'GET']>
+2026-06-24 05:42:39,480 [httpcore.http11] DEBUG: send_request_body.complete
+2026-06-24 05:42:39,480 [httpcore.http11] DEBUG: receive_response_headers.started request=<Request [b'GET']>
+2026-06-24 05:42:39,486 [httpcore.http11] DEBUG: receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'date', b'Wed, 24 Jun 2026 05:42:39 GMT'), (b'server', b'uvicorn'), (b'content-length', b'52'), (b'content-type', b'application/json')])
+2026-06-24 05:42:39,486 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/health "HTTP/1.1 200 OK"
+2026-06-24 05:42:39,487 [httpcore.http11] DEBUG: receive_response_body.started request=<Request [b'GET']>
+2026-06-24 05:42:39,487 [httpcore.http11] DEBUG: receive_response_body.complete
+2026-06-24 05:42:39,487 [httpcore.http11] DEBUG: response_closed.started
+2026-06-24 05:42:39,487 [httpcore.http11] DEBUG: response_closed.complete
+2026-06-24 05:42:39,487 [httpcore.connection] DEBUG: close.started
+2026-06-24 05:42:39,491 [httpcore.connection] DEBUG: close.complete
+2026-06-24 05:42:39,491 [rastro.desktop] INFO: [HEALTHY] Backend healthy on port 8000
+2026-06-24 05:42:39,515 [rastro.desktop] INFO: [BOOT] Desktop session created (device=ADRI-8f2cb265)
+2026-06-24 05:42:39,515 [rastro.desktop] INFO: [READY] Rastro Desktop ready (desktop window)
+2026-06-24 05:42:39,516 [rastro.desktop] INFO: [BROWSER] Opening desktop window -> http://127.0.0.1:8000/?token=eyJkYXRhIjp7Im1ldGEiOnsiZGVza3RvcCI6dHJ1ZSwiZnJvemVuIjpmYWxzZSwicG9ydCI6ODAwMH0sInN1YiI6IkFEUkktOGYyY2IyNjUifSwiZXhwIjoxNzgyMzY2MTU5LCJpYXQiOjE3ODIyNzk3NTl9.f4e6646ae72ffd49dec904e969c4a58eda0b341351f5642ae3c906d0aa6d4809&device_id=ADRI-8f2cb265
+2026-06-24 05:42:39,516 [rastro.desktop] INFO: [BROWSER] webview.create_window() starting...
+2026-06-24 05:42:39,516 [rastro.desktop] INFO: [BROWSER] Desktop window failed ('Window' object has no attribute 'closed'), falling back to browser
+2026-06-24 05:42:39,517 [rastro.desktop] INFO: [BOOT] Desktop UI unavailable, browser mode activated.
+2026-06-24 05:42:40,050 [rastro.frontend] INFO: serve_root called
+2026-06-24 05:42:40,050 [rastro.frontend] INFO:   serving index.html
+2026-06-24 05:42:40,138 [rastro.frontend] INFO: serve_frontend called: full_path=assets/jsx-runtime-BseJUIpC.js
+2026-06-24 05:42:40,138 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/jsx-runtime-BseJUIpC.js
+2026-06-24 05:42:40,140 [rastro.frontend] INFO: serve_frontend called: full_path=assets/api-CPTP3yz9.js
+2026-06-24 05:42:40,140 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/api-CPTP3yz9.js
+2026-06-24 05:42:40,141 [rastro.frontend] INFO: serve_frontend called: full_path=assets/query-BBpqc807.js
+2026-06-24 05:42:40,141 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/query-BBpqc807.js
+2026-06-24 05:42:40,142 [rastro.frontend] INFO: serve_frontend called: full_path=assets/index-B6VybSjd.css
+2026-06-24 05:42:40,144 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/index-B6VybSjd.css
+2026-06-24 05:42:40,145 [rastro.frontend] INFO: serve_frontend called: full_path=assets/index-Bybr3EI9.js
+2026-06-24 05:42:40,145 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/index-Bybr3EI9.js
+2026-06-24 05:42:40,164 [rastro.frontend] INFO: serve_frontend called: full_path=manifest.json
+2026-06-24 05:42:40,164 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/manifest.json
+2026-06-24 05:42:40,173 [rastro.frontend] INFO: serve_root called
+2026-06-24 05:42:40,174 [rastro.frontend] INFO:   serving index.html
+2026-06-24 05:42:40,201 [rastro.frontend] INFO: serve_frontend called: full_path=assets/index-Bybr3EI9.js
+2026-06-24 05:42:40,201 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/index-Bybr3EI9.js
+2026-06-24 05:42:40,246 [rastro.frontend] INFO: serve_frontend called: full_path=assets/Panel-DIRwhdsd.js
+2026-06-24 05:42:40,246 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/Panel-DIRwhdsd.js
+2026-06-24 05:42:40,247 [rastro.frontend] INFO: serve_frontend called: full_path=assets/Badge-CzoNk_7P.js
+2026-06-24 05:42:40,247 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/Badge-CzoNk_7P.js
+2026-06-24 05:42:40,248 [rastro.frontend] INFO: serve_frontend called: full_path=assets/KPICard-hwM5aC38.js
+2026-06-24 05:42:40,248 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/KPICard-hwM5aC38.js
+2026-06-24 05:42:40,248 [rastro.frontend] INFO: serve_frontend called: full_path=assets/Skeleton-BBrxNivq.js
+2026-06-24 05:42:40,248 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/Skeleton-BBrxNivq.js
+2026-06-24 05:42:40,249 [rastro.frontend] INFO: serve_frontend called: full_path=assets/MissionControl-CTEAEZHj.js
+2026-06-24 05:42:40,254 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/MissionControl-CTEAEZHj.js
+2026-06-24 05:42:40,298 [rastro.frontend] INFO: serve_frontend called: full_path=assets/index-B6VybSjd.css
+2026-06-24 05:42:40,304 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/index-B6VybSjd.css
+2026-06-24 05:42:40,314 [rastro.frontend] INFO: serve_frontend called: full_path=favicon.svg
+2026-06-24 05:42:40,315 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/favicon.svg
+2026-06-24 05:42:40,316 [rastro.frontend] INFO: serve_frontend called: full_path=icon-192.png
+2026-06-24 05:42:40,316 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/icon-192.png
+2026-06-24 05:42:40,346 [rastro.frontend] INFO: serve_frontend called: full_path=assets/MissionControl-CTEAEZHj.js
+2026-06-24 05:42:40,346 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/MissionControl-CTEAEZHj.js
+2026-06-24 05:42:40,369 [rastro.frontend] INFO: serve_frontend called: full_path=nonexistent
+2026-06-24 05:42:40,370 [rastro.frontend] INFO:   serving index.html
+2026-06-24 05:42:42,193 [rastro.frontend] INFO: serve_frontend called: full_path=service-worker.js
+2026-06-24 05:42:42,193 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/service-worker.js
+2026-06-24 05:42:46,441 [rastro.recon] INFO: Tool completed: subfinder
+2026-06-24 05:42:46,442 [rastro.recon] INFO: Starting tool: wayback
+2026-06-24 05:42:46,927 [rastro.recon] INFO: Starting tool: katana
+2026-06-24 05:42:48,989 [rastro.desktop.browser_opener] INFO: Opened browser: http://127.0.0.1:8000/?token=eyJkYXRhIjp7Im1ldGEiOnsiZGVza3RvcCI6dHJ1ZSwiZnJvemVuIjpmYWxzZSwicG9ydCI6ODAwMH0sInN1YiI6IkFEUkktOGYyY2IyNjUifSwiZXhwIjoxNzgyMzY2MTU5LCJpYXQiOjE3ODIyNzk3NTl9.f4e6646ae72ffd49dec904e969c4a58eda0b341351f5642ae3c906d0aa6d4809&device_id=ADRI-8f2cb265&onboarding=1
+2026-06-24 05:42:48,989 [rastro.desktop] INFO: [BROWSER] Dashboard opened in browser
+2026-06-24 05:42:48,990 [rastro.desktop.notifications] INFO: [NOTIFICATION] Rastro: Dashboard ready — opening browser
+2026-06-24 05:42:49,131 [rastro.desktop.tray] INFO: System tray started (persistent)
+2026-06-24 05:42:49,131 [rastro.desktop] INFO: [TRAY] System tray initialized
+2026-06-24 05:42:49,131 [rastro.desktop] INFO: [READY] Rastro Desktop ready (browser fallback)
+2026-06-24 05:42:49,147 [pystray._base] ERROR: Failed to dock icon
+Traceback (most recent call last):
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 162, in _update_icon
+    self._assert_docked()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 395, in _assert_docked
+    assert self._systray_manager
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+2026-06-24 05:42:49,148 [pystray._base] ERROR: Failed to dock icon
+Traceback (most recent call last):
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 143, in _show
+    self._assert_docked()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 395, in _assert_docked
+    assert self._systray_manager
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+2026-06-24 05:42:49,671 [rastro.frontend] INFO: serve_root called
+2026-06-24 05:42:49,671 [rastro.frontend] INFO:   serving index.html
+2026-06-24 05:42:51,414 [rastro.frontend] INFO: serve_frontend called: full_path=service-worker.js
+2026-06-24 05:42:51,414 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/service-worker.js
+2026-06-24 05:42:52,645 [rastro.frontend] INFO: serve_frontend called: full_path=api/system/state
+2026-06-24 05:42:52,645 [rastro.frontend] INFO:   serving index.html
+2026-06-24 05:42:52,736 [rastro.ws] INFO: WS client connected: ed8ee51aef14 (user=ADRI-8f2cb265, total=1)
+2026-06-24 05:42:58,447 [rastro.recon] INFO: Tool completed: wayback
+2026-06-24 05:43:07,475 [rastro.desktop] INFO: [SHUTDOWN] Signal 15 received
+2026-06-24 05:43:07,475 [rastro.desktop] INFO: [SHUTDOWN] Stopping server...
+2026-06-24 05:43:07,534 [rastro.ws] INFO: WS client disconnected: ed8ee51aef14 (total=0)
+2026-06-24 05:43:07,535 [rastro.desktop.tray] INFO: System tray stopped
+2026-06-24 05:43:07,535 [rastro.desktop] INFO: [SHUTDOWN] Rastro Desktop stopped
+2026-06-24 05:43:08,804 [rastro.desktop] INFO: [BOOT] Rastro Desktop — PID: 42656
+2026-06-24 05:43:08,804 [rastro.desktop] INFO: [BOOT] Frozen: False, Python: 3.14.4, OS: linux
+2026-06-24 05:43:09,692 [rastro.desktop] INFO: [BOOT] Backend port: 8000
+2026-06-24 05:43:09,700 [rastro.desktop] INFO: [API] Starting API server
+2026-06-24 05:43:11,153 [rastro.desktop] INFO: [FRONTEND] Frontend mounted from /home/adrie/projects/Rastro/frontend/dist (routes: 2)
+2026-06-24 05:43:11,188 [rastro.desktop] INFO: [API] Server thread started on 127.0.0.1:8000
+2026-06-24 05:43:11,214 [asyncio] DEBUG: Using selector: EpollSelector
+2026-06-24 05:43:11,259 [rastro.api] INFO: Database initialized
+2026-06-24 05:43:11,260 [rastro.events] INFO: Event bus initialized
+2026-06-24 05:43:11,266 [rastro.api] INFO: Event bus and system state initialized
+2026-06-24 05:43:11,268 [rastro.product_rules] WARNING: [ERROR] scorecard-reachable: Scorecard has no data yet (expected on first boot)
+2026-06-24 05:43:11,268 [rastro.api] INFO: Product behavior rules checked
+2026-06-24 05:43:11,268 [rastro.identity] INFO: Restored identity: 9286fab9-c2bd-4b09-958e-deeebbc46176
+2026-06-24 05:43:11,268 [rastro.api] INFO: Identity system initialized: 9286fab9-c2bd-4b09-958e-deeebbc46176
+2026-06-24 05:43:11,268 [rastro.orchestrator.assistant] INFO: Suppressed 0 noise items (threshold=0.15)
+2026-06-24 05:43:11,268 [rastro.api] INFO: Assistant orchestrator initialized
+2026-06-24 05:43:11,268 [rastro.api] INFO: Execution tracker initialized
+2026-06-24 05:43:11,268 [rastro.api] INFO: Outcome tracker initialized
+2026-06-24 05:43:11,328 [rastro.api] INFO: System scorecard initialized
+2026-06-24 05:43:11,328 [rastro.api] INFO: Explanation engine initialized
+2026-06-24 05:43:11,328 [rastro.api] INFO: Decision trace collector initialized
+2026-06-24 05:43:11,328 [rastro.api] INFO: Memory store initialized
+2026-06-24 05:43:11,328 [rastro.api] INFO: Decision memory initialized
+2026-06-24 05:43:11,328 [rastro.api] INFO: Insight archive initialized
+2026-06-24 05:43:11,328 [rastro.api] INFO: Priority engine memory consumption: consumed
+2026-06-24 05:43:11,329 [rastro.opportunity.engine] INFO: OpportunityEngine initialised (v2 — layered scoring)
+2026-06-24 05:43:11,329 [rastro.opportunity.engine] INFO: Provider manual discovered 0 opportunities
+2026-06-24 05:43:11,329 [rastro.opportunity.providers] INFO: Discovered 20 public opportunities (paid-first: 17 with rewards)
+2026-06-24 05:43:11,329 [rastro.opportunity.engine] INFO: Provider public_programs discovered 20 opportunities
+2026-06-24 05:43:11,329 [rastro.opportunity.engine] INFO: Provider github_security discovered 2 opportunities
+2026-06-24 05:43:11,330 [rastro.opportunity.engine] INFO: Provider huntr discovered 2 opportunities
+2026-06-24 05:43:11,330 [rastro.opportunity.engine] INFO: Provider all_sources discovered 24 opportunities
+2026-06-24 05:43:11,339 [rastro.api] INFO: Opportunity engine initialized with 48 opportunities
+2026-06-24 05:43:11,339 [rastro.api] INFO: Execution layer fully initialized
+2026-06-24 05:43:11,339 [rastro.api] INFO: Scan scheduler started
+2026-06-24 05:43:11,347 [rastro.operations] INFO: Notification poller thread started
+2026-06-24 05:43:11,348 [rastro.api] INFO: Notification poller started
+2026-06-24 05:43:11,348 [rastro.ws] INFO: WS manager initialized
+2026-06-24 05:43:11,348 [rastro.ws.bridge] INFO: Event bus -> WebSocket bridge started
+2026-06-24 05:43:11,348 [rastro.api] INFO: WS event bridge started
+2026-06-24 05:43:11,349 [rastro.notifications.bridges] INFO: DB bridge registered on NotificationHub
+2026-06-24 05:43:11,349 [rastro.notifications.bridges] INFO: Desktop channel registered on NotificationHub
+2026-06-24 05:43:11,362 [rastro.notifications.bridges] INFO: Email channel skipped — not configured
+2026-06-24 05:43:11,540 [rastro.notifications.bridges] INFO: FCM channel skipped — not configured
+2026-06-24 05:43:11,540 [rastro.notifications.bridges] INFO: WS forwarder registered on NotificationHub
+2026-06-24 05:43:11,540 [rastro.api] INFO: Notification bridges registered
+2026-06-24 05:43:11,540 [rastro.notifications.bridges] INFO: Event -> notification bridge started
+2026-06-24 05:43:11,541 [rastro.api] INFO: Event -> notification bridge started
+2026-06-24 05:43:11,541 [rastro.scheduler] INFO: Scan scheduler started (interval=1800s)
+2026-06-24 05:43:11,549 [rastro.scheduler] INFO: Scheduler: scanning 245 targets
+2026-06-24 05:43:11,559 [rastro.main] INFO: Verifying recon tools for mode FAST...
+2026-06-24 05:43:11,977 [rastro.recon.tools] INFO: Tool 'subfinder' found at /home/adrie/go/bin/subfinder
+2026-06-24 05:43:11,978 [rastro.recon.tools] INFO: Tool 'katana' found at /home/adrie/.local/bin/katana
+2026-06-24 05:43:11,978 [rastro.recon.tools] INFO: Tool 'httpx' found at /home/adrie/projects/Rastro/.venv/bin/httpx
+2026-06-24 05:43:11,978 [rastro.recon.tools] INFO: Optional tool 'waybackurls' available
+2026-06-24 05:43:12,450 [rastro.recon.tools] INFO: Optional tool 'nuclei' available
+2026-06-24 05:43:13,071 [rastro.recon.tools] INFO: Optional tool 'ffuf' available
+2026-06-24 05:43:13,185 [rastro.main] INFO: Started scan run 40 for target Airbyte
+2026-06-24 05:43:14,625 [rastro.main] INFO: Running recon pipeline with timeout 600s...
+2026-06-24 05:43:14,625 [rastro.recon] INFO: Starting recon pipeline for api.airbyte.com in mode FAST
+2026-06-24 05:43:14,625 [rastro.recon] INFO: Starting tool: subfinder
+2026-06-24 05:43:14,863 [rastro.desktop] INFO: [API] Server listening on 127.0.0.1:8000
+2026-06-24 05:43:14,920 [httpcore.connection] DEBUG: connect_tcp.started host='127.0.0.1' port=8000 local_address=None timeout=2.0 socket_options=None
+2026-06-24 05:43:14,925 [httpcore.connection] DEBUG: connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7ba0be9d7230>
+2026-06-24 05:43:14,925 [httpcore.http11] DEBUG: send_request_headers.started request=<Request [b'GET']>
+2026-06-24 05:43:14,926 [httpcore.http11] DEBUG: send_request_headers.complete
+2026-06-24 05:43:14,926 [httpcore.http11] DEBUG: send_request_body.started request=<Request [b'GET']>
+2026-06-24 05:43:14,926 [httpcore.http11] DEBUG: send_request_body.complete
+2026-06-24 05:43:14,926 [httpcore.http11] DEBUG: receive_response_headers.started request=<Request [b'GET']>
+2026-06-24 05:43:14,949 [httpcore.http11] DEBUG: receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'date', b'Wed, 24 Jun 2026 05:43:14 GMT'), (b'server', b'uvicorn'), (b'content-length', b'52'), (b'content-type', b'application/json')])
+2026-06-24 05:43:14,950 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/health "HTTP/1.1 200 OK"
+2026-06-24 05:43:14,950 [httpcore.http11] DEBUG: receive_response_body.started request=<Request [b'GET']>
+2026-06-24 05:43:14,950 [httpcore.http11] DEBUG: receive_response_body.complete
+2026-06-24 05:43:14,950 [httpcore.http11] DEBUG: response_closed.started
+2026-06-24 05:43:14,950 [httpcore.http11] DEBUG: response_closed.complete
+2026-06-24 05:43:14,950 [httpcore.connection] DEBUG: close.started
+2026-06-24 05:43:14,950 [httpcore.connection] DEBUG: close.complete
+2026-06-24 05:43:14,950 [rastro.desktop] INFO: [HEALTHY] Backend healthy on port 8000
+2026-06-24 05:43:14,967 [rastro.desktop] INFO: [BOOT] Desktop session created (device=ADRI-8f2cb265)
+2026-06-24 05:43:14,967 [rastro.desktop] INFO: [READY] Rastro Desktop ready (desktop window)
+2026-06-24 05:43:14,968 [rastro.desktop] INFO: [BROWSER] Opening desktop window -> http://127.0.0.1:8000/?token=eyJkYXRhIjp7Im1ldGEiOnsiZGVza3RvcCI6dHJ1ZSwiZnJvemVuIjpmYWxzZSwicG9ydCI6ODAwMH0sInN1YiI6IkFEUkktOGYyY2IyNjUifSwiZXhwIjoxNzgyMzY2MTk0LCJpYXQiOjE3ODIyNzk3OTR9.9d7b2edcd52be3dfb2213ec4b8b9f31a1e5e236baa030172ad69c2c6955150d7&device_id=ADRI-8f2cb265
+2026-06-24 05:43:14,968 [rastro.desktop] INFO: [BROWSER] webview.create_window() starting...
+2026-06-24 05:43:14,969 [rastro.desktop] INFO: [BROWSER] Desktop window failed ('Window' object has no attribute 'closed'), falling back to browser
+2026-06-24 05:43:14,969 [rastro.desktop] INFO: [BOOT] Desktop UI unavailable, browser mode activated.
+2026-06-24 05:43:18,411 [rastro.recon] INFO: Tool completed: subfinder
+2026-06-24 05:43:18,411 [rastro.recon] INFO: Starting tool: wayback
+2026-06-24 05:43:18,842 [rastro.recon] INFO: Starting tool: katana
+2026-06-24 05:43:23,931 [rastro.desktop.browser_opener] INFO: Opened browser: http://127.0.0.1:8000/?token=eyJkYXRhIjp7Im1ldGEiOnsiZGVza3RvcCI6dHJ1ZSwiZnJvemVuIjpmYWxzZSwicG9ydCI6ODAwMH0sInN1YiI6IkFEUkktOGYyY2IyNjUifSwiZXhwIjoxNzgyMzY2MTk0LCJpYXQiOjE3ODIyNzk3OTR9.9d7b2edcd52be3dfb2213ec4b8b9f31a1e5e236baa030172ad69c2c6955150d7&device_id=ADRI-8f2cb265&onboarding=1
+2026-06-24 05:43:23,932 [rastro.desktop] INFO: [BROWSER] Dashboard opened in browser
+2026-06-24 05:43:23,938 [rastro.desktop.notifications] INFO: [NOTIFICATION] Rastro: Dashboard ready — opening browser
+2026-06-24 05:43:24,126 [rastro.desktop.tray] INFO: System tray started (persistent)
+2026-06-24 05:43:24,126 [rastro.desktop] INFO: [TRAY] System tray initialized
+2026-06-24 05:43:24,126 [rastro.desktop] INFO: [READY] Rastro Desktop ready (browser fallback)
+2026-06-24 05:43:24,166 [pystray._base] ERROR: Failed to dock icon
+Traceback (most recent call last):
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 162, in _update_icon
+    self._assert_docked()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 395, in _assert_docked
+    assert self._systray_manager
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+2026-06-24 05:43:24,177 [pystray._base] ERROR: Failed to dock icon
+Traceback (most recent call last):
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 143, in _show
+    self._assert_docked()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 395, in _assert_docked
+    assert self._systray_manager
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+2026-06-24 05:43:24,696 [rastro.frontend] INFO: serve_root called
+2026-06-24 05:43:24,696 [rastro.frontend] INFO:   serving index.html
+2026-06-24 05:43:24,767 [rastro.frontend] INFO: serve_frontend called: full_path=assets/index-Bybr3EI9.js
+2026-06-24 05:43:24,767 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/index-Bybr3EI9.js
+2026-06-24 05:43:24,780 [rastro.frontend] INFO: serve_frontend called: full_path=assets/jsx-runtime-BseJUIpC.js
+2026-06-24 05:43:24,780 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/jsx-runtime-BseJUIpC.js
+2026-06-24 05:43:24,798 [rastro.frontend] INFO: serve_frontend called: full_path=assets/api-CPTP3yz9.js
+2026-06-24 05:43:24,798 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/api-CPTP3yz9.js
+2026-06-24 05:43:24,799 [rastro.frontend] INFO: serve_frontend called: full_path=assets/query-BBpqc807.js
+2026-06-24 05:43:24,799 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/query-BBpqc807.js
+2026-06-24 05:43:24,799 [rastro.frontend] INFO: serve_frontend called: full_path=assets/index-B6VybSjd.css
+2026-06-24 05:43:24,799 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/index-B6VybSjd.css
+2026-06-24 05:43:24,800 [rastro.frontend] INFO: serve_frontend called: full_path=manifest.json
+2026-06-24 05:43:24,800 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/manifest.json
+2026-06-24 05:43:24,938 [rastro.frontend] INFO: serve_frontend called: full_path=icon-192.png
+2026-06-24 05:43:24,938 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/icon-192.png
+2026-06-24 05:43:26,523 [rastro.frontend] INFO: serve_frontend called: full_path=service-worker.js
+2026-06-24 05:43:26,523 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/service-worker.js
+2026-06-24 05:43:27,473 [rastro.frontend] INFO: serve_frontend called: full_path=assets/MissionControl-CTEAEZHj.js
+2026-06-24 05:43:27,473 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/MissionControl-CTEAEZHj.js
+2026-06-24 05:43:27,481 [rastro.frontend] INFO: serve_frontend called: full_path=assets/Panel-DIRwhdsd.js
+2026-06-24 05:43:27,481 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/Panel-DIRwhdsd.js
+2026-06-24 05:43:27,482 [rastro.frontend] INFO: serve_frontend called: full_path=assets/KPICard-hwM5aC38.js
+2026-06-24 05:43:27,482 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/KPICard-hwM5aC38.js
+2026-06-24 05:43:27,483 [rastro.frontend] INFO: serve_frontend called: full_path=assets/Skeleton-BBrxNivq.js
+2026-06-24 05:43:27,483 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/Skeleton-BBrxNivq.js
+2026-06-24 05:43:27,484 [rastro.frontend] INFO: serve_frontend called: full_path=assets/Badge-CzoNk_7P.js
+2026-06-24 05:43:27,484 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/Badge-CzoNk_7P.js
+2026-06-24 05:43:27,673 [rastro.frontend] INFO: serve_frontend called: full_path=api/system/state
+2026-06-24 05:43:27,673 [rastro.frontend] INFO:   serving index.html
+2026-06-24 05:43:27,689 [rastro.ws] INFO: WS client connected: 1eb7e87be496 (user=ADRI-8f2cb265, total=1)
+2026-06-24 05:43:28,216 [rastro.recon] INFO: Tool completed: wayback
+2026-06-24 05:43:34,652 [rastro.recon] INFO: Tool completed: katana
+2026-06-24 05:43:43,757 [rastro.recon] INFO: Normalized endpoints: 4682
+2026-06-24 05:43:43,776 [rastro.recon] INFO: Recon pipeline completed for api.airbyte.com
+2026-06-24 05:43:43,778 [rastro.main] INFO: Recon pipeline completed successfully
+2026-06-24 05:43:43,778 [rastro.main] INFO: Parsing normalized endpoints from /home/adrie/.rastro/targets/Airbyte/endpoints/normalized_endpoints.json
+2026-06-24 05:43:44,649 [rastro.main] INFO: Found 4682 endpoint entries to persist
+2026-06-24 05:43:49,139 [rastro.desktop] INFO: [SHUTDOWN] Signal 15 received
+2026-06-24 05:43:49,209 [rastro.desktop] INFO: [SHUTDOWN] Stopping server...
+2026-06-24 05:43:49,314 [rastro.desktop.tray] INFO: System tray stopped
+2026-06-24 05:43:49,314 [rastro.desktop] INFO: [SHUTDOWN] Rastro Desktop stopped
+2026-06-24 05:43:50,521 [rastro.desktop] INFO: [BOOT] Rastro Desktop — PID: 43054
+2026-06-24 05:43:50,521 [rastro.desktop] INFO: [BOOT] Frozen: False, Python: 3.14.4, OS: linux
+2026-06-24 05:43:51,397 [rastro.desktop] INFO: [BOOT] Backend port: 8000
+2026-06-24 05:43:51,397 [rastro.desktop] INFO: [API] Starting API server
+2026-06-24 05:43:52,995 [rastro.desktop] INFO: [FRONTEND] Frontend mounted from /home/adrie/projects/Rastro/frontend/dist (routes: 2)
+2026-06-24 05:43:53,016 [rastro.desktop] INFO: [API] Server thread started on 127.0.0.1:8000
+2026-06-24 05:43:53,071 [asyncio] DEBUG: Using selector: EpollSelector
+2026-06-24 05:43:53,130 [rastro.api] INFO: Database initialized
+2026-06-24 05:43:53,131 [rastro.events] INFO: Event bus initialized
+2026-06-24 05:43:53,137 [rastro.api] INFO: Event bus and system state initialized
+2026-06-24 05:43:53,139 [rastro.product_rules] WARNING: [ERROR] scorecard-reachable: Scorecard has no data yet (expected on first boot)
+2026-06-24 05:43:53,139 [rastro.api] INFO: Product behavior rules checked
+2026-06-24 05:43:53,139 [rastro.identity] INFO: Restored identity: 9286fab9-c2bd-4b09-958e-deeebbc46176
+2026-06-24 05:43:53,139 [rastro.api] INFO: Identity system initialized: 9286fab9-c2bd-4b09-958e-deeebbc46176
+2026-06-24 05:43:53,139 [rastro.orchestrator.assistant] INFO: Suppressed 0 noise items (threshold=0.15)
+2026-06-24 05:43:53,139 [rastro.api] INFO: Assistant orchestrator initialized
+2026-06-24 05:43:53,139 [rastro.api] INFO: Execution tracker initialized
+2026-06-24 05:43:53,139 [rastro.api] INFO: Outcome tracker initialized
+2026-06-24 05:43:53,217 [rastro.api] INFO: System scorecard initialized
+2026-06-24 05:43:53,217 [rastro.api] INFO: Explanation engine initialized
+2026-06-24 05:43:53,217 [rastro.api] INFO: Decision trace collector initialized
+2026-06-24 05:43:53,217 [rastro.api] INFO: Memory store initialized
+2026-06-24 05:43:53,217 [rastro.api] INFO: Decision memory initialized
+2026-06-24 05:43:53,217 [rastro.api] INFO: Insight archive initialized
+2026-06-24 05:43:53,217 [rastro.api] INFO: Priority engine memory consumption: consumed
+2026-06-24 05:43:53,217 [rastro.opportunity.engine] INFO: OpportunityEngine initialised (v2 — layered scoring)
+2026-06-24 05:43:53,217 [rastro.opportunity.engine] INFO: Provider manual discovered 0 opportunities
+2026-06-24 05:43:53,218 [rastro.opportunity.providers] INFO: Discovered 20 public opportunities (paid-first: 17 with rewards)
+2026-06-24 05:43:53,218 [rastro.opportunity.engine] INFO: Provider public_programs discovered 20 opportunities
+2026-06-24 05:43:53,218 [rastro.opportunity.engine] INFO: Provider github_security discovered 2 opportunities
+2026-06-24 05:43:53,218 [rastro.opportunity.engine] INFO: Provider huntr discovered 2 opportunities
+2026-06-24 05:43:53,218 [rastro.opportunity.engine] INFO: Provider all_sources discovered 24 opportunities
+2026-06-24 05:43:53,226 [rastro.api] INFO: Opportunity engine initialized with 48 opportunities
+2026-06-24 05:43:53,227 [rastro.api] INFO: Execution layer fully initialized
+2026-06-24 05:43:53,232 [rastro.api] INFO: Scan scheduler started
+2026-06-24 05:43:53,233 [rastro.operations] INFO: Notification poller thread started
+2026-06-24 05:43:53,234 [rastro.api] INFO: Notification poller started
+2026-06-24 05:43:53,234 [rastro.ws] INFO: WS manager initialized
+2026-06-24 05:43:53,234 [rastro.ws.bridge] INFO: Event bus -> WebSocket bridge started
+2026-06-24 05:43:53,234 [rastro.api] INFO: WS event bridge started
+2026-06-24 05:43:53,235 [rastro.notifications.bridges] INFO: DB bridge registered on NotificationHub
+2026-06-24 05:43:53,235 [rastro.notifications.bridges] INFO: Desktop channel registered on NotificationHub
+2026-06-24 05:43:53,251 [rastro.notifications.bridges] INFO: Email channel skipped — not configured
+2026-06-24 05:43:53,449 [rastro.notifications.bridges] INFO: FCM channel skipped — not configured
+2026-06-24 05:43:53,449 [rastro.notifications.bridges] INFO: WS forwarder registered on NotificationHub
+2026-06-24 05:43:53,449 [rastro.api] INFO: Notification bridges registered
+2026-06-24 05:43:53,449 [rastro.notifications.bridges] INFO: Event -> notification bridge started
+2026-06-24 05:43:53,449 [rastro.api] INFO: Event -> notification bridge started
+2026-06-24 05:43:53,450 [rastro.scheduler] INFO: Scan scheduler started (interval=1800s)
+2026-06-24 05:43:53,458 [rastro.scheduler] INFO: Scheduler: scanning 245 targets
+2026-06-24 05:43:53,467 [rastro.main] INFO: Verifying recon tools for mode FAST...
+2026-06-24 05:43:53,906 [rastro.recon.tools] INFO: Tool 'subfinder' found at /home/adrie/go/bin/subfinder
+2026-06-24 05:43:53,907 [rastro.recon.tools] INFO: Tool 'katana' found at /home/adrie/.local/bin/katana
+2026-06-24 05:43:53,907 [rastro.recon.tools] INFO: Tool 'httpx' found at /home/adrie/projects/Rastro/.venv/bin/httpx
+2026-06-24 05:43:53,907 [rastro.recon.tools] INFO: Optional tool 'waybackurls' available
+2026-06-24 05:43:54,378 [rastro.recon.tools] INFO: Optional tool 'nuclei' available
+2026-06-24 05:43:55,081 [rastro.recon.tools] INFO: Optional tool 'ffuf' available
+2026-06-24 05:43:55,115 [rastro.main] INFO: Started scan run 41 for target Airbyte
+2026-06-24 05:43:56,374 [rastro.main] INFO: Running recon pipeline with timeout 600s...
+2026-06-24 05:43:56,374 [rastro.recon] INFO: Starting recon pipeline for api.airbyte.com in mode FAST
+2026-06-24 05:43:56,374 [rastro.recon] INFO: Starting tool: subfinder
+2026-06-24 05:43:56,416 [rastro.desktop] INFO: [API] Server listening on 127.0.0.1:8000
+2026-06-24 05:43:56,473 [httpcore.connection] DEBUG: connect_tcp.started host='127.0.0.1' port=8000 local_address=None timeout=2.0 socket_options=None
+2026-06-24 05:43:56,473 [httpcore.connection] DEBUG: connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7d6be0d3f0e0>
+2026-06-24 05:43:56,473 [httpcore.http11] DEBUG: send_request_headers.started request=<Request [b'GET']>
+2026-06-24 05:43:56,473 [httpcore.http11] DEBUG: send_request_headers.complete
+2026-06-24 05:43:56,473 [httpcore.http11] DEBUG: send_request_body.started request=<Request [b'GET']>
+2026-06-24 05:43:56,473 [httpcore.http11] DEBUG: send_request_body.complete
+2026-06-24 05:43:56,474 [httpcore.http11] DEBUG: receive_response_headers.started request=<Request [b'GET']>
+2026-06-24 05:43:56,485 [httpcore.http11] DEBUG: receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'date', b'Wed, 24 Jun 2026 05:43:56 GMT'), (b'server', b'uvicorn'), (b'content-length', b'52'), (b'content-type', b'application/json')])
+2026-06-24 05:43:56,486 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/health "HTTP/1.1 200 OK"
+2026-06-24 05:43:56,486 [httpcore.http11] DEBUG: receive_response_body.started request=<Request [b'GET']>
+2026-06-24 05:43:56,486 [httpcore.http11] DEBUG: receive_response_body.complete
+2026-06-24 05:43:56,487 [httpcore.http11] DEBUG: response_closed.started
+2026-06-24 05:43:56,487 [httpcore.http11] DEBUG: response_closed.complete
+2026-06-24 05:43:56,487 [httpcore.connection] DEBUG: close.started
+2026-06-24 05:43:56,487 [httpcore.connection] DEBUG: close.complete
+2026-06-24 05:43:56,487 [rastro.desktop] INFO: [HEALTHY] Backend healthy on port 8000
+2026-06-24 05:43:56,503 [rastro.desktop] INFO: [BOOT] Desktop session created (device=ADRI-8f2cb265)
+2026-06-24 05:43:56,503 [rastro.desktop] INFO: [READY] Rastro Desktop ready (desktop window)
+2026-06-24 05:43:56,504 [rastro.desktop] INFO: [BROWSER] Opening desktop window -> http://127.0.0.1:8000/?token=eyJkYXRhIjp7Im1ldGEiOnsiZGVza3RvcCI6dHJ1ZSwiZnJvemVuIjpmYWxzZSwicG9ydCI6ODAwMH0sInN1YiI6IkFEUkktOGYyY2IyNjUifSwiZXhwIjoxNzgyMzY2MjM2LCJpYXQiOjE3ODIyNzk4MzZ9.f8d0e304d9c0f0387bb983a187d0edbdd50f7eb334cc6652119ac85c5f392b18&device_id=ADRI-8f2cb265
+2026-06-24 05:43:56,504 [rastro.desktop] INFO: [BROWSER] webview.create_window() starting...
+2026-06-24 05:43:56,504 [rastro.desktop] INFO: [BROWSER] Desktop window failed ('Window' object has no attribute 'closed'), falling back to browser
+2026-06-24 05:43:56,505 [rastro.desktop] INFO: [BOOT] Desktop UI unavailable, browser mode activated.
+2026-06-24 05:44:04,295 [rastro.desktop.browser_opener] INFO: Opened browser: http://127.0.0.1:8000/?token=eyJkYXRhIjp7Im1ldGEiOnsiZGVza3RvcCI6dHJ1ZSwiZnJvemVuIjpmYWxzZSwicG9ydCI6ODAwMH0sInN1YiI6IkFEUkktOGYyY2IyNjUifSwiZXhwIjoxNzgyMzY2MjM2LCJpYXQiOjE3ODIyNzk4MzZ9.f8d0e304d9c0f0387bb983a187d0edbdd50f7eb334cc6652119ac85c5f392b18&device_id=ADRI-8f2cb265&onboarding=1
+2026-06-24 05:44:04,295 [rastro.desktop] INFO: [BROWSER] Dashboard opened in browser
+2026-06-24 05:44:04,296 [rastro.desktop.notifications] INFO: [NOTIFICATION] Rastro: Dashboard ready — opening browser
+2026-06-24 05:44:04,428 [rastro.desktop.tray] INFO: System tray started (persistent)
+2026-06-24 05:44:04,428 [rastro.desktop] INFO: [TRAY] System tray initialized
+2026-06-24 05:44:04,428 [rastro.desktop] INFO: [READY] Rastro Desktop ready (browser fallback)
+2026-06-24 05:44:04,468 [pystray._base] ERROR: Failed to dock icon
+Traceback (most recent call last):
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 162, in _update_icon
+    self._assert_docked()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 395, in _assert_docked
+    assert self._systray_manager
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+2026-06-24 05:44:04,477 [pystray._base] ERROR: Failed to dock icon
+Traceback (most recent call last):
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 143, in _show
+    self._assert_docked()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 395, in _assert_docked
+    assert self._systray_manager
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+2026-06-24 05:44:05,111 [rastro.frontend] INFO: serve_root called
+2026-06-24 05:44:05,111 [rastro.frontend] INFO:   serving index.html
+2026-06-24 05:44:05,153 [rastro.frontend] INFO: serve_frontend called: full_path=assets/index-Bybr3EI9.js
+2026-06-24 05:44:05,153 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/index-Bybr3EI9.js
+2026-06-24 05:44:05,161 [rastro.frontend] INFO: serve_frontend called: full_path=assets/jsx-runtime-BseJUIpC.js
+2026-06-24 05:44:05,161 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/jsx-runtime-BseJUIpC.js
+2026-06-24 05:44:05,175 [rastro.frontend] INFO: serve_frontend called: full_path=assets/api-CPTP3yz9.js
+2026-06-24 05:44:05,176 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/api-CPTP3yz9.js
+2026-06-24 05:44:05,181 [rastro.frontend] INFO: serve_frontend called: full_path=assets/query-BBpqc807.js
+2026-06-24 05:44:05,182 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/query-BBpqc807.js
+2026-06-24 05:44:05,182 [rastro.frontend] INFO: serve_frontend called: full_path=assets/index-B6VybSjd.css
+2026-06-24 05:44:05,183 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/index-B6VybSjd.css
+2026-06-24 05:44:05,190 [rastro.frontend] INFO: serve_frontend called: full_path=manifest.json
+2026-06-24 05:44:05,190 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/manifest.json
+2026-06-24 05:44:05,327 [rastro.frontend] INFO: serve_frontend called: full_path=icon-192.png
+2026-06-24 05:44:05,327 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/icon-192.png
+2026-06-24 05:44:06,863 [rastro.frontend] INFO: serve_frontend called: full_path=service-worker.js
+2026-06-24 05:44:06,864 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/service-worker.js
+2026-06-24 05:44:07,823 [rastro.frontend] INFO: serve_frontend called: full_path=assets/MissionControl-CTEAEZHj.js
+2026-06-24 05:44:07,823 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/MissionControl-CTEAEZHj.js
+2026-06-24 05:44:07,823 [rastro.frontend] INFO: serve_frontend called: full_path=assets/KPICard-hwM5aC38.js
+2026-06-24 05:44:07,824 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/KPICard-hwM5aC38.js
+2026-06-24 05:44:07,824 [rastro.frontend] INFO: serve_frontend called: full_path=assets/Panel-DIRwhdsd.js
+2026-06-24 05:44:07,824 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/Panel-DIRwhdsd.js
+2026-06-24 05:44:07,830 [rastro.frontend] INFO: serve_frontend called: full_path=assets/Badge-CzoNk_7P.js
+2026-06-24 05:44:07,835 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/Badge-CzoNk_7P.js
+2026-06-24 05:44:07,836 [rastro.frontend] INFO: serve_frontend called: full_path=assets/Skeleton-BBrxNivq.js
+2026-06-24 05:44:07,836 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/Skeleton-BBrxNivq.js
+2026-06-24 05:44:08,027 [rastro.ws] INFO: WS client connected: 767cc921d9e1 (user=ADRI-8f2cb265, total=1)
+2026-06-24 05:44:08,036 [rastro.frontend] INFO: serve_frontend called: full_path=api/system/state
+2026-06-24 05:44:08,037 [rastro.frontend] INFO:   serving index.html
+2026-06-24 05:44:27,751 [rastro.recon] INFO: Tool completed: subfinder
+2026-06-24 05:44:27,762 [rastro.recon] INFO: Starting tool: wayback
+2026-06-24 05:44:28,205 [rastro.recon] INFO: Starting tool: katana
+2026-06-24 05:44:47,318 [rastro.desktop] INFO: [SHUTDOWN] Signal 15 received
+2026-06-24 05:44:47,319 [rastro.desktop] INFO: [SHUTDOWN] Stopping server...
+2026-06-24 05:44:47,335 [rastro.desktop.tray] INFO: System tray stopped
+2026-06-24 05:44:47,426 [rastro.ws] INFO: WS client disconnected: 767cc921d9e1 (total=0)
+2026-06-24 05:44:47,444 [rastro.desktop] INFO: [SHUTDOWN] Rastro Desktop stopped
+2026-06-24 05:44:48,751 [rastro.desktop] INFO: [BOOT] Rastro Desktop — PID: 43605
+2026-06-24 05:44:48,751 [rastro.desktop] INFO: [BOOT] Frozen: False, Python: 3.14.4, OS: linux
+2026-06-24 05:44:49,702 [rastro.desktop] INFO: [BOOT] Backend port: 8000
+2026-06-24 05:44:49,703 [rastro.desktop] INFO: [API] Starting API server
+2026-06-24 05:44:51,451 [rastro.desktop] INFO: [FRONTEND] Frontend mounted from /home/adrie/projects/Rastro/frontend/dist (routes: 2)
+2026-06-24 05:44:51,461 [rastro.desktop] INFO: [API] Server thread started on 127.0.0.1:8000
+2026-06-24 05:44:51,513 [asyncio] DEBUG: Using selector: EpollSelector
+2026-06-24 05:44:51,571 [rastro.api] INFO: Database initialized
+2026-06-24 05:44:51,572 [rastro.events] INFO: Event bus initialized
+2026-06-24 05:44:51,574 [rastro.api] INFO: Event bus and system state initialized
+2026-06-24 05:44:51,580 [rastro.product_rules] WARNING: [ERROR] scorecard-reachable: Scorecard has no data yet (expected on first boot)
+2026-06-24 05:44:51,581 [rastro.api] INFO: Product behavior rules checked
+2026-06-24 05:44:51,581 [rastro.identity] INFO: Restored identity: 9286fab9-c2bd-4b09-958e-deeebbc46176
+2026-06-24 05:44:51,581 [rastro.api] INFO: Identity system initialized: 9286fab9-c2bd-4b09-958e-deeebbc46176
+2026-06-24 05:44:51,581 [rastro.orchestrator.assistant] INFO: Suppressed 0 noise items (threshold=0.15)
+2026-06-24 05:44:51,581 [rastro.api] INFO: Assistant orchestrator initialized
+2026-06-24 05:44:51,581 [rastro.api] INFO: Execution tracker initialized
+2026-06-24 05:44:51,581 [rastro.api] INFO: Outcome tracker initialized
+2026-06-24 05:44:51,655 [rastro.api] INFO: System scorecard initialized
+2026-06-24 05:44:51,655 [rastro.api] INFO: Explanation engine initialized
+2026-06-24 05:44:51,656 [rastro.api] INFO: Decision trace collector initialized
+2026-06-24 05:44:51,656 [rastro.api] INFO: Memory store initialized
+2026-06-24 05:44:51,656 [rastro.api] INFO: Decision memory initialized
+2026-06-24 05:44:51,656 [rastro.api] INFO: Insight archive initialized
+2026-06-24 05:44:51,656 [rastro.api] INFO: Priority engine memory consumption: consumed
+2026-06-24 05:44:51,656 [rastro.opportunity.engine] INFO: OpportunityEngine initialised (v2 — layered scoring)
+2026-06-24 05:44:51,656 [rastro.opportunity.engine] INFO: Provider manual discovered 0 opportunities
+2026-06-24 05:44:51,656 [rastro.opportunity.providers] INFO: Discovered 20 public opportunities (paid-first: 17 with rewards)
+2026-06-24 05:44:51,656 [rastro.opportunity.engine] INFO: Provider public_programs discovered 20 opportunities
+2026-06-24 05:44:51,657 [rastro.opportunity.engine] INFO: Provider github_security discovered 2 opportunities
+2026-06-24 05:44:51,657 [rastro.opportunity.engine] INFO: Provider huntr discovered 2 opportunities
+2026-06-24 05:44:51,657 [rastro.opportunity.engine] INFO: Provider all_sources discovered 24 opportunities
+2026-06-24 05:44:51,666 [rastro.api] INFO: Opportunity engine initialized with 48 opportunities
+2026-06-24 05:44:51,666 [rastro.api] INFO: Execution layer fully initialized
+2026-06-24 05:44:51,667 [rastro.api] INFO: Scan scheduler started
+2026-06-24 05:44:51,668 [rastro.operations] INFO: Notification poller thread started
+2026-06-24 05:44:51,668 [rastro.api] INFO: Notification poller started
+2026-06-24 05:44:51,668 [rastro.ws] INFO: WS manager initialized
+2026-06-24 05:44:51,668 [rastro.ws.bridge] INFO: Event bus -> WebSocket bridge started
+2026-06-24 05:44:51,668 [rastro.api] INFO: WS event bridge started
+2026-06-24 05:44:51,669 [rastro.notifications.bridges] INFO: DB bridge registered on NotificationHub
+2026-06-24 05:44:51,669 [rastro.notifications.bridges] INFO: Desktop channel registered on NotificationHub
+2026-06-24 05:44:51,687 [rastro.notifications.bridges] INFO: Email channel skipped — not configured
+2026-06-24 05:44:51,889 [rastro.notifications.bridges] INFO: FCM channel skipped — not configured
+2026-06-24 05:44:51,890 [rastro.notifications.bridges] INFO: WS forwarder registered on NotificationHub
+2026-06-24 05:44:51,890 [rastro.api] INFO: Notification bridges registered
+2026-06-24 05:44:51,890 [rastro.notifications.bridges] INFO: Event -> notification bridge started
+2026-06-24 05:44:51,890 [rastro.api] INFO: Event -> notification bridge started
+2026-06-24 05:44:51,890 [rastro.scheduler] INFO: Scan scheduler started (interval=1800s)
+2026-06-24 05:44:51,893 [rastro.scheduler] INFO: Scheduler: scanning 245 targets
+2026-06-24 05:44:51,903 [rastro.main] INFO: Verifying recon tools for mode FAST...
+2026-06-24 05:44:52,283 [rastro.recon.tools] INFO: Tool 'subfinder' found at /home/adrie/go/bin/subfinder
+2026-06-24 05:44:52,284 [rastro.recon.tools] INFO: Tool 'katana' found at /home/adrie/.local/bin/katana
+2026-06-24 05:44:52,284 [rastro.recon.tools] INFO: Tool 'httpx' found at /home/adrie/projects/Rastro/.venv/bin/httpx
+2026-06-24 05:44:52,284 [rastro.recon.tools] INFO: Optional tool 'waybackurls' available
+2026-06-24 05:44:52,678 [rastro.recon.tools] INFO: Optional tool 'nuclei' available
+2026-06-24 05:44:53,423 [rastro.recon.tools] INFO: Optional tool 'ffuf' available
+2026-06-24 05:44:53,493 [rastro.main] INFO: Started scan run 42 for target Airbyte
+2026-06-24 05:44:54,603 [rastro.main] INFO: Running recon pipeline with timeout 600s...
+2026-06-24 05:44:54,603 [rastro.recon] INFO: Starting recon pipeline for api.airbyte.com in mode FAST
+2026-06-24 05:44:54,603 [rastro.recon] INFO: Starting tool: subfinder
+2026-06-24 05:44:54,823 [rastro.desktop] INFO: [API] Server listening on 127.0.0.1:8000
+2026-06-24 05:44:54,884 [httpcore.connection] DEBUG: connect_tcp.started host='127.0.0.1' port=8000 local_address=None timeout=2.0 socket_options=None
+2026-06-24 05:44:54,884 [httpcore.connection] DEBUG: connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x710c18343230>
+2026-06-24 05:44:54,884 [httpcore.http11] DEBUG: send_request_headers.started request=<Request [b'GET']>
+2026-06-24 05:44:54,884 [httpcore.http11] DEBUG: send_request_headers.complete
+2026-06-24 05:44:54,884 [httpcore.http11] DEBUG: send_request_body.started request=<Request [b'GET']>
+2026-06-24 05:44:54,884 [httpcore.http11] DEBUG: send_request_body.complete
+2026-06-24 05:44:54,885 [httpcore.http11] DEBUG: receive_response_headers.started request=<Request [b'GET']>
+2026-06-24 05:44:54,906 [httpcore.http11] DEBUG: receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'date', b'Wed, 24 Jun 2026 05:44:54 GMT'), (b'server', b'uvicorn'), (b'content-length', b'52'), (b'content-type', b'application/json')])
+2026-06-24 05:44:54,907 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/health "HTTP/1.1 200 OK"
+2026-06-24 05:44:54,907 [httpcore.http11] DEBUG: receive_response_body.started request=<Request [b'GET']>
+2026-06-24 05:44:54,907 [httpcore.http11] DEBUG: receive_response_body.complete
+2026-06-24 05:44:54,907 [httpcore.http11] DEBUG: response_closed.started
+2026-06-24 05:44:54,907 [httpcore.http11] DEBUG: response_closed.complete
+2026-06-24 05:44:54,907 [httpcore.connection] DEBUG: close.started
+2026-06-24 05:44:54,908 [httpcore.connection] DEBUG: close.complete
+2026-06-24 05:44:54,908 [rastro.desktop] INFO: [HEALTHY] Backend healthy on port 8000
+2026-06-24 05:44:54,927 [rastro.desktop] INFO: [BOOT] Desktop session created (device=ADRI-8f2cb265)
+2026-06-24 05:44:54,927 [rastro.desktop] INFO: [READY] Rastro Desktop ready (desktop window)
+2026-06-24 05:44:54,928 [rastro.desktop] INFO: [BROWSER] Opening desktop window -> http://127.0.0.1:8000/?token=eyJkYXRhIjp7Im1ldGEiOnsiZGVza3RvcCI6dHJ1ZSwiZnJvemVuIjpmYWxzZSwicG9ydCI6ODAwMH0sInN1YiI6IkFEUkktOGYyY2IyNjUifSwiZXhwIjoxNzgyMzY2Mjk0LCJpYXQiOjE3ODIyNzk4OTR9.34b3f32b3970dd09ff3485670520501cb0d7b3aecae4cd4dc3aef3937abc657c&device_id=ADRI-8f2cb265
+2026-06-24 05:44:54,928 [rastro.desktop] INFO: [BROWSER] webview.create_window() starting...
+2026-06-24 05:44:54,929 [rastro.desktop] INFO: [BROWSER] Desktop window failed ('Window' object has no attribute 'closed'), falling back to browser
+2026-06-24 05:44:54,929 [rastro.desktop] INFO: [BOOT] Desktop UI unavailable, browser mode activated.
+2026-06-24 05:44:58,930 [rastro.frontend] INFO: serve_frontend called: full_path=api/system/state
+2026-06-24 05:44:58,930 [rastro.frontend] INFO:   serving index.html
+2026-06-24 05:45:02,177 [rastro.desktop.browser_opener] INFO: Opened browser: http://127.0.0.1:8000/?token=eyJkYXRhIjp7Im1ldGEiOnsiZGVza3RvcCI6dHJ1ZSwiZnJvemVuIjpmYWxzZSwicG9ydCI6ODAwMH0sInN1YiI6IkFEUkktOGYyY2IyNjUifSwiZXhwIjoxNzgyMzY2Mjk0LCJpYXQiOjE3ODIyNzk4OTR9.34b3f32b3970dd09ff3485670520501cb0d7b3aecae4cd4dc3aef3937abc657c&device_id=ADRI-8f2cb265&onboarding=1
+2026-06-24 05:45:02,177 [rastro.desktop] INFO: [BROWSER] Dashboard opened in browser
+2026-06-24 05:45:02,179 [rastro.desktop.notifications] INFO: [NOTIFICATION] Rastro: Dashboard ready — opening browser
+2026-06-24 05:45:02,344 [rastro.desktop.tray] INFO: System tray started (persistent)
+2026-06-24 05:45:02,344 [rastro.desktop] INFO: [TRAY] System tray initialized
+2026-06-24 05:45:02,344 [rastro.desktop] INFO: [READY] Rastro Desktop ready (browser fallback)
+2026-06-24 05:45:02,407 [pystray._base] ERROR: Failed to dock icon
+Traceback (most recent call last):
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 162, in _update_icon
+    self._assert_docked()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 395, in _assert_docked
+    assert self._systray_manager
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+2026-06-24 05:45:02,408 [pystray._base] ERROR: Failed to dock icon
+Traceback (most recent call last):
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 143, in _show
+    self._assert_docked()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 395, in _assert_docked
+    assert self._systray_manager
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+2026-06-24 05:45:03,058 [rastro.frontend] INFO: serve_root called
+2026-06-24 05:45:03,058 [rastro.frontend] INFO:   serving index.html
+2026-06-24 05:45:03,127 [rastro.frontend] INFO: serve_frontend called: full_path=assets/index-Bybr3EI9.js
+2026-06-24 05:45:03,127 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/index-Bybr3EI9.js
+2026-06-24 05:45:03,214 [rastro.frontend] INFO: serve_frontend called: full_path=assets/jsx-runtime-BseJUIpC.js
+2026-06-24 05:45:03,214 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/jsx-runtime-BseJUIpC.js
+2026-06-24 05:45:03,215 [rastro.frontend] INFO: serve_frontend called: full_path=assets/api-CPTP3yz9.js
+2026-06-24 05:45:03,215 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/api-CPTP3yz9.js
+2026-06-24 05:45:03,215 [rastro.frontend] INFO: serve_frontend called: full_path=assets/query-BBpqc807.js
+2026-06-24 05:45:03,215 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/query-BBpqc807.js
+2026-06-24 05:45:03,216 [rastro.frontend] INFO: serve_frontend called: full_path=assets/index-B6VybSjd.css
+2026-06-24 05:45:03,216 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/index-B6VybSjd.css
+2026-06-24 05:45:03,222 [rastro.frontend] INFO: serve_frontend called: full_path=manifest.json
+2026-06-24 05:45:03,222 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/manifest.json
+2026-06-24 05:45:03,459 [rastro.frontend] INFO: serve_frontend called: full_path=icon-192.png
+2026-06-24 05:45:03,459 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/icon-192.png
+2026-06-24 05:45:05,088 [rastro.frontend] INFO: serve_frontend called: full_path=service-worker.js
+2026-06-24 05:45:05,088 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/service-worker.js
+2026-06-24 05:45:08,242 [rastro.frontend] INFO: serve_frontend called: full_path=assets/MissionControl-CTEAEZHj.js
+2026-06-24 05:45:08,242 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/MissionControl-CTEAEZHj.js
+2026-06-24 05:45:08,244 [rastro.frontend] INFO: serve_frontend called: full_path=assets/KPICard-hwM5aC38.js
+2026-06-24 05:45:08,244 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/KPICard-hwM5aC38.js
+2026-06-24 05:45:08,244 [rastro.frontend] INFO: serve_frontend called: full_path=assets/Badge-CzoNk_7P.js
+2026-06-24 05:45:08,244 [rastro.frontend] INFO:   serving file: /home/adrie/projects/Rastro/frontend/dist/assets/Badge-CzoNk_7P.js
+2026-06-24 05:45:08,295 [rastro.ws] INFO: WS client connected: 2b7e9ba483dc (user=ADRI-8f2cb265, total=1)
+2026-06-24 05:45:08,297 [rastro.frontend] INFO: serve_frontend called: full_path=api/system/state
+2026-06-24 05:45:08,297 [rastro.frontend] INFO:   serving index.html
+2026-06-24 05:45:09,008 [rastro.frontend] INFO: serve_frontend called: full_path=api/surface/summary
+2026-06-24 05:45:09,008 [rastro.frontend] INFO:   serving index.html
+2026-06-24 05:45:26,946 [rastro.recon] INFO: Tool completed: subfinder
+2026-06-24 05:45:26,946 [rastro.recon] INFO: Starting tool: wayback
+2026-06-24 05:45:27,303 [rastro.recon] INFO: Starting tool: katana
+2026-06-24 05:45:57,416 [rastro.recon] INFO: Tool completed: wayback
+2026-06-24 05:46:49,540 [rastro.desktop] INFO: [BOOT] Rastro Desktop — PID: 44523
+2026-06-24 05:46:49,540 [rastro.desktop] INFO: [BOOT] Frozen: False, Python: 3.14.4, OS: linux
+2026-06-24 05:46:50,288 [rastro.desktop] INFO: [SHUTDOWN] Signal 15 received
+2026-06-24 05:46:50,288 [rastro.desktop] INFO: [SHUTDOWN] Stopping server...
+2026-06-24 05:46:50,293 [rastro.ws] INFO: WS client disconnected: 2b7e9ba483dc (total=0)
+2026-06-24 05:46:50,753 [rastro.desktop.tray] INFO: System tray stopped
+2026-06-24 05:46:50,781 [rastro.desktop] INFO: [BOOT] Backend port: 8000
+2026-06-24 05:46:50,781 [rastro.desktop] INFO: [API] Starting API server
+2026-06-24 05:46:51,329 [rastro.desktop] INFO: [SHUTDOWN] Rastro Desktop stopped
+2026-06-24 05:46:52,669 [rastro.desktop] INFO: [FRONTEND] Frontend mounted from /home/adrie/projects/Rastro/frontend/dist (routes: 2)
+2026-06-24 05:46:52,682 [rastro.desktop] INFO: [API] Server thread started on 127.0.0.1:8000
+2026-06-24 05:46:52,777 [asyncio] DEBUG: Using selector: EpollSelector
+2026-06-24 05:46:52,890 [rastro.api] INFO: Database initialized
+2026-06-24 05:46:52,895 [rastro.events] INFO: Event bus initialized
+2026-06-24 05:46:52,897 [rastro.api] INFO: Event bus and system state initialized
+2026-06-24 05:46:52,898 [rastro.product_rules] WARNING: [ERROR] scorecard-reachable: Scorecard has no data yet (expected on first boot)
+2026-06-24 05:46:52,898 [rastro.api] INFO: Product behavior rules checked
+2026-06-24 05:46:52,899 [rastro.identity] INFO: Restored identity: 9286fab9-c2bd-4b09-958e-deeebbc46176
+2026-06-24 05:46:52,899 [rastro.api] INFO: Identity system initialized: 9286fab9-c2bd-4b09-958e-deeebbc46176
+2026-06-24 05:46:52,899 [rastro.orchestrator.assistant] INFO: Suppressed 0 noise items (threshold=0.15)
+2026-06-24 05:46:52,899 [rastro.api] INFO: Assistant orchestrator initialized
+2026-06-24 05:46:52,899 [rastro.api] INFO: Execution tracker initialized
+2026-06-24 05:46:52,899 [rastro.api] INFO: Outcome tracker initialized
+2026-06-24 05:46:52,977 [rastro.api] INFO: System scorecard initialized
+2026-06-24 05:46:52,977 [rastro.api] INFO: Explanation engine initialized
+2026-06-24 05:46:52,977 [rastro.api] INFO: Decision trace collector initialized
+2026-06-24 05:46:52,978 [rastro.api] INFO: Memory store initialized
+2026-06-24 05:46:52,978 [rastro.api] INFO: Decision memory initialized
+2026-06-24 05:46:52,978 [rastro.api] INFO: Insight archive initialized
+2026-06-24 05:46:52,978 [rastro.api] INFO: Priority engine memory consumption: consumed
+2026-06-24 05:46:52,978 [rastro.opportunity.engine] INFO: OpportunityEngine initialised (v2 — layered scoring)
+2026-06-24 05:46:52,978 [rastro.opportunity.engine] INFO: Provider manual discovered 0 opportunities
+2026-06-24 05:46:52,978 [rastro.opportunity.providers] INFO: Discovered 20 public opportunities (paid-first: 17 with rewards)
+2026-06-24 05:46:52,978 [rastro.opportunity.engine] INFO: Provider public_programs discovered 20 opportunities
+2026-06-24 05:46:52,978 [rastro.opportunity.engine] INFO: Provider github_security discovered 2 opportunities
+2026-06-24 05:46:52,979 [rastro.opportunity.engine] INFO: Provider huntr discovered 2 opportunities
+2026-06-24 05:46:52,979 [rastro.opportunity.engine] INFO: Provider all_sources discovered 24 opportunities
+2026-06-24 05:46:52,988 [rastro.api] INFO: Opportunity engine initialized with 48 opportunities
+2026-06-24 05:46:52,994 [rastro.api] INFO: Execution layer fully initialized
+2026-06-24 05:46:52,994 [rastro.api] INFO: Scan scheduler started
+2026-06-24 05:46:52,999 [rastro.operations] INFO: Notification poller thread started
+2026-06-24 05:46:52,999 [rastro.api] INFO: Notification poller started
+2026-06-24 05:46:53,000 [rastro.ws] INFO: WS manager initialized
+2026-06-24 05:46:53,000 [rastro.ws.bridge] INFO: Event bus -> WebSocket bridge started
+2026-06-24 05:46:53,000 [rastro.api] INFO: WS event bridge started
+2026-06-24 05:46:53,001 [rastro.notifications.bridges] INFO: DB bridge registered on NotificationHub
+2026-06-24 05:46:53,001 [rastro.notifications.bridges] INFO: Desktop channel registered on NotificationHub
+2026-06-24 05:46:53,020 [rastro.notifications.bridges] INFO: Email channel skipped — not configured
+2026-06-24 05:46:53,231 [rastro.notifications.bridges] INFO: FCM channel skipped — not configured
+2026-06-24 05:46:53,231 [rastro.notifications.bridges] INFO: WS forwarder registered on NotificationHub
+2026-06-24 05:46:53,231 [rastro.api] INFO: Notification bridges registered
+2026-06-24 05:46:53,232 [rastro.notifications.bridges] INFO: Event -> notification bridge started
+2026-06-24 05:46:53,232 [rastro.api] INFO: Event -> notification bridge started
+2026-06-24 05:46:53,232 [rastro.scheduler] INFO: Scan scheduler started (interval=1800s)
+2026-06-24 05:46:53,240 [rastro.scheduler] INFO: Scheduler: scanning 245 targets
+2026-06-24 05:46:53,266 [rastro.main] INFO: Verifying recon tools for mode FAST...
+2026-06-24 05:46:53,688 [rastro.recon.tools] INFO: Tool 'subfinder' found at /home/adrie/go/bin/subfinder
+2026-06-24 05:46:53,689 [rastro.recon.tools] INFO: Tool 'katana' found at /home/adrie/.local/bin/katana
+2026-06-24 05:46:53,689 [rastro.recon.tools] INFO: Tool 'httpx' found at /home/adrie/projects/Rastro/.venv/bin/httpx
+2026-06-24 05:46:53,689 [rastro.recon.tools] INFO: Optional tool 'waybackurls' available
+2026-06-24 05:46:54,048 [rastro.recon.tools] INFO: Optional tool 'nuclei' available
+2026-06-24 05:46:54,759 [rastro.recon.tools] INFO: Optional tool 'ffuf' available
+2026-06-24 05:46:57,049 [rastro.main] INFO: Started scan run 43 for target Airbyte
+2026-06-24 05:46:58,006 [rastro.main] INFO: Running recon pipeline with timeout 600s...
+2026-06-24 05:46:58,007 [rastro.recon] INFO: Starting recon pipeline for api.airbyte.com in mode FAST
+2026-06-24 05:46:58,007 [rastro.recon] INFO: Starting tool: subfinder
+2026-06-24 05:46:58,175 [rastro.desktop] INFO: [API] Server listening on 127.0.0.1:8000
+2026-06-24 05:46:58,276 [httpcore.connection] DEBUG: connect_tcp.started host='127.0.0.1' port=8000 local_address=None timeout=2.0 socket_options=None
+2026-06-24 05:46:58,276 [httpcore.connection] DEBUG: connect_tcp.complete return_value=<httpcore._backends.sync.SyncStream object at 0x7a193d83ba10>
+2026-06-24 05:46:58,276 [httpcore.http11] DEBUG: send_request_headers.started request=<Request [b'GET']>
+2026-06-24 05:46:58,276 [httpcore.http11] DEBUG: send_request_headers.complete
+2026-06-24 05:46:58,276 [httpcore.http11] DEBUG: send_request_body.started request=<Request [b'GET']>
+2026-06-24 05:46:58,276 [httpcore.http11] DEBUG: send_request_body.complete
+2026-06-24 05:46:58,277 [httpcore.http11] DEBUG: receive_response_headers.started request=<Request [b'GET']>
+2026-06-24 05:46:58,319 [httpcore.http11] DEBUG: receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'date', b'Wed, 24 Jun 2026 05:46:58 GMT'), (b'server', b'uvicorn'), (b'content-length', b'52'), (b'content-type', b'application/json')])
+2026-06-24 05:46:58,320 [httpx] INFO: HTTP Request: GET http://127.0.0.1:8000/api/health "HTTP/1.1 200 OK"
+2026-06-24 05:46:58,320 [httpcore.http11] DEBUG: receive_response_body.started request=<Request [b'GET']>
+2026-06-24 05:46:58,320 [httpcore.http11] DEBUG: receive_response_body.complete
+2026-06-24 05:46:58,320 [httpcore.http11] DEBUG: response_closed.started
+2026-06-24 05:46:58,320 [httpcore.http11] DEBUG: response_closed.complete
+2026-06-24 05:46:58,321 [httpcore.connection] DEBUG: close.started
+2026-06-24 05:46:58,321 [httpcore.connection] DEBUG: close.complete
+2026-06-24 05:46:58,321 [rastro.desktop] INFO: [HEALTHY] Backend healthy on port 8000
+2026-06-24 05:46:58,340 [rastro.desktop] INFO: [BOOT] Desktop session created (device=ADRI-8f2cb265)
+2026-06-24 05:46:58,340 [rastro.desktop] INFO: [READY] Rastro Desktop ready (desktop window)
+2026-06-24 05:46:58,346 [rastro.desktop] INFO: [BROWSER] Opening desktop window -> http://127.0.0.1:8000/?token=eyJkYXRhIjp7Im1ldGEiOnsiZGVza3RvcCI6dHJ1ZSwiZnJvemVuIjpmYWxzZSwicG9ydCI6ODAwMH0sInN1YiI6IkFEUkktOGYyY2IyNjUifSwiZXhwIjoxNzgyMzY2Mjk0LCJpYXQiOjE3ODIyNzk4OTR9.34b3f32b3970dd09ff3485670520501cb0d7b3aecae4cd4dc3aef3937abc657c&device_id=ADRI-8f2cb265
+2026-06-24 05:46:58,346 [rastro.desktop] INFO: [BROWSER] webview.create_window() starting...
+2026-06-24 05:46:58,346 [rastro.desktop] INFO: [BROWSER] Desktop window failed ('Window' object has no attribute 'closed'), falling back to browser
+2026-06-24 05:46:58,347 [rastro.desktop] INFO: [BOOT] Desktop UI unavailable, browser mode activated.
+2026-06-24 05:46:59,019 [rastro.ws] INFO: WS client connected: e3aa696c22d7 (user=ADRI-8f2cb265, total=1)
+2026-06-24 05:47:29,537 [rastro.recon] INFO: Tool completed: subfinder
+2026-06-24 05:47:29,537 [rastro.recon] INFO: Starting tool: wayback
+2026-06-24 05:47:30,173 [rastro.recon] INFO: Starting tool: katana
+2026-06-24 05:47:30,952 [rastro.desktop.browser_opener] INFO: Opened browser: http://127.0.0.1:8000/?token=eyJkYXRhIjp7Im1ldGEiOnsiZGVza3RvcCI6dHJ1ZSwiZnJvemVuIjpmYWxzZSwicG9ydCI6ODAwMH0sInN1YiI6IkFEUkktOGYyY2IyNjUifSwiZXhwIjoxNzgyMzY2Mjk0LCJpYXQiOjE3ODIyNzk4OTR9.34b3f32b3970dd09ff3485670520501cb0d7b3aecae4cd4dc3aef3937abc657c&device_id=ADRI-8f2cb265&onboarding=1
+2026-06-24 05:47:30,952 [rastro.desktop] INFO: [BROWSER] Dashboard opened in browser
+2026-06-24 05:47:30,953 [rastro.desktop.notifications] INFO: [NOTIFICATION] Rastro: Dashboard ready — opening browser
+2026-06-24 05:47:32,887 [rastro.desktop.tray] INFO: System tray started (persistent)
+2026-06-24 05:47:32,887 [rastro.desktop] INFO: [TRAY] System tray initialized
+2026-06-24 05:47:32,887 [rastro.desktop] INFO: [READY] Rastro Desktop ready (browser fallback)
+2026-06-24 05:47:37,280 [pystray._base] ERROR: Failed to dock icon
+Traceback (most recent call last):
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 162, in _update_icon
+    self._assert_docked()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 395, in _assert_docked
+    assert self._systray_manager
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+2026-06-24 05:47:37,372 [pystray._base] ERROR: Failed to dock icon
+Traceback (most recent call last):
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 143, in _show
+    self._assert_docked()
+    ~~~~~~~~~~~~~~~~~~~^^
+  File "/home/adrie/projects/Rastro/.venv/lib/python3.14/site-packages/pystray/_xorg.py", line 395, in _assert_docked
+    assert self._systray_manager
+           ^^^^^^^^^^^^^^^^^^^^^
+AssertionError
+2026-06-24 05:47:41,526 [rastro.recon] INFO: Tool completed: wayback
+2026-06-24 05:47:47,754 [rastro.desktop] INFO: [SHUTDOWN] Signal 15 received
+2026-06-24 05:47:47,754 [rastro.desktop] INFO: [SHUTDOWN] Stopping server...
+2026-06-24 05:47:47,860 [rastro.desktop.tray] INFO: System tray stopped
+2026-06-24 05:47:47,866 [rastro.desktop] INFO: [SHUTDOWN] Rastro Desktop stopped

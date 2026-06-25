@@ -1,0 +1,157 @@
+2026-06-13 10:00:24 [BOOT] Rastro Desktop — PID: 224538
+2026-06-13 10:00:24 [BOOT] Frozen: False, Python: 3.14.4, OS: linux
+2026-06-21 05:50:29 [BOOT] Rastro Desktop — PID: 40361
+2026-06-21 05:50:29 [BOOT] Frozen: False, Python: 3.14.4, OS: linux
+2026-06-21 05:50:30 [BOOT] Backend port: 8000
+2026-06-21 05:50:30 [API] Starting API server
+2026-06-21 05:50:31 [FRONTEND] Frontend mounted from /home/adrie/projects/Rastro/frontend/dist (routes: 2)
+2026-06-21 05:50:31 [API] Server thread started on 127.0.0.1:8000
+2026-06-21 05:50:34 [API] Server listening on 127.0.0.1:8000
+2026-06-21 05:50:35 [HEALTHY] Backend healthy on port 8000
+2026-06-21 05:50:35 [BOOT] Desktop session created (device=ADRI-8f2cb265)
+2026-06-21 05:50:42 [BROWSER] Dashboard opened in browser
+2026-06-21 05:50:42 [TRAY] System tray initialized
+2026-06-21 05:50:42 [READY] Rastro Desktop ready (browser mode)
+2026-06-21 05:50:48 [SHUTDOWN] Signal 15 received
+2026-06-21 05:50:48 [SHUTDOWN] Stopping server...
+2026-06-21 05:50:48 [SHUTDOWN] Rastro Desktop stopped
+2026-06-24 05:39:58 [BOOT] Rastro Desktop — PID: 40966
+2026-06-24 05:39:58 [BOOT] Frozen: False, Python: 3.14.4, OS: linux
+2026-06-24 05:39:59 [BOOT] Backend port: 8000
+2026-06-24 05:39:59 [API] Starting API server
+2026-06-24 05:40:03 [FRONTEND] Frontend mounted from /home/adrie/projects/Rastro/frontend/dist (routes: 2)
+2026-06-24 05:40:03 [API] Server thread started on 127.0.0.1:8000
+2026-06-24 05:40:08 [API] Server listening on 127.0.0.1:8000
+2026-06-24 05:40:08 [HEALTHY] Backend healthy on port 8000
+2026-06-24 05:40:08 [BOOT] Desktop session created (device=ADRI-8f2cb265)
+2026-06-24 05:40:08 [READY] Rastro Desktop ready (desktop window)
+2026-06-24 05:40:08 [BROWSER] Opening desktop window -> http://127.0.0.1:8000/?token=eyJkYXRhIjp7Im1ldGEiOnsiZGVza3RvcCI6dHJ1ZSwiZnJvemVuIjpmYWxzZSwicG9ydCI6ODAwMH0sInN1YiI6IkFEUkktOGYyY2IyNjUifSwiZXhwIjoxNzgyMzY2MDA4LCJpYXQiOjE3ODIyNzk2MDh9.0e7dac6c1487c83af0f667cd7121b11ad3def824e57deaf5291ec505a3f0dc71&device_id=ADRI-8f2cb265
+2026-06-24 05:40:08 [BROWSER] webview.create_window() starting...
+2026-06-24 05:40:08 [BROWSER] Desktop window failed ('Window' object has no attribute 'closed'), falling back to browser
+2026-06-24 05:40:08 [BOOT] Desktop UI unavailable, browser mode activated.
+2026-06-24 05:40:17 [BROWSER] Dashboard opened in browser
+2026-06-24 05:40:17 [TRAY] System tray initialized
+2026-06-24 05:40:17 [READY] Rastro Desktop ready (browser fallback)
+2026-06-24 05:40:28 [SHUTDOWN] Signal 15 received
+2026-06-24 05:40:28 [SHUTDOWN] Stopping server...
+2026-06-24 05:40:28 [SHUTDOWN] Rastro Desktop stopped
+2026-06-24 05:42:02 [BOOT] Rastro Desktop — PID: 41968
+2026-06-24 05:42:02 [BOOT] Frozen: False, Python: 3.14.4, OS: linux
+2026-06-24 05:42:03 [BOOT] Backend port: 8000
+2026-06-24 05:42:03 [API] Starting API server
+2026-06-24 05:42:04 [FRONTEND] Frontend mounted from /home/adrie/projects/Rastro/frontend/dist (routes: 2)
+2026-06-24 05:42:04 [API] Server thread started on 127.0.0.1:8000
+2026-06-24 05:42:07 [API] Server listening on 127.0.0.1:8000
+2026-06-24 05:42:07 [HEALTHY] Backend healthy on port 8000
+2026-06-24 05:42:07 [BOOT] Desktop session created (device=ADRI-8f2cb265)
+2026-06-24 05:42:07 [READY] Rastro Desktop ready (desktop window)
+2026-06-24 05:42:07 [BROWSER] Opening desktop window -> http://127.0.0.1:8000/?token=eyJkYXRhIjp7Im1ldGEiOnsiZGVza3RvcCI6dHJ1ZSwiZnJvemVuIjpmYWxzZSwicG9ydCI6ODAwMH0sInN1YiI6IkFEUkktOGYyY2IyNjUifSwiZXhwIjoxNzgyMzY2MTI3LCJpYXQiOjE3ODIyNzk3Mjd9.bf34931d230834311a32848a36c9290542e80ce6d8487fe92a1c342592012dc5&device_id=ADRI-8f2cb265
+2026-06-24 05:42:07 [BROWSER] webview.create_window() starting...
+2026-06-24 05:42:07 [BROWSER] Desktop window failed ('Window' object has no attribute 'closed'), falling back to browser
+2026-06-24 05:42:07 [BOOT] Desktop UI unavailable, browser mode activated.
+2026-06-24 05:42:15 [BROWSER] Dashboard opened in browser
+2026-06-24 05:42:15 [TRAY] System tray initialized
+2026-06-24 05:42:15 [READY] Rastro Desktop ready (browser fallback)
+2026-06-24 05:42:22 [SHUTDOWN] Signal 15 received
+2026-06-24 05:42:22 [SHUTDOWN] Stopping server...
+2026-06-24 05:42:22 [SHUTDOWN] Rastro Desktop stopped
+2026-06-24 05:42:33 [BOOT] Rastro Desktop — PID: 42235
+2026-06-24 05:42:33 [BOOT] Frozen: False, Python: 3.14.4, OS: linux
+2026-06-24 05:42:34 [BOOT] Backend port: 8000
+2026-06-24 05:42:34 [API] Starting API server
+2026-06-24 05:42:36 [FRONTEND] Frontend mounted from /home/adrie/projects/Rastro/frontend/dist (routes: 2)
+2026-06-24 05:42:36 [API] Server thread started on 127.0.0.1:8000
+2026-06-24 05:42:39 [API] Server listening on 127.0.0.1:8000
+2026-06-24 05:42:39 [HEALTHY] Backend healthy on port 8000
+2026-06-24 05:42:39 [BOOT] Desktop session created (device=ADRI-8f2cb265)
+2026-06-24 05:42:39 [READY] Rastro Desktop ready (desktop window)
+2026-06-24 05:42:39 [BROWSER] Opening desktop window -> http://127.0.0.1:8000/?token=eyJkYXRhIjp7Im1ldGEiOnsiZGVza3RvcCI6dHJ1ZSwiZnJvemVuIjpmYWxzZSwicG9ydCI6ODAwMH0sInN1YiI6IkFEUkktOGYyY2IyNjUifSwiZXhwIjoxNzgyMzY2MTU5LCJpYXQiOjE3ODIyNzk3NTl9.f4e6646ae72ffd49dec904e969c4a58eda0b341351f5642ae3c906d0aa6d4809&device_id=ADRI-8f2cb265
+2026-06-24 05:42:39 [BROWSER] webview.create_window() starting...
+2026-06-24 05:42:39 [BROWSER] Desktop window failed ('Window' object has no attribute 'closed'), falling back to browser
+2026-06-24 05:42:39 [BOOT] Desktop UI unavailable, browser mode activated.
+2026-06-24 05:42:48 [BROWSER] Dashboard opened in browser
+2026-06-24 05:42:49 [TRAY] System tray initialized
+2026-06-24 05:42:49 [READY] Rastro Desktop ready (browser fallback)
+2026-06-24 05:43:07 [SHUTDOWN] Signal 15 received
+2026-06-24 05:43:07 [SHUTDOWN] Stopping server...
+2026-06-24 05:43:07 [SHUTDOWN] Rastro Desktop stopped
+2026-06-24 05:43:08 [BOOT] Rastro Desktop — PID: 42656
+2026-06-24 05:43:08 [BOOT] Frozen: False, Python: 3.14.4, OS: linux
+2026-06-24 05:43:09 [BOOT] Backend port: 8000
+2026-06-24 05:43:09 [API] Starting API server
+2026-06-24 05:43:11 [FRONTEND] Frontend mounted from /home/adrie/projects/Rastro/frontend/dist (routes: 2)
+2026-06-24 05:43:11 [API] Server thread started on 127.0.0.1:8000
+2026-06-24 05:43:14 [API] Server listening on 127.0.0.1:8000
+2026-06-24 05:43:14 [HEALTHY] Backend healthy on port 8000
+2026-06-24 05:43:14 [BOOT] Desktop session created (device=ADRI-8f2cb265)
+2026-06-24 05:43:14 [READY] Rastro Desktop ready (desktop window)
+2026-06-24 05:43:14 [BROWSER] Opening desktop window -> http://127.0.0.1:8000/?token=eyJkYXRhIjp7Im1ldGEiOnsiZGVza3RvcCI6dHJ1ZSwiZnJvemVuIjpmYWxzZSwicG9ydCI6ODAwMH0sInN1YiI6IkFEUkktOGYyY2IyNjUifSwiZXhwIjoxNzgyMzY2MTk0LCJpYXQiOjE3ODIyNzk3OTR9.9d7b2edcd52be3dfb2213ec4b8b9f31a1e5e236baa030172ad69c2c6955150d7&device_id=ADRI-8f2cb265
+2026-06-24 05:43:14 [BROWSER] webview.create_window() starting...
+2026-06-24 05:43:14 [BROWSER] Desktop window failed ('Window' object has no attribute 'closed'), falling back to browser
+2026-06-24 05:43:14 [BOOT] Desktop UI unavailable, browser mode activated.
+2026-06-24 05:43:23 [BROWSER] Dashboard opened in browser
+2026-06-24 05:43:24 [TRAY] System tray initialized
+2026-06-24 05:43:24 [READY] Rastro Desktop ready (browser fallback)
+2026-06-24 05:43:49 [SHUTDOWN] Signal 15 received
+2026-06-24 05:43:49 [SHUTDOWN] Stopping server...
+2026-06-24 05:43:49 [SHUTDOWN] Rastro Desktop stopped
+2026-06-24 05:43:50 [BOOT] Rastro Desktop — PID: 43054
+2026-06-24 05:43:50 [BOOT] Frozen: False, Python: 3.14.4, OS: linux
+2026-06-24 05:43:51 [BOOT] Backend port: 8000
+2026-06-24 05:43:51 [API] Starting API server
+2026-06-24 05:43:52 [FRONTEND] Frontend mounted from /home/adrie/projects/Rastro/frontend/dist (routes: 2)
+2026-06-24 05:43:53 [API] Server thread started on 127.0.0.1:8000
+2026-06-24 05:43:56 [API] Server listening on 127.0.0.1:8000
+2026-06-24 05:43:56 [HEALTHY] Backend healthy on port 8000
+2026-06-24 05:43:56 [BOOT] Desktop session created (device=ADRI-8f2cb265)
+2026-06-24 05:43:56 [READY] Rastro Desktop ready (desktop window)
+2026-06-24 05:43:56 [BROWSER] Opening desktop window -> http://127.0.0.1:8000/?token=eyJkYXRhIjp7Im1ldGEiOnsiZGVza3RvcCI6dHJ1ZSwiZnJvemVuIjpmYWxzZSwicG9ydCI6ODAwMH0sInN1YiI6IkFEUkktOGYyY2IyNjUifSwiZXhwIjoxNzgyMzY2MjM2LCJpYXQiOjE3ODIyNzk4MzZ9.f8d0e304d9c0f0387bb983a187d0edbdd50f7eb334cc6652119ac85c5f392b18&device_id=ADRI-8f2cb265
+2026-06-24 05:43:56 [BROWSER] webview.create_window() starting...
+2026-06-24 05:43:56 [BROWSER] Desktop window failed ('Window' object has no attribute 'closed'), falling back to browser
+2026-06-24 05:43:56 [BOOT] Desktop UI unavailable, browser mode activated.
+2026-06-24 05:44:04 [BROWSER] Dashboard opened in browser
+2026-06-24 05:44:04 [TRAY] System tray initialized
+2026-06-24 05:44:04 [READY] Rastro Desktop ready (browser fallback)
+2026-06-24 05:44:47 [SHUTDOWN] Signal 15 received
+2026-06-24 05:44:47 [SHUTDOWN] Stopping server...
+2026-06-24 05:44:47 [SHUTDOWN] Rastro Desktop stopped
+2026-06-24 05:44:48 [BOOT] Rastro Desktop — PID: 43605
+2026-06-24 05:44:48 [BOOT] Frozen: False, Python: 3.14.4, OS: linux
+2026-06-24 05:44:49 [BOOT] Backend port: 8000
+2026-06-24 05:44:49 [API] Starting API server
+2026-06-24 05:44:51 [FRONTEND] Frontend mounted from /home/adrie/projects/Rastro/frontend/dist (routes: 2)
+2026-06-24 05:44:51 [API] Server thread started on 127.0.0.1:8000
+2026-06-24 05:44:54 [API] Server listening on 127.0.0.1:8000
+2026-06-24 05:44:54 [HEALTHY] Backend healthy on port 8000
+2026-06-24 05:44:54 [BOOT] Desktop session created (device=ADRI-8f2cb265)
+2026-06-24 05:44:54 [READY] Rastro Desktop ready (desktop window)
+2026-06-24 05:44:54 [BROWSER] Opening desktop window -> http://127.0.0.1:8000/?token=eyJkYXRhIjp7Im1ldGEiOnsiZGVza3RvcCI6dHJ1ZSwiZnJvemVuIjpmYWxzZSwicG9ydCI6ODAwMH0sInN1YiI6IkFEUkktOGYyY2IyNjUifSwiZXhwIjoxNzgyMzY2Mjk0LCJpYXQiOjE3ODIyNzk4OTR9.34b3f32b3970dd09ff3485670520501cb0d7b3aecae4cd4dc3aef3937abc657c&device_id=ADRI-8f2cb265
+2026-06-24 05:44:54 [BROWSER] webview.create_window() starting...
+2026-06-24 05:44:54 [BROWSER] Desktop window failed ('Window' object has no attribute 'closed'), falling back to browser
+2026-06-24 05:44:54 [BOOT] Desktop UI unavailable, browser mode activated.
+2026-06-24 05:45:02 [BROWSER] Dashboard opened in browser
+2026-06-24 05:45:02 [TRAY] System tray initialized
+2026-06-24 05:45:02 [READY] Rastro Desktop ready (browser fallback)
+2026-06-24 05:46:49 [BOOT] Rastro Desktop — PID: 44523
+2026-06-24 05:46:49 [BOOT] Frozen: False, Python: 3.14.4, OS: linux
+2026-06-24 05:46:50 [SHUTDOWN] Signal 15 received
+2026-06-24 05:46:50 [SHUTDOWN] Stopping server...
+2026-06-24 05:46:50 [BOOT] Backend port: 8000
+2026-06-24 05:46:50 [API] Starting API server
+2026-06-24 05:46:51 [SHUTDOWN] Rastro Desktop stopped
+2026-06-24 05:46:52 [FRONTEND] Frontend mounted from /home/adrie/projects/Rastro/frontend/dist (routes: 2)
+2026-06-24 05:46:52 [API] Server thread started on 127.0.0.1:8000
+2026-06-24 05:46:58 [API] Server listening on 127.0.0.1:8000
+2026-06-24 05:46:58 [HEALTHY] Backend healthy on port 8000
+2026-06-24 05:46:58 [BOOT] Desktop session created (device=ADRI-8f2cb265)
+2026-06-24 05:46:58 [READY] Rastro Desktop ready (desktop window)
+2026-06-24 05:46:58 [BROWSER] Opening desktop window -> http://127.0.0.1:8000/?token=eyJkYXRhIjp7Im1ldGEiOnsiZGVza3RvcCI6dHJ1ZSwiZnJvemVuIjpmYWxzZSwicG9ydCI6ODAwMH0sInN1YiI6IkFEUkktOGYyY2IyNjUifSwiZXhwIjoxNzgyMzY2Mjk0LCJpYXQiOjE3ODIyNzk4OTR9.34b3f32b3970dd09ff3485670520501cb0d7b3aecae4cd4dc3aef3937abc657c&device_id=ADRI-8f2cb265
+2026-06-24 05:46:58 [BROWSER] webview.create_window() starting...
+2026-06-24 05:46:58 [BROWSER] Desktop window failed ('Window' object has no attribute 'closed'), falling back to browser
+2026-06-24 05:46:58 [BOOT] Desktop UI unavailable, browser mode activated.
+2026-06-24 05:47:30 [BROWSER] Dashboard opened in browser
+2026-06-24 05:47:32 [TRAY] System tray initialized
+2026-06-24 05:47:32 [READY] Rastro Desktop ready (browser fallback)
+2026-06-24 05:47:47 [SHUTDOWN] Signal 15 received
+2026-06-24 05:47:47 [SHUTDOWN] Stopping server...
+2026-06-24 05:47:47 [SHUTDOWN] Rastro Desktop stopped

@@ -1,0 +1,60 @@
+============================================================
+  Rastro Desktop — Startup Diagnostic Report
+============================================================
+
+  Generated:      2026-06-11 11:51:12
+  OS:             linux
+  Python:         3.14.4
+  Frozen mode:    False
+  PyInstaller:    False
+  _MEIPASS:       N/A
+  Executable:     /home/adrie/projects/Rastro/.venv/bin/python
+  PID:            7387
+  CWD:            /home/adrie/projects/Rastro
+
+  Backend:
+    Status:       stopped
+    Port:         18002
+    Process:      dead/None
+    Retries:      0
+    Log path:     /home/adrie/projects/Rastro/logs/backend.log
+
+  Frontend:
+    Status:       stopped
+    Port:         5173
+    Production:   True
+    Dist dir:     /home/adrie/projects/Rastro/frontend/dist
+    Retries:      0
+
+  Safe mode:       False
+  Running:         False
+  Base dir:        /home/adrie/projects/Rastro
+
+  Backend log tail:
+
+    
+    --- Backend start at 2026-06-11 11:49:53 (frozen=False, port=18001) ---
+    ERROR:    Error loading ASGI app. Import string "api.main" must be in format "<module>:<attribute>".
+    
+    --- Backend start at 2026-06-11 11:51:06 (frozen=False, port=18001) ---
+    2026-06-11 11:51:12 | rastro.api | INFO  | Database initialized
+    2026-06-11 11:51:12 | rastro.events | INFO  | Event bus initialized
+    2026-06-11 11:51:12 | rastro.api | INFO  | Event bus and system state initialized
+    2026-06-11 11:51:12 | rastro.product_rules | WARNING | [ERROR] scorecard-reachable: Scorecard has no data yet (expected on first boot)
+    2026-06-11 11:51:12 | rastro.api | INFO  | Product behavior rules checked
+    2026-06-11 11:51:12 | rastro.identity | INFO  | Restored identity: 9286fab9-c2bd-4b09-958e-deeebbc46176
+    2026-06-11 11:51:12 | rastro.api | INFO  | Identity system initialized: 9286fab9-c2bd-4b09-958e-deeebbc46176
+    2026-06-11 11:51:12 | rastro.orchestrator.assistant | INFO  | Suppressed 0 noise items (threshold=0.15)
+    2026-06-11 11:51:12 | rastro.api | INFO  | Assistant orchestrator initialized
+    2026-06-11 11:51:12 | rastro.api | INFO  | Execution tracker initialized
+    2026-06-11 11:51:12 | rastro.api | INFO  | Outcome tracker initialized
+    2026-06-11 11:51:12 | rastro.api | INFO  | System scorecard initialized
+    2026-06-11 11:51:12 | rastro.api | INFO  | Explanation engine initialized
+    2026-06-11 11:51:12 | rastro.api | INFO  | Decision trace collector initialized
+    2026-06-11 11:51:12 | rastro.api | INFO  | Memory store initialized
+    2026-06-11 11:51:12 | rastro.api | INFO  | Decision memory initialized
+    2026-06-11 11:51:12 | rastro.api | INFO  | Insight archive initialized
+    2026-06-11 11:51:12 | rastro.api | INFO  | Priority engine memory consumption: consumed
+    2026-06-11 11:51:12 | rastro.api | INFO  | Execution layer fully initialized
+
+============================================================
