@@ -20,30 +20,6 @@ from core_engines.license.store import get_license_store
 
 logger = logging.getLogger("rastro.license.validator")
 
-_DIAG_LOG = os.path.join(
-    os.environ.get("APPDATA", os.path.expanduser("~")),
-    "Rastro", "license_diagnostic.log",
-)
-
-def _diag(msg: str) -> None:
-    try:
-        os.makedirs(os.path.dirname(_DIAG_LOG), exist_ok=True)
-        with open(_DIAG_LOG, "a", encoding="utf-8") as f:
-            f.write(f"[VALIDATOR-DIAG] {msg}\n")
-    except Exception:
-        pass
-    logger.info("DIAG: %s", msg)
-
-def _diag_box(msg: str) -> None:
-    _diag(f"[MSGBOX] {msg}")
-    import sys
-    if getattr(sys, "frozen", False) and os.name == "nt":
-        try:
-            import ctypes
-            ctypes.windll.user32.MessageBoxW(0, msg, "Rastro License Diagnostic", 0)
-        except Exception:
-            pass
-
 # Signing secret embedded in the binary.
 # In production, rotate this per-release and use asymmetric crypto instead.
 _LICENSE_SECRET = os.environ.get(
@@ -189,12 +165,7 @@ def validate_license(license_key: str) -> Tuple[bool, str]:
 
     Returns (is_valid, reason).
     """
-    _diag("=" * 60)
-    _diag("validate_license() called")
-    _diag(f"  license_key={license_key}")
-
     valid, reason = verify_license_key(license_key)
-    _diag(f"  verify_license_key → valid={valid} reason={reason}")
     if not valid:
         return valid, reason
 
@@ -203,12 +174,8 @@ def validate_license(license_key: str) -> Tuple[bool, str]:
     hw_id = get_hardware_id()
     parsed = parse_license(license_key)
 
-    _diag(f"  HWID={hw_id}  prefix={hw_id[:7].upper()}")
-    _diag(f"  stored={stored is not None}  key_prefix={parsed['hardware_prefix'] if parsed else 'N/A'}")
-
     # First activation: always accept, bind HWID
     if not stored:
-        _diag("  First activation → saving HWID binding")
         store.save(license_key, hw_id)
         return True, "Valid"
 
@@ -216,33 +183,18 @@ def validate_license(license_key: str) -> Tuple[bool, str]:
     stored_hw = stored.get("hardware_id", "")
 
     if parsed and not hw_id.upper().startswith(parsed["hardware_prefix"]):
-        _diag(f"  REJECTED: HW prefix {hw_id[:7].upper()} != {parsed['hardware_prefix']}")
-        _diag_box(f"Hardware mismatch: prefix {hw_id[:7].upper()} != {parsed['hardware_prefix']}")
         return False, "Hardware mismatch"
 
     if stored_hw != hw_id:
-        _diag(f"  Auto-heal: stored HWID {stored_hw} → {hw_id}")
         store.save(license_key, hw_id)
 
-    _diag("  VALID")
     return True, "Valid"
 
 
 def is_license_valid() -> Tuple[bool, str]:
     """Check if a valid license is already activated on this machine."""
-    _diag("=" * 60)
-    _diag("is_license_valid() called")
     store = get_license_store()
     stored = store.load()
     if not stored:
-        _diag("  RESULT: No license activated")
-        _diag_box("No license activated")
         return False, "No license activated"
-
-    _diag(f"  Stored license key = {stored.get('license_key', '')[:8]}...")
-    _diag(f"  Stored HWID = {stored.get('hardware_id', '')}")
-    _diag(f"  Calling validate_license()...")
-
-    valid, reason = validate_license(stored["license_key"])
-    _diag(f"  FINAL RESULT: valid={valid} reason={reason}")
-    return valid, reason
+    return validate_license(stored["license_key"])
