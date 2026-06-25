@@ -91,9 +91,9 @@ Desktop:    pywebview + pystray + PyInstaller (single process)
 
 Key modules: `core_engines/` — recon, scoring, graph, evidence, verdict, report, AI, auth, license, platform.
 
-See [ARCHITECTURE.md](ARCHITECTURE.md) for the full breakdown.
-
 ---
+
+
 
 ## Project Structure
 
@@ -186,3 +186,88 @@ Proprietary — internal use. Redistribution prohibited without authorization.
 ---
 
 <p align="center"><em>Built with 🕵️ for serious researchers</em></p>
+
+---
+
+## Architecture
+
+```
+Middleware: CORSMiddleware → RateLimitMiddleware → AuthMiddleware
+Backend:    FastAPI + 51 routers / ~240 routes + SQLAlchemy + SQLite/PostgreSQL
+Frontend:   React 19 + TypeScript + Vite 8 + 28 pages
+Desktop:    pywebview + pystray + PyInstaller (single process)
+```
+
+### Pipeline Core
+```
+Recon → Scoring → Graph → Evidence → Verdict → Report
+  subfinder   unified_    hot_path    replayer    severity
+  httpx       scoring     detection   → rules     → CVSS
+  katana      classify    clustering  → conf.     → export
+  wayback                             → gate
+```
+
+### Key Modules
+`core_engines/` — recon, scoring, graph, evidence, verdict, report, AI, license, auth, platform, gateway, learning, intelligence, memory, events, accountability
+
+### Database (SQLite default, PostgreSQL via DATABASE_URL)
+17 tables: targets, endpoints, findings, verdicts, evidence, validation_results, scan_runs, users, sessions, notifications, favorites, memory_records, tasks, targets_intel, target_scopes, quick_wins, investigator_profiles
+
+---
+
+## Install
+
+```bash
+# From source
+git clone <repo> && cd rastro
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+python run.py
+
+# Windows EXE (prebuilt)
+dist/Rastro/Rastro.exe
+
+# Build Windows EXE
+scripts/build_windows.ps1   # PowerShell
+python scripts/build_windows_exe.py  # WSL cross-compile
+```
+
+---
+
+## Intelligence Sources (APIs)
+
+| Source | Type | Key | Paid? | Value |
+|---|---|---|---|---|
+| HackerOne (programs) | HTTP | No | Free | ⭐⭐⭐⭐⭐ |
+| Bugcrowd (programs) | HTTP | No | Free | ⭐⭐⭐⭐⭐ |
+| Intigriti (programs) | HTTP | No | Free | ⭐⭐⭐⭐ |
+| YesWeHack (programs) | HTTP | No | Free | ⭐⭐⭐⭐ |
+| OpenAI | HTTP | Yes | **Paid** | ⭐⭐⭐ |
+| Ollama (local) | HTTP | No | Free | ⭐⭐⭐ |
+| subfinder (passive DNS) | Go binary | Optional | Free/tiers | ⭐⭐⭐⭐⭐ |
+| httpx (HTTP probe) | Go binary | No | Free | ⭐⭐⭐⭐⭐ |
+| nuclei (scanner) | Go binary | No | Free | ⭐⭐⭐⭐⭐ |
+| katana (crawler) | Go binary | No | Free | ⭐⭐⭐⭐⭐ |
+| gau (URL history) | Go binary | No | Free | ⭐⭐⭐⭐ |
+| ffuf (fuzzing) | Go binary | No | Free | ⭐⭐⭐⭐⭐ |
+| waybackurls | Go binary | No | Free | ⭐⭐⭐⭐ |
+| SecLists | Local | No | Free | ⭐⭐⭐⭐⭐ |
+
+**Active sources (9 direct + 7 Go tools):** 16 endpoints making outbound calls.
+**~60%** of capabilities depend on external services (APIs + Go binaries).
+
+### High-value additions (free)
+- crt.sh (CT logs, no key)
+- SecurityTrails API (50 req/mo free tier)
+- ProjectDiscovery cloud (free tier)
+- WHOIS/RDAP (no key)
+
+### Low-value / noise
+- Firebase FCM, SMTP email — utility only, not intelligence
+- Static platform refs (Immunefi, Code4rena, etc.) — metadata only, never queried
+
+---
+
+## License
+
+Proprietary — internal use. Redistribution prohibited without authorization.

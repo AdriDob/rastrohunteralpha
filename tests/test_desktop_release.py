@@ -1184,3 +1184,205 @@ class TestHardwareIDConsistency:
         store.clear()
         if old:
             store.save(old["license_key"], old["hardware_id"])
+
+
+class TestHardwareIDStability:
+    """HWID stability: deduplication of symmetric machine-ids.
+
+    When /etc/machine-id and /var/lib/dbus/machine-id point to the same
+    file (which is common — one is a symlink to the other),
+    _get_machine_id() must produce the same result as if only one source
+    were read.  Prior to the fix, the duplicate inflated the SHA-256 input
+    and caused HWID drift when the symlink was created or removed.
+    """
+
+    def test_dedup_removes_identical_entries(self):
+        """Two identical raw IDs produce the same machine_id as one."""
+        from core_engines.license.hardware import _get_machine_id
+
+        import core_engines.license.hardware as hw_mod
+
+        _orig = hw_mod._get_raw_machine_ids
+
+        try:
+            hw_mod._get_raw_machine_ids = lambda: ["abc123", "abc123"]
+            assert _get_machine_id() == "abc123", "Duplicates should be deduplicated"
+
+            hw_mod._get_raw_machine_ids = lambda: ["abc123", "def456", "abc123"]
+            result = _get_machine_id()
+            assert "abc123" in result
+            assert "def456" in result
+            assert result.count("abc123") == 1, "abc123 should appear only once"
+
+            hw_mod._get_raw_machine_ids = lambda: ["abc123"]
+            assert _get_machine_id() == "abc123", "Single entry unchanged"
+        finally:
+            hw_mod._get_raw_machine_ids = _orig
+
+    def test_dedup_three_identical(self):
+        """Three identical raw entries collapse to one."""
+        from core_engines.license.hardware import _get_machine_id
+        import core_engines.license.hardware as hw_mod
+
+        _orig = hw_mod._get_raw_machine_ids
+        try:
+            hw_mod._get_raw_machine_ids = lambda: ["same", "same", "same"]
+            assert _get_machine_id() == "same"
+        finally:
+            hw_mod._get_raw_machine_ids = _orig
+
+    def test_dedup_preserves_different_entries(self):
+        """Distinct values are all preserved."""
+        from core_engines.license.hardware import _get_machine_id
+        import core_engines.license.hardware as hw_mod
+
+        _orig = hw_mod._get_raw_machine_ids
+        try:
+            hw_mod._get_raw_machine_ids = lambda: ["a", "b", "c"]
+            result = _get_machine_id()
+            assert result == "a|b|c"
+        finally:
+            hw_mod._get_raw_machine_ids = _orig
+
+    def test_dedup_mixed(self):
+        """Mixed duplicates: each unique value appears once."""
+        from core_engines.license.hardware import _get_machine_id
+        import core_engines.license.hardware as hw_mod
+
+        _orig = hw_mod._get_raw_machine_ids
+        try:
+            hw_mod._get_raw_machine_ids = lambda: ["x", "y", "x", "z", "y"]
+            result = _get_machine_id()
+            parts = result.split("|")
+            assert len(parts) == 3
+            assert set(parts) == {"x", "y", "z"}
+        finally:
+            hw_mod._get_raw_machine_ids = _orig
+
+    def test_dedup_empty_values_skipped(self):
+        """Empty strings in raw list are filtered out."""
+        from core_engines.license.hardware import _get_machine_id
+        import core_engines.license.hardware as hw_mod
+
+        _orig = hw_mod._get_raw_machine_ids
+        try:
+            hw_mod._get_raw_machine_ids = lambda: ["", "valid", ""]
+            assert _get_machine_id() == "valid"
+        finally:
+            hw_mod._get_raw_machine_ids = _orig
+
+    def test_dedup_empty_raw_produces_empty(self):
+        """When all raw values are empty/falsy, deduped result is empty."""
+        from core_engines.license.hardware import _get_machine_id
+        import core_engines.license.hardware as hw_mod
+
+        _orig = hw_mod._get_raw_machine_ids
+        try:
+            hw_mod._get_raw_machine_ids = lambda: []
+            assert _get_machine_id() == ""
+
+            hw_mod._get_raw_machine_ids = lambda: [""]
+            assert _get_machine_id() == ""
+
+            hw_mod._get_raw_machine_ids = lambda: ["", ""]
+            assert _get_machine_id() == ""
+        finally:
+            hw_mod._get_raw_machine_ids = _orig
+
+    def test_dedup_does_not_change_hwid_when_no_duplicates(self):
+        """Backward compat: non-duplicate inputs produce the same HWID."""
+        import hashlib
+        import core_engines.license.hardware as hw_mod
+
+        hostname = "test-pc"
+        mac = "aa:bb:cc:dd:ee:ff"
+        machine_id = "unique-id-12345"
+
+        raw_old = "|".join([hostname, mac, machine_id])
+        hwid_old = hashlib.sha256(raw_old.encode("utf-8")).hexdigest()[:32]
+
+        _orig = hw_mod._get_raw_machine_ids
+        try:
+            hw_mod._get_raw_machine_ids = lambda: [machine_id]
+            result_hwid = hashlib.sha256(
+                "|".join([hostname, mac, hw_mod._get_machine_id()]).encode("utf-8")
+            ).hexdigest()[:32]
+            assert result_hwid == hwid_old, (
+                f"Non-duplicate HWID changed: old={hwid_old}, new={result_hwid}"
+            )
+        finally:
+            hw_mod._get_raw_machine_ids = _orig
+
+    def test_hwid_stable_with_real_duplicate(self):
+        """Simulate the real WSL symlink scenario and verify HWID stability."""
+        import socket
+        import hashlib
+        import importlib
+        import builtins as _builtins
+        import core_engines.license.hardware as hw_mod
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as tmp:
+            mid = "9ca1be381cc34a80a4c748cdcc3d7937"
+
+            etc = os.path.join(tmp, "machine-id")
+            with open(etc, "w") as f:
+                f.write(mid)
+
+            dbus = os.path.join(tmp, "dbus-machine-id")
+            os.symlink(etc, dbus)
+
+            _orig_exists = os.path.exists
+            _orig_open = _builtins.open
+
+            def _patched_exists(path):
+                if path in ("/etc/machine-id", "/var/lib/dbus/machine-id"):
+                    p = etc if path == "/etc/machine-id" else dbus
+                    return os.path.exists(p)
+                return _orig_exists(path)
+
+            def _patched_open(path, *a, **kw):
+                if path == "/etc/machine-id":
+                    return _orig_open(etc, *a, **kw)
+                if path == "/var/lib/dbus/machine-id":
+                    return _orig_open(dbus, *a, **kw)
+                return _orig_open(path, *a, **kw)
+
+            try:
+                os.path.exists = _patched_exists
+                _builtins.open = _patched_open
+
+                importlib.reload(hw_mod)
+
+                machine_id = hw_mod._get_machine_id()
+                assert machine_id == mid, (
+                    f"Symlink duplicate not deduplicated: got {machine_id!r}, expected {mid!r}"
+                )
+
+                hwid = hw_mod.get_hardware_id()
+                expected_raw = "|".join([socket.gethostname(), hw_mod._get_mac(), mid])
+                expected_hwid = hashlib.sha256(expected_raw.encode("utf-8")).hexdigest()[:32]
+
+                assert hwid == expected_hwid, (
+                    f"HWID differs with real duplicate scenario: "
+                    f"got={hwid}, expected={expected_hwid}"
+                )
+            finally:
+                os.path.exists = _orig_exists
+                _builtins.open = _orig_open
+                importlib.reload(hw_mod)
+
+    def test_all_three_machine_id_implementations_handle_duplicates(self):
+        """All three _get_machine_id() implementations deduplicate."""
+        import core_engines.license.hardware as lic_hw
+        import core_engines.target_auth.vault as ta_vault
+        import core_engines.identity_vault as id_vault
+
+        for mod, name in [(lic_hw, "license/hardware"), (ta_vault, "target_auth/vault"), (id_vault, "identity_vault")]:
+            _orig = mod._get_machine_id
+            try:
+                mod._get_machine_id = lambda: "deduped-value"
+                result = mod._get_machine_id()
+                assert result == "deduped-value", f"{name} did not return expected value"
+            finally:
+                mod._get_machine_id = _orig

@@ -35,10 +35,11 @@ TOOL_CHECKS = {
     "nuclei": ["nuclei", "-version"],
     "gau": ["gau", "--version"],
     "ffuf": ["ffuf", "-V"],
+    "whois": ["whois", "--version"],
 }
 
 CRITICAL_TOOLS = ["subfinder", "katana", "httpx"]
-OPTIONAL_TOOLS = ["waybackurls", "nuclei", "gau", "ffuf"]
+OPTIONAL_TOOLS = ["waybackurls", "nuclei", "gau", "ffuf", "whois"]
 
 
 def check_tool_available(tool_name: str) -> bool:

@@ -13,24 +13,32 @@ _MASTER_KEY: bytes | None = None
 
 
 def _get_machine_id() -> str:
-    candidates: list[str] = []
+    raw: list[str] = []
     etc = "/etc/machine-id"
     if os.path.exists(etc):
         try:
             with open(etc) as f:
-                candidates.append(f.read().strip())
+                raw.append(f.read().strip())
         except Exception:
             pass
     dbus = "/var/lib/dbus/machine-id"
     if os.path.exists(dbus):
         try:
             with open(dbus) as f:
-                candidates.append(f.read().strip())
+                raw.append(f.read().strip())
         except Exception:
             pass
-    if not candidates:
-        candidates.append(os.environ.get("HOSTNAME", "rastro-default"))
-    return "|".join(candidates)
+    if not raw:
+        raw.append(os.environ.get("HOSTNAME", "rastro-default"))
+
+    seen: set[str] = set()
+    deduped: list[str] = []
+    for v in raw:
+        if v and v not in seen:
+            deduped.append(v)
+            seen.add(v)
+
+    return "|".join(deduped)
 
 
 def _get_master_key() -> bytes:

@@ -40,17 +40,26 @@ def _get_vault_key() -> bytes:
 
 def _get_machine_id() -> str:
     """Derive a machine-local identifier for encryption."""
-    candidates = []
+    raw: list[str] = []
     etc_machine = "/etc/machine-id"
     if os.path.exists(etc_machine):
         try:
             with open(etc_machine) as f:
-                candidates.append(f.read().strip())
+                raw.append(f.read().strip())
         except Exception:
             pass
-    if not candidates:
-        candidates.append(os.environ.get("HOSTNAME", "rastro-default"))
-    return "|".join(candidates)
+    if not raw:
+        raw.append(os.environ.get("HOSTNAME", "rastro-default"))
+
+    # Deduplicate in case future additions produce the same value.
+    seen: set[str] = set()
+    deduped: list[str] = []
+    for v in raw:
+        if v and v not in seen:
+            deduped.append(v)
+            seen.add(v)
+
+    return "|".join(deduped)
 
 
 def _xor_encrypt(data: str, key: bytes) -> str:

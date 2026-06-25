@@ -4,6 +4,7 @@ import logging
 from pathlib import Path
 from typing import Iterable, Any, Coroutine
 
+from .crtsh_runner import CrtshRunner
 from .ffuf_runner import FfufRunner
 from .gau_runner import GauRunner
 from .httpx_runner import HttpxRunner
@@ -13,6 +14,7 @@ from .parser import EndpointParser
 from .seclists_profiles import WORDLISTS, get_recommended_profiles, available_wordlists
 from .subfinder_runner import SubfinderRunner
 from .wayback_runner import WaybackRunner
+from .whois_runner import WhoisRunner
 
 logger = logging.getLogger("rastro.recon")
 
@@ -43,6 +45,8 @@ class ReconRunner:
         self.nuclei = NucleiRunner(self.recon_dir)
         self.gau = GauRunner(self.recon_dir)
         self.ffuf = FfufRunner(self.recon_dir)
+        self.crtsh = CrtshRunner(self.recon_dir)
+        self.whois = WhoisRunner(self.recon_dir)
 
         self.parser = EndpointParser()
 
@@ -107,6 +111,22 @@ class ReconRunner:
 
         # PARALLEL TASKS
 
+        crtsh_task = asyncio.create_task(
+            self._safe_run_tool(
+                "crtsh",
+                self.crtsh.run_crtsh(domain, "crtsh.txt"),
+                timeout=60,
+            )
+        )
+
+        whois_task = asyncio.create_task(
+            self._safe_run_tool(
+                "whois",
+                self.whois.run_whois(domain, "whois.txt"),
+                timeout=30,
+            )
+        )
+
         wayback_task = asyncio.create_task(
             self._safe_run_tool(
                 "wayback",
@@ -161,6 +181,18 @@ class ReconRunner:
         if katana_path:
             outputs["katana"] = str(katana_path)
             source_files.append(katana_path)
+
+        # CRT.SH + WHOIS
+
+        crtsh_path = await crtsh_task
+        if crtsh_path:
+            outputs["crtsh"] = str(crtsh_path)
+            source_files.append(crtsh_path)
+
+        whois_path = await whois_task
+        if whois_path:
+            outputs["whois"] = str(whois_path)
+            source_files.append(whois_path)
 
         # NORMALIZATION
 

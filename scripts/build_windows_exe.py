@@ -1,83 +1,60 @@
 """Build Rastro Windows EXE using Windows Python via WSL interop.
 
 Copies project files to Windows temp, runs PyInstaller via Windows Python,
-copies the resulting EXE back to the WSL dist/ directory.
+copies the resulting EXE to the diagnostic folder on OneDrive.
 """
 
 import os
 import shutil
-import stat
 import subprocess
 import sys
 from pathlib import Path
 
 ROOT = Path("/home/adrie/projects/Rastro").resolve()
 WIN_PYTHON_WSL = "/mnt/c/Users/adrie/AppData/Local/Programs/Python/Python312/python.exe"
+
+# WSL paths (used for file operations from Linux)
+WSL_TEMP = Path("/mnt/c/Users/adrie/AppData/Local/Temp/rastro_build")
+# Windows paths (used when calling Windows executables)
 WIN_TEMP = r"C:\Users\adrie\AppData\Local\Temp\rastro_build"
 
-EXCLUDED_DIRS = {
-    "__pycache__", ".git", "node_modules", ".venv", "build",
-    "android", "mobile", "installer", "launcher",
-    "targets", "tests", "project_management", "scripts",
-    "docs", "logs", "tmp", "dist", ".cursorrules",
-}
-
-INCLUDED_DIRS = {
-    "desktop", "api", "core_engines", "database", "ai",
-}
+INCLUDED_DIRS = {"desktop", "api", "core_engines", "database", "ai"}
 
 def copy_project_to_windows():
-    dest = Path(WIN_TEMP)
-    if dest.exists():
-        shutil.rmtree(dest)
+    dest = WSL_TEMP
     dest.mkdir(parents=True, exist_ok=True)
 
     for d in INCLUDED_DIRS:
         src = ROOT / d
         if src.is_dir():
-            shutil.copytree(src, dest / d, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
-            print(f"  Copied {d}/")
-
-    # Frontend dist
-    frontend_dist = ROOT / "frontend" / "dist"
-    if frontend_dist.is_dir():
-        shutil.copytree(frontend_dist, dest / "frontend" / "dist")
-        print("  Copied frontend/dist/")
-
-    # Root-level Python files
+            dst = dest / d
+            if dst.exists():
+                shutil.rmtree(dst)
+            shutil.copytree(src, dst, ignore=shutil.ignore_patterns("__pycache__", "*.pyc"))
     for f in ROOT.glob("*.py"):
         if f.name != "setup.py":
             shutil.copy2(f, dest / f.name)
-            print(f"  Copied {f.name}")
-
-    # Rastro.spec
-    spec = ROOT / "Rastro.spec"
-    if spec.exists():
-        shutil.copy2(spec, dest / "Rastro.spec")
-        print("  Copied Rastro.spec")
-
-    # .env if exists
-    env = ROOT / ".env"
-    if env.exists():
-        shutil.copy2(env, dest / ".env")
-
-    print(f"\nProject copied to {dest}")
+    for name, src_path in [("Rastro.spec", ROOT / "Rastro.spec"), (".env", ROOT / ".env")]:
+        if src_path.exists() and not (dest / name).exists():
+            shutil.copy2(src_path, dest / name)
+    frontend_src = ROOT / "frontend" / "dist"
+    frontend_dst = dest / "frontend" / "dist"
+    if frontend_src.is_dir() and not frontend_dst.is_dir():
+        frontend_dst.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copytree(frontend_src, frontend_dst)
+        print("  Copied frontend/dist/")
+    print(f"  Source files synced (build cache preserved)")
 
 
 def run_pyinstaller():
-    win_path = WIN_TEMP.replace("C:", "C$").replace("\\", "/")
-    wsl_path = f"/mnt/c/Users/adrie/AppData/Local/Temp/rastro_build"
-
-    script_path_wsl = Path(wsl_path) / "run_pyinstaller.py"
-    wt = WIN_TEMP.replace('\\', '/')
-    script_path_wsl.write_text(f"""
-import sys
-import os
-_BASE = os.path.join(r'{WIN_TEMP}')
+    pyinstaller_script = f"""
+import sys, os
+_BASE = r"{WIN_TEMP}"
 sys.path.insert(0, _BASE)
 sys.path.insert(0, os.path.join(_BASE, 'desktop'))
 import PyInstaller.__main__
 PyInstaller.__main__.run([
+    '-y',
     '--onedir',
     '--name', 'Rastro',
     '--distpath', os.path.join(_BASE, 'dist'),
@@ -111,28 +88,40 @@ PyInstaller.__main__.run([
     '--collect-all', 'ai',
     os.path.join(_BASE, 'run.py'),
 ])
-""")
+"""
+    script_path = WSL_TEMP / "run_pyinstaller.py"
+    script_path.write_text(pyinstaller_script)
 
-    win_script = os.path.join(WIN_TEMP, 'run_pyinstaller.py')
+    win_script = WIN_TEMP + r"\run_pyinstaller.py"
     result = subprocess.run(
         [WIN_PYTHON_WSL, win_script],
         capture_output=True, text=False, timeout=600,
-        cwd=WIN_TEMP
     )
-    print(result.stdout.decode("cp850", errors="replace")[-5000:] if len(result.stdout) > 5000 else result.stdout.decode("cp850", errors="replace"))
-    if result.stderr:
-        print("STDERR:", result.stderr.decode("cp850", errors="replace")[-2000:] if len(result.stderr) > 2000 else result.stderr.decode("cp850", errors="replace"))
+    out = result.stdout.decode("cp850", errors="replace")
+    err = result.stderr.decode("cp850", errors="replace")
+    # Print last 5000 chars of stdout
+    if len(out) > 5000:
+        print(out[-5000:])
+    else:
+        print(out)
+    if err:
+        print("STDERR:", err[-2000:] if len(err) > 2000 else err)
     return result.returncode
 
 
-def copy_exe_back():
-    exe_dir = Path(WIN_TEMP) / "dist" / "Rastro"
-    dest = ROOT / "dist" / "release" / "Rastro-Desktop-1.5.0"
+def copy_exe_to_diagnostics():
+    exe_dir = WSL_TEMP / "dist" / "Rastro"
+    dest_diag = Path("/mnt/c/Users/adrie/OneDrive/Desktop/Yo/privado/Rastro-DIAG")
     if exe_dir.exists():
-        if dest.exists():
-            shutil.rmtree(dest)
-        shutil.copytree(exe_dir, dest)
-        print(f"EXE copied to {dest}")
+        if dest_diag.exists():
+            shutil.rmtree(dest_diag)
+        shutil.copytree(exe_dir, dest_diag)
+        print(f"\nDiagnostic EXE copied to {dest_diag}")
+        # Show size
+        total_bytes = sum(
+            f.stat().st_size for f in dest_diag.rglob("*") if f.is_file()
+        )
+        print(f"Total size: {total_bytes / 1024 / 1024:.1f} MB")
         return True
     else:
         print("EXE not found at", exe_dir)
@@ -149,7 +138,7 @@ if __name__ == "__main__":
         print(f"\nPyInstaller failed (rc={rc})")
         sys.exit(1)
 
-    print("\n=== Step 3: Copy EXE back to WSL dist ===")
-    copy_exe_back()
+    print("\n=== Step 3: Copy diagnostic EXE to OneDrive ===")
+    copy_exe_to_diagnostics()
 
     print("\nDone!")

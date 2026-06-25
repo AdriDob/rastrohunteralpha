@@ -50,6 +50,20 @@ logger = logging.getLogger("rastro.desktop")
 _lifecycle_logger: Optional[logging.Logger] = None
 
 
+# ── Error dialog (visible even without console) ──────────────────────
+
+def _show_error(title: str, message: str) -> None:
+    try:
+        import ctypes
+        ctypes.windll.user32.MessageBoxW(0, message, title, 0x10)
+    except Exception:
+        try:
+            import tkinter.messagebox as mb
+            mb.showerror(title, message)
+        except Exception:
+            pass
+
+
 # ── Logging ──────────────────────────────────────────────────────────
 
 def _setup_logging(dev: bool) -> str:
@@ -160,8 +174,10 @@ def _wait_for_health(host: str, port: int, timeout: float = 30.0) -> bool:
             r = httpx.get(f"http://{host}:{port}/api/health", timeout=2.0)
             if r.status_code == 200:
                 return True
-        except Exception:
-            pass
+            elif r.status_code >= 500:
+                _lifecycle(_HEALTHY, "Health check returned %d: %s", r.status_code, r.text[:200])
+        except Exception as exc:
+            _lifecycle(_HEALTHY, "Health check error: %s", exc)
         time.sleep(0.5)
     return False
 
@@ -458,11 +474,19 @@ def main() -> None:
 
     if not _wait_for_port(host, port):
         _lifecycle(_API, "Server failed to bind on %s:%d", host, port)
+        _show_error("Rastro - Error de inicio",
+                    f"El servidor no pudo iniciar en {host}:{port}.\n"
+                    "Verifica que el puerto no esté ocupado por otro proceso.")
         sys.exit(1)
     _lifecycle(_API, "Server listening on %s:%d", host, port)
 
     if not _wait_for_health(host, port):
-        _lifecycle(_HEALTHY, "Health check timed out")
+        lifecycle_path = _lifecycle_logger.handlers[0].baseFilename if _lifecycle_logger and _lifecycle_logger.handlers else "logs/lifecycle.log"
+        _lifecycle(_HEALTHY, "Health check timed out — revisar lifecycle.log")
+        _show_error("Rastro - Error de inicio",
+                    "El servidor backend no responde.\n"
+                    "Revisa los detalles en:\n"
+                    f"{lifecycle_path}")
         sys.exit(1)
     _lifecycle(_HEALTHY, "Backend healthy on port %d", port)
 

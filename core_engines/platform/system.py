@@ -118,19 +118,46 @@ def get_data_dir() -> Path:
     - Frozen:  next to the executable (Linux only, Windows prioritizes APPDATA)
     - Default: ~/.rastro
     """
+    import logging
+    _log = logging.getLogger("rastro.platform.system")
+    _diag_path = os.path.join(
+        os.environ.get("APPDATA", os.path.expanduser("~")),
+        "Rastro", "license_diagnostic.log",
+    )
+
     if is_windows():
         base = os.environ.get("APPDATA", "")
-        if base:
-            return Path(base) / "Rastro"
+        result = Path(base) / "Rastro" if base else Path.home() / ".rastro"
+        _log.info("PLATFORM_DIAG: is_windows=True APPDATA=%s data_dir=%s", base, result)
+        _append_diag(_diag_path, f"[PATH-DIAG] Windows: APPDATA={base} → data_dir={result}")
+        return result
 
     if is_macos():
         base = Path.home() / "Library" / "Application Support"
-        return base / "Rastro"
+        result = base / "Rastro"
+        _log.info("PLATFORM_DIAG: is_macos=True data_dir=%s", result)
+        _append_diag(_diag_path, f"[PATH-DIAG] macOS: data_dir={result}")
+        return result
 
     if is_frozen():
-        return get_executable_dir() / "data"
+        result = get_executable_dir() / "data"
+        _log.info("PLATFORM_DIAG: is_frozen=True executable_dir=%s data_dir=%s", get_executable_dir(), result)
+        _append_diag(_diag_path, f"[PATH-DIAG] Frozen: executable_dir={get_executable_dir()} → data_dir={result}")
+        return result
 
-    return Path.home() / ".rastro"
+    result = Path.home() / ".rastro"
+    _log.info("PLATFORM_DIAG: default data_dir=%s", result)
+    _append_diag(_diag_path, f"[PATH-DIAG] Default (Linux dev): data_dir={result}")
+    return result
+
+
+def _append_diag(path: str, msg: str) -> None:
+    try:
+        os.makedirs(os.path.dirname(path), exist_ok=True)
+        with open(path, "a", encoding="utf-8") as f:
+            f.write(f"{msg}\n")
+    except Exception:
+        pass
 
 
 def get_config_dir() -> Path:

@@ -72,7 +72,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (isStaticAsset(url)) {
-    event.respondWith(cacheFirst(request, CACHE_STATIC));
+    event.respondWith(networkFirst(request, CACHE_STATIC));
     return;
   }
 
