@@ -57,7 +57,7 @@ def get_default_output() -> Path:
     if env:
         return Path(env)
     if sys.platform == "win32":
-        return Path(os.environ.get("USERPROFILE", "C:/")) / "OneDrive" / "Desktop" / "Yo" / "privado" / "Rastro"
+        return Path(os.environ.get("LOCALAPPDATA", os.environ.get("USERPROFILE", "C:/"))) / "Rastro"
     if sys.platform.startswith("linux"):
         return Path.home() / "Rastro"
     return PROJECT_ROOT / "dist" / "install"

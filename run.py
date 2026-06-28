@@ -87,12 +87,7 @@ def _run_diagnostics() -> None:
     if output.exists():
         results.append(("Install info", True, str(output)))
     else:
-        one_drive_home = Path.home() / "OneDrive" / "Desktop" / "Yo" / "privado" / "Rastro"
-        installed = one_drive_home / "build_info.json"
-        if installed.exists():
-            results.append(("Install info", True, str(installed)))
-        else:
-            results.append(("Install info", False, "not found (not installed)"))
+        results.append(("Install info", False, "not found (not installed)"))
 
     # Print results
     print()
