@@ -5,7 +5,7 @@
   <img src="https://img.shields.io/badge/license-MIT-green?style=flat-square" alt="License">
 </p>
 
-<h1 align="center">Rastro</h1>
+<h1 align="center">ORION</h1>
 <p align="center"><em>Autonomous Bug Bounty Intelligence System</em></p>
 
 <p align="center">
