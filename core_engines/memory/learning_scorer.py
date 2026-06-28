@@ -3,7 +3,7 @@ Learning scorer: adjust endpoint scoring based on historical pattern library.
 
 Boosts confidence for patterns seen before, estimates payouts based on history.
 """
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class ConfidenceBooster:
@@ -17,20 +17,20 @@ class ConfidenceBooster:
     def boost_confidence(
         base_confidence: float,
         endpoint_path: str,
-        entity_type: Optional[str],
-        similar_patterns: List[Dict[str, Any]],
+        entity_type: str | None,
+        similar_patterns: list[dict[str, Any]],
         waf_detected: bool = False,
     ) -> float:
         """
         Boost confidence score based on similar patterns in library.
-        
+
         Args:
             base_confidence: Original confidence score (0-1)
             endpoint_path: Endpoint path
             entity_type: Detected entity type
             similar_patterns: Similar patterns from library (with similarity_score)
             waf_detected: If WAF was detected in similar patterns
-        
+
         Returns: Boosted confidence score (capped at 1.0, min 0.0)
         """
         boosted = base_confidence
@@ -65,11 +65,11 @@ class ConfidenceBooster:
     def boost_by_entity_history(
         base_confidence: float,
         entity_type: str,
-        entity_vuln_stats: Dict[str, Any],
+        entity_vuln_stats: dict[str, Any],
     ) -> float:
         """
         Boost confidence based on entity type history.
-        
+
         If this entity type has been vulnerable before, boost confidence.
         """
         if not entity_vuln_stats or entity_type not in entity_vuln_stats:
@@ -130,18 +130,18 @@ class PayoutEstimator:
     def estimate_payout(
         vuln_type: str,
         severity: str,
-        entity_type: Optional[str],
-        historical_payouts: List[float],
+        entity_type: str | None,
+        historical_payouts: list[float],
     ) -> float:
         """
         Estimate payout for finding.
-        
+
         Args:
             vuln_type: Type of vulnerability
             severity: Severity level
             entity_type: Entity type affected
             historical_payouts: List of payouts for similar findings
-        
+
         Returns: Estimated payout in USD
         """
         base = PayoutEstimator.BASE_PAYOUTS.get(vuln_type, 300)
@@ -167,7 +167,7 @@ class PayoutEstimator:
     ) -> float:
         """
         Adjust payout estimate by confidence score.
-        
+
         Higher confidence = more likely to be accepted = slightly higher estimate.
         """
         if confidence >= 0.8:
@@ -187,8 +187,8 @@ class LearningScorer:
 
     def __init__(
         self,
-        confidence_booster: Optional[ConfidenceBooster] = None,
-        payout_estimator: Optional[PayoutEstimator] = None,
+        confidence_booster: ConfidenceBooster | None = None,
+        payout_estimator: PayoutEstimator | None = None,
     ):
         self._booster = confidence_booster or ConfidenceBooster()
         self._estimator = payout_estimator or PayoutEstimator()
@@ -197,17 +197,17 @@ class LearningScorer:
         self,
         base_confidence: float,
         endpoint_path: str,
-        entity_type: Optional[str],
+        entity_type: str | None,
         vuln_type: str,
         severity: str,
-        similar_patterns: List[Dict[str, Any]],
-        entity_vuln_stats: Optional[Dict[str, Any]] = None,
-        historical_payouts: Optional[List[float]] = None,
+        similar_patterns: list[dict[str, Any]],
+        entity_vuln_stats: dict[str, Any] | None = None,
+        historical_payouts: list[float] | None = None,
         waf_detected: bool = False,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Score endpoint with full learning applied.
-        
+
         Returns dict with boosted confidence, payout estimate, and reasoning.
         """
         # Boost confidence

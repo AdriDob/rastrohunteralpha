@@ -21,7 +21,7 @@ from pathlib import Path
 # Ensure project root is in path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from sqlalchemy import create_engine, MetaData, text
+from sqlalchemy import MetaData, create_engine, text
 from sqlalchemy.orm import sessionmaker
 
 # ── Configuration ──────────────────────────────────────────────────────────
@@ -50,9 +50,9 @@ pg_session = sessionmaker(bind=pg_engine, autoflush=False)()
 
 # ── Import all models to ensure they're registered ────────────────────────
 
+from core_engines.targets.models import Scope, TargetIntel  # noqa: F401, E402
 from database import models  # noqa: F401, E402
-from core_engines.targets.models import TargetIntel, Scope  # noqa: F401, E402
-from database.db import Base
+from database.db import Base  # noqa: E402
 
 # ── Create PostgreSQL schema ───────────────────────────────────────────────
 

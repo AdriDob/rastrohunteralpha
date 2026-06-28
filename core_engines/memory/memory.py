@@ -1,17 +1,17 @@
 import json
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any
 
+from core_engines.memory.learning_scorer import LearningScorer, PayoutEstimator
+from core_engines.memory.pattern_extractor import PatternExtractor
 from database.db import SessionLocal
 from database.models import MemoryRecord
-from core_engines.memory.pattern_extractor import PatternExtractor
-from core_engines.memory.learning_scorer import LearningScorer, ConfidenceBooster, PayoutEstimator
 
 
 class MemoryPatternLibrary:
     """
     Global pattern library: learns from confirmed findings, reuses patterns.
-    
+
     Supports:
     - Store/query vulnerability patterns
     - Learn from confirmed findings
@@ -41,14 +41,14 @@ class MemoryPatternLibrary:
         finding_title: str,
         endpoint_path: str,
         endpoint_method: str,
-        endpoint_params: Dict[str, Any],
-        passed_rules: List[str],
-        sensitive_fields: List[str],
-        successful_mutations: Dict[str, str],
-    ) -> Dict[str, Any]:
+        endpoint_params: dict[str, Any],
+        passed_rules: list[str],
+        sensitive_fields: list[str],
+        successful_mutations: dict[str, str],
+    ) -> dict[str, Any]:
         """
         Record a confirmed finding and extract pattern.
-        
+
         Stores pattern in memory for future matching.
         """
         # Extract pattern
@@ -86,7 +86,7 @@ class MemoryPatternLibrary:
         self,
         endpoint_path: str,
         endpoint_method: str,
-        labels: List[str],
+        labels: list[str],
         risk_score: float,
         target_name: str,
     ) -> None:
@@ -115,13 +115,13 @@ class MemoryPatternLibrary:
     def find_similar_endpoints(
         self,
         endpoint_path: str,
-        entity_type: Optional[str],
-        auth_smells: List[str],
-        current_target: Optional[str] = None,
-    ) -> List[Dict[str, Any]]:
+        entity_type: str | None,
+        auth_smells: list[str],
+        current_target: str | None = None,
+    ) -> list[dict[str, Any]]:
         """
         Find similar endpoints in OTHER targets.
-        
+
         Returns endpoints that might be vulnerable to the same pattern.
         """
         normalized = PatternExtractor.normalize_endpoint_path(endpoint_path)
@@ -173,10 +173,10 @@ class MemoryPatternLibrary:
         self,
         vulnerability_type: str,
         endpoint_entity: str,
-    ) -> Optional[List[Dict[str, Any]]]:
+    ) -> list[dict[str, Any]] | None:
         """
         Get successful mutation templates for this vuln type.
-        
+
         Returns list of successful mutations from similar findings.
         """
         for sess in self._session():
@@ -208,18 +208,17 @@ class MemoryPatternLibrary:
         self,
         base_confidence: float,
         endpoint_path: str,
-        entity_type: Optional[str],
+        entity_type: str | None,
         vuln_type: str,
         severity: str,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Boost endpoint confidence based on pattern library.
-        
+
         Returns dict with boosted confidence and reasoning.
         """
         # Find similar patterns
         normalized_path = PatternExtractor.normalize_endpoint_path(endpoint_path)
-        auth_smells = []
 
         for sess in self._session():
             patterns = (
@@ -254,7 +253,7 @@ class MemoryPatternLibrary:
         self,
         finding_type: str,
         severity: str,
-        entity_type: Optional[str],
+        entity_type: str | None,
     ) -> float:
         """Estimate payout for finding based on type and history."""
         for sess in self._session():
@@ -287,7 +286,7 @@ class MemoryPatternLibrary:
     def record_payout(
         self,
         finding_type: str,
-        entity_type: Optional[str],
+        entity_type: str | None,
         amount: float,
     ) -> None:
         """Record actual payout for learning."""

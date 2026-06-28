@@ -50,7 +50,6 @@ class ScanScheduler:
             for target in targets:
                 if not self._running:
                     break
-                domain = target.domain or target.name
                 try:
                     await self._scan_target(target, session)
                 except Exception as exc:

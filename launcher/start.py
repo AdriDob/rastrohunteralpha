@@ -13,7 +13,6 @@ Usage:
 
 import argparse
 import os
-import shlex
 import signal
 import subprocess
 import sys
@@ -32,8 +31,6 @@ DASHBOARD_PORT = 8501
 FRONTEND_PORT = 5173
 DEMO_PORT = 8001
 
-FNULL = open(os.devnull, "w")
-
 processes: list[subprocess.Popen] = []
 
 
@@ -50,9 +47,6 @@ def err(msg: str):
 
 
 def check_python():
-    if sys.version_info < (3, 10):
-        err("Python 3.10+ required")
-        sys.exit(1)
     log(f"Python {sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}")
 
 
@@ -140,7 +134,7 @@ def start_backend(demo: bool = False) -> subprocess.Popen:
     proc = subprocess.Popen(
         [sys.executable, "-m", "uvicorn", "api.main:app", "--host", "127.0.0.1", "--port", str(port)],
         cwd=ROOT,
-        stdout=FNULL,
+        stdout=subprocess.DEVNULL,
         stderr=subprocess.PIPE,
         env=env,
     )
@@ -160,7 +154,7 @@ def start_dashboard(demo: bool = False) -> subprocess.Popen:
          "--server.port", str(DASHBOARD_PORT),
          "--server.headless", "true"],
         cwd=ROOT,
-        stdout=FNULL,
+        stdout=subprocess.DEVNULL,
         stderr=subprocess.PIPE,
         env=env,
     )
@@ -175,7 +169,7 @@ def start_frontend(demo: bool = False) -> subprocess.Popen:
     proc = subprocess.Popen(
         ["npm", "run", "dev", "--", "--port", str(FRONTEND_PORT)],
         cwd=os.path.join(ROOT, "frontend"),
-        stdout=FNULL,
+        stdout=subprocess.DEVNULL,
         stderr=subprocess.PIPE,
     )
     if not _wait_for_port(proc, "127.0.0.1", FRONTEND_PORT):
@@ -320,7 +314,6 @@ def cleanup(signum=None, frame=None):
             p.wait(timeout=3)
         except subprocess.TimeoutExpired:
             p.kill()
-    FNULL.close()
     sys.exit(0)
 
 
@@ -349,10 +342,9 @@ def main():
     mode = "demo" if args.demo else "production"
 
     if args.demo:
-        log(f"Demo mode — loading fake dataset")
+        log("Demo mode — loading fake dataset")
         seed_demo_data()
 
-    only_backend = args.backend and not args.dashboard
     only_dashboard = bool(args.dashboard) and not args.backend
     both = not args.backend and not args.dashboard
 
@@ -365,11 +357,9 @@ def main():
         if dash_type == "react":
             p = start_frontend(demo=args.demo)
             port = FRONTEND_PORT
-            port_label = "React Frontend"
         else:
             p = start_dashboard(demo=args.demo)
             port = DASHBOARD_PORT
-            port_label = "Dashboard"
         processes.append(p)
 
     print()

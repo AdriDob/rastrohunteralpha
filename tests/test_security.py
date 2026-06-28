@@ -8,6 +8,7 @@ import pytest
 @pytest.fixture(scope="module")
 def client():
     from fastapi.testclient import TestClient
+
     from api.main import app
     from core_engines.license.validator import generate_license
     c = TestClient(app)
@@ -101,10 +102,11 @@ class TestAuthMiddleware:
 
     def test_desktop_session_creation(self):
         """The _create_desktop_session function must produce a valid token."""
-        from desktop.settings import get_settings, DesktopSettings
-        from desktop.main_desktop import _create_desktop_session
-        from api.main import app
         from fastapi.testclient import TestClient
+
+        from api.main import app
+        from desktop.main_desktop import _create_desktop_session
+        from desktop.settings import get_settings
 
         settings = get_settings()
         # Save the token if any (singleton may have one from other tests)
@@ -124,10 +126,11 @@ class TestAuthMiddleware:
 
     def test_desktop_session_not_expired(self):
         """Freshly created session must not be expired."""
-        from desktop.settings import get_settings
-        from desktop.main_desktop import _create_desktop_session
-        from api.main import app
         from fastapi.testclient import TestClient
+
+        from api.main import app
+        from desktop.main_desktop import _create_desktop_session
+        from desktop.settings import get_settings
 
         settings = get_settings()
         old_token = settings.get("session_token")

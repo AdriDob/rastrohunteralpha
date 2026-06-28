@@ -18,7 +18,7 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from core_engines.quick_wins.models import (
     FastExploitPath,
@@ -33,7 +33,7 @@ LOG = logging.getLogger("rastro.quick_wins")
 
 class QuickWinsEngine:
     def __init__(self):
-        pass
+        LOG.debug("QuickWinsEngine initialized")
 
     def evaluate(
         self,
@@ -44,7 +44,7 @@ class QuickWinsEngine:
         hot_paths = list(getattr(snapshot, "hot_paths", []))
         verdicts = list(getattr(snapshot, "verdicts", []))
         reports = list(getattr(snapshot, "reports", []))
-        surface = getattr(snapshot, "attack_surface", None)
+        getattr(snapshot, "attack_surface", None)
         target = getattr(snapshot, "target", None)
         target_name = getattr(target, "name", "unknown") if target else "unknown"
 
@@ -59,7 +59,7 @@ class QuickWinsEngine:
         reported_endpoints = set(r.affected_endpoint for r in reports)
 
         # ── 1. Score every endpoint as a potential quick win ──
-        all_wins: List[QuickWin] = []
+        all_wins: list[QuickWin] = []
         for ep in endpoints:
             ep_verdict = verdict_map.get(ep.path)
             win = self._score_endpoint(
@@ -126,8 +126,8 @@ class QuickWinsEngine:
         ep,
         verdict,
         reported_endpoints: set,
-        evidence_nodes: List[Dict],
-    ) -> Optional[QuickWin]:
+        evidence_nodes: list[dict],
+    ) -> QuickWin | None:
         path = getattr(ep, "path", "/")
         method = getattr(ep, "method", "GET")
         risk_score = getattr(ep, "risk_score", 0.0)
@@ -135,7 +135,7 @@ class QuickWinsEngine:
         labels = list(getattr(ep, "labels", []))
         surface = list(getattr(ep, "attack_surface", []))
         vector = getattr(ep, "vector", "")
-        actionable = getattr(ep, "actionable", False)
+        getattr(ep, "actionable", False)
         potential_idor = getattr(ep, "potential_idor", False)
 
         # Skip endpoints already reported — they're done
@@ -219,8 +219,8 @@ class QuickWinsEngine:
         self,
         risk_score: float,
         vector: str,
-        signals: List[str],
-        surface: List[str],
+        signals: list[str],
+        surface: list[str],
         potential_idor: bool,
     ) -> float:
         base = risk_score / 100.0
@@ -255,7 +255,7 @@ class QuickWinsEngine:
         return 0.0
 
     def _compute_exploitability(
-        self, method: str, labels: List[str], vector: str,
+        self, method: str, labels: list[str], vector: str,
     ) -> float:
         score = 0.0
         m = method.upper()
@@ -276,7 +276,7 @@ class QuickWinsEngine:
     def _compute_complexity(
         self,
         risk_score: float,
-        signals: List[str],
+        signals: list[str],
         potential_idor: bool,
         evidence_count: int,
     ) -> float:
@@ -317,7 +317,7 @@ class QuickWinsEngine:
             )
         return (
             "underexplored",
-            f"High scoring endpoint with limited validation — potential missed opportunity",
+            "High scoring endpoint with limited validation — potential missed opportunity",
             [f"risk_{risk_score:.0f}"],
         )
 
@@ -353,8 +353,8 @@ class QuickWinsEngine:
 
     # ── Builders ──────────────────────────────────────────────
 
-    def _build_verdict_map(self, verdicts) -> Dict[str, Any]:
-        m: Dict[str, Any] = {}
+    def _build_verdict_map(self, verdicts) -> dict[str, Any]:
+        m: dict[str, Any] = {}
         for v in verdicts:
             hpid = getattr(v, "hot_path_id", "")
             if ":" in hpid:
@@ -364,11 +364,11 @@ class QuickWinsEngine:
 
     def _build_fast_exploit_paths(
         self,
-        ready_wins: List[QuickWin],
+        ready_wins: list[QuickWin],
         hot_paths,
-        evidence_edges: List[Dict],
-    ) -> List[FastExploitPath]:
-        paths: List[FastExploitPath] = []
+        evidence_edges: list[dict],
+    ) -> list[FastExploitPath]:
+        paths: list[FastExploitPath] = []
         for win in ready_wins[:5]:
             evidence_steps = [
                 f"{win.endpoint_method} {win.endpoint_path} — confirmed verdict"
@@ -392,10 +392,10 @@ class QuickWinsEngine:
 
     def _build_low_effort_targets(
         self,
-        low_hanging: List[QuickWin],
-        underexplored: List[QuickWin],
-    ) -> List[LowEffortHighRoi]:
-        targets: List[LowEffortHighRoi] = []
+        low_hanging: list[QuickWin],
+        underexplored: list[QuickWin],
+    ) -> list[LowEffortHighRoi]:
+        targets: list[LowEffortHighRoi] = []
         combined = low_hanging[:5] + underexplored[:3]
         for win in combined:
             is_partial = win.verdict_status == "inconclusive"
@@ -415,10 +415,10 @@ class QuickWinsEngine:
 
     def _build_immediate_actions(
         self,
-        ready: List[QuickWin],
-        half_confirmed: List[QuickWin],
-    ) -> List[ImmediateActionEndpoint]:
-        actions: List[ImmediateActionEndpoint] = []
+        ready: list[QuickWin],
+        half_confirmed: list[QuickWin],
+    ) -> list[ImmediateActionEndpoint]:
+        actions: list[ImmediateActionEndpoint] = []
         for win in ready[:5]:
             steps = [
                 f"Review evidence for {win.endpoint_method} {win.endpoint_path}",

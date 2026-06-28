@@ -8,9 +8,8 @@ No business logic — pure presentation of canonical data.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query
 
 from core_engines.intelligence.unified_orchestrator import get_orchestrator
 
@@ -101,7 +100,7 @@ async def list_artifacts():
 
 @router.get("/events")
 async def get_events(
-    event_type: Optional[str] = Query(None, description="Filter by event type"),
+    event_type: str | None = Query(None, description="Filter by event type"),
 ):
     """Get the event history."""
     from core_engines.intelligence.event_system import get_event_system

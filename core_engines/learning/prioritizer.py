@@ -5,7 +5,7 @@ Every recommendation includes an explanation. No opaque decisions.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from .profile import ProfileService, get_profile_service
 
@@ -13,12 +13,12 @@ from .profile import ProfileService, get_profile_service
 class PrioritizedItem:
     """A recommendation with attached explanation."""
 
-    def __init__(self, item: Any, score: float, explanations: List[str]):
+    def __init__(self, item: Any, score: float, explanations: list[str]):
         self.item = item
         self.score = score
         self.explanations = explanations
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "item": self.item if isinstance(self.item, dict) else str(self.item),
             "score": round(self.score, 2),
@@ -29,10 +29,10 @@ class PrioritizedItem:
 class AdaptivePrioritizer:
     """Reorders items based on learned investigator profile."""
 
-    def __init__(self, profile_service: Optional[ProfileService] = None):
+    def __init__(self, profile_service: ProfileService | None = None):
         self._profile = profile_service or get_profile_service()
 
-    def prioritize_targets(self, user_id: str, targets: List[Dict[str, Any]]) -> List[PrioritizedItem]:
+    def prioritize_targets(self, user_id: str, targets: list[dict[str, Any]]) -> list[PrioritizedItem]:
         profile = self._profile.get(user_id)
         if not profile or not profile.adaptive_mode:
             return [PrioritizedItem(t, 0.0, []) for t in targets]
@@ -77,7 +77,7 @@ class AdaptivePrioritizer:
         result.sort(key=lambda x: x.score, reverse=True)
         return result
 
-    def prioritize_findings(self, user_id: str, findings: List[Dict[str, Any]]) -> List[PrioritizedItem]:
+    def prioritize_findings(self, user_id: str, findings: list[dict[str, Any]]) -> list[PrioritizedItem]:
         profile = self._profile.get(user_id)
         if not profile or not profile.adaptive_mode:
             return [PrioritizedItem(f, 0.0, []) for f in findings]
@@ -112,7 +112,7 @@ class AdaptivePrioritizer:
         result.sort(key=lambda x: x.score, reverse=True)
         return result
 
-    def prioritize_notifications(self, user_id: str, notifications: List[Dict[str, Any]]) -> List[PrioritizedItem]:
+    def prioritize_notifications(self, user_id: str, notifications: list[dict[str, Any]]) -> list[PrioritizedItem]:
         """Filter and rank notifications by relevance."""
         profile = self._profile.get(user_id)
         if not profile or not profile.adaptive_mode:
@@ -147,7 +147,7 @@ class AdaptivePrioritizer:
         result.sort(key=lambda x: x.score, reverse=True)
         return result
 
-    def daily_summary_recommendations(self, user_id: str) -> List[Dict[str, Any]]:
+    def daily_summary_recommendations(self, user_id: str) -> list[dict[str, Any]]:
         """Generate personalised daily summary recommendations."""
         profile = self._profile.get(user_id)
         recommendations = []
@@ -186,7 +186,7 @@ class AdaptivePrioritizer:
         return recommendations
 
 
-_prioritizer: Optional[AdaptivePrioritizer] = None
+_prioritizer: AdaptivePrioritizer | None = None
 
 
 def get_prioritizer() -> AdaptivePrioritizer:

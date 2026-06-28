@@ -12,7 +12,7 @@ from __future__ import annotations
 import logging
 from collections import Counter, defaultdict
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 from core_engines.ai.assistant import ScanAssistant
 
@@ -23,7 +23,7 @@ LOG = logging.getLogger("rastro.intelligence")
 class TrendingVulnerability:
     vulnerability_type: str
     count: int
-    targets_affected: List[str]
+    targets_affected: list[str]
     avg_risk_score: float = 0.0
     trend_direction: str = "stable"  # rising, falling, stable
 
@@ -31,7 +31,7 @@ class TrendingVulnerability:
 @dataclass
 class CrossTargetPattern:
     pattern: str
-    targets: List[str]
+    targets: list[str]
     endpoint_count: int
     avg_risk: float = 0.0
 
@@ -45,8 +45,8 @@ class IntelligenceReport:
     total_reported: int = 0
     estimated_total_value: float = 0.0
     avg_roi_score: float = 0.0
-    trending_vulnerabilities: List[TrendingVulnerability] = field(default_factory=list)
-    cross_target_patterns: List[CrossTargetPattern] = field(default_factory=list)
+    trending_vulnerabilities: list[TrendingVulnerability] = field(default_factory=list)
+    cross_target_patterns: list[CrossTargetPattern] = field(default_factory=list)
     top_recommendation: str = ""
     summary: str = ""
 
@@ -59,13 +59,13 @@ class SystemIntelligenceEngine:
 
     def analyze_targets(
         self,
-        targets_data: Dict[str, List[Dict[str, Any]]],
-        hypotheses_by_target: Optional[Dict[int, List[Any]]] = None,
-        verdicts_by_target: Optional[Dict[int, List[Dict[str, Any]]]] = None,
+        targets_data: dict[str, list[dict[str, Any]]],
+        hypotheses_by_target: dict[int, list[Any]] | None = None,
+        verdicts_by_target: dict[int, list[dict[str, Any]]] | None = None,
     ) -> IntelligenceReport:
         """Analiza datos globales y genera un reporte de inteligencia."""
-        all_endpoints: List[Dict[str, Any]] = []
-        all_target_names: List[str] = []
+        all_endpoints: list[dict[str, Any]] = []
+        all_target_names: list[str] = []
 
         for target_name, endpoints in targets_data.items():
             all_target_names.append(target_name)
@@ -80,7 +80,7 @@ class SystemIntelligenceEngine:
         cross_patterns = self._extract_cross_patterns(targets_data)
 
         # Vulnerabilidades en tendencia
-        all_vuln_types: List[str] = []
+        all_vuln_types: list[str] = []
         if hypotheses_by_target:
             for hyps in hypotheses_by_target.values():
                 for h in hyps:
@@ -124,11 +124,11 @@ class SystemIntelligenceEngine:
         )
 
     def _extract_cross_patterns(
-        self, targets_data: Dict[str, List[Dict[str, Any]]]
-    ) -> List[CrossTargetPattern]:
-        patterns: Dict[str, Set[str]] = defaultdict(set)
-        total_endpoints: Dict[str, int] = defaultdict(int)
-        total_risk: Dict[str, float] = defaultdict(float)
+        self, targets_data: dict[str, list[dict[str, Any]]]
+    ) -> list[CrossTargetPattern]:
+        patterns: dict[str, set[str]] = defaultdict(set)
+        total_endpoints: dict[str, int] = defaultdict(int)
+        total_risk: dict[str, float] = defaultdict(float)
 
         for target_name, endpoints in targets_data.items():
             for ep in endpoints:
@@ -156,8 +156,8 @@ class SystemIntelligenceEngine:
     def generate_insights(
         self,
         target_name: str,
-        endpoints: List[Dict[str, Any]],
-        verdicts: Optional[List[Dict[str, Any]]] = None,
+        endpoints: list[dict[str, Any]],
+        verdicts: list[dict[str, Any]] | None = None,
     ) -> str:
         """Genera narrativa de riesgo para un target específico."""
         return self._assistant.risk_narrative(target_name, endpoints, verdicts)

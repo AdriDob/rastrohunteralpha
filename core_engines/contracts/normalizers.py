@@ -8,12 +8,11 @@ Every normalizer:
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
-
+from typing import Any
 
 # ── Field mapping tables ──────────────────────────────────────────────
 
-TARGET_FIELD_MAP: Dict[str, str] = {
+TARGET_FIELD_MAP: dict[str, str] = {
     "estimated_payout": "payout",
     "opportunity_score": "score",
     "risk_score": "risk",
@@ -26,7 +25,7 @@ TARGET_FIELD_MAP: Dict[str, str] = {
     "last_updated": "lastUpdated",
 }
 
-OPPORTUNITY_FIELD_MAP: Dict[str, str] = {
+OPPORTUNITY_FIELD_MAP: dict[str, str] = {
     "estimated_payout": "payout",
     "opportunity_score": "score",
     "competition_score": "competition",
@@ -39,14 +38,14 @@ OPPORTUNITY_FIELD_MAP: Dict[str, str] = {
     "last_update": "lastUpdated",
 }
 
-ENDPOINT_FIELD_MAP: Dict[str, str] = {
+ENDPOINT_FIELD_MAP: dict[str, str] = {
     "target_id": "targetId",
     "risk_score": "risk",
     "created_at": "createdAt",
     "attack_surface": "attackSurface",
 }
 
-FINDING_FIELD_MAP: Dict[str, str] = {
+FINDING_FIELD_MAP: dict[str, str] = {
     "target_id": "targetId",
     "endpoint_id": "endpointId",
     "estimated_payout": "payout",
@@ -55,7 +54,7 @@ FINDING_FIELD_MAP: Dict[str, str] = {
     "confirmed_at": "confirmedAt",
 }
 
-EVIDENCE_FIELD_MAP: Dict[str, str] = {
+EVIDENCE_FIELD_MAP: dict[str, str] = {
     "verdict_id": "verdictId",
     "finding_id": "findingId",
     "request_url": "requestUrl",
@@ -63,7 +62,7 @@ EVIDENCE_FIELD_MAP: Dict[str, str] = {
     "created_at": "createdAt",
 }
 
-OVERVIEW_FIELD_MAP: Dict[str, str] = {
+OVERVIEW_FIELD_MAP: dict[str, str] = {
     "target_count": "targets",
     "endpoint_count": "endpoints",
     "finding_count": "findings",
@@ -114,13 +113,13 @@ def _safe_str(v: Any, default: str = "") -> str:
     return str(v)
 
 
-def _safe_list(v: Any, default: Optional[List] = None) -> List:
+def _safe_list(v: Any, default: list | None = None) -> list:
     if v is None or not isinstance(v, list):
         return default or []
     return v
 
 
-def _safe_dict(v: Any, default: Optional[Dict] = None) -> Dict:
+def _safe_dict(v: Any, default: dict | None = None) -> dict:
     if v is None or not isinstance(v, dict):
         return default or {}
     return v
@@ -128,16 +127,16 @@ def _safe_dict(v: Any, default: Optional[Dict] = None) -> Dict:
 
 # ── Normalizers ───────────────────────────────────────────────────────
 
-def _apply_map(raw: Dict[str, Any], field_map: Dict[str, str]) -> Dict[str, Any]:
+def _apply_map(raw: dict[str, Any], field_map: dict[str, str]) -> dict[str, Any]:
     """Rename fields using field_map, camelCase the rest."""
-    out: Dict[str, Any] = {}
+    out: dict[str, Any] = {}
     for key, value in raw.items():
         mapped = field_map.get(key, _to_camel(key))
         out[mapped] = value
     return out
 
 
-def normalize_target(raw: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+def normalize_target(raw: dict[str, Any] | None) -> dict[str, Any]:
     """Normalize a target dict to stable frontend DTO."""
     if not raw:
         return _empty_target()
@@ -158,7 +157,7 @@ def normalize_target(raw: Optional[Dict[str, Any]]) -> Dict[str, Any]:
     return mapped
 
 
-def normalize_opportunity(raw: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+def normalize_opportunity(raw: dict[str, Any] | None) -> dict[str, Any]:
     """Normalize an opportunity dict to stable frontend DTO."""
     if not raw:
         return _empty_opportunity()
@@ -179,7 +178,7 @@ def normalize_opportunity(raw: Optional[Dict[str, Any]]) -> Dict[str, Any]:
     return mapped
 
 
-def normalize_endpoint(raw: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+def normalize_endpoint(raw: dict[str, Any] | None) -> dict[str, Any]:
     """Normalize an endpoint dict to stable frontend DTO."""
     if not raw:
         return _empty_endpoint()
@@ -197,7 +196,7 @@ def normalize_endpoint(raw: Optional[Dict[str, Any]]) -> Dict[str, Any]:
     return mapped
 
 
-def normalize_finding(raw: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+def normalize_finding(raw: dict[str, Any] | None) -> dict[str, Any]:
     """Normalize a finding dict to stable frontend DTO."""
     if not raw:
         return _empty_finding()
@@ -214,7 +213,7 @@ def normalize_finding(raw: Optional[Dict[str, Any]]) -> Dict[str, Any]:
     return mapped
 
 
-def normalize_evidence(raw: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+def normalize_evidence(raw: dict[str, Any] | None) -> dict[str, Any]:
     """Normalize an evidence dict to stable frontend DTO."""
     if not raw:
         return _empty_evidence()
@@ -227,7 +226,7 @@ def normalize_evidence(raw: Optional[Dict[str, Any]]) -> Dict[str, Any]:
     return mapped
 
 
-def normalize_overview(raw: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+def normalize_overview(raw: dict[str, Any] | None) -> dict[str, Any]:
     """Normalize overview data to stable frontend shape."""
     if not raw:
         return _empty_overview()
@@ -258,7 +257,7 @@ def normalize_overview(raw: Optional[Dict[str, Any]]) -> Dict[str, Any]:
     return mapped
 
 
-def normalize_paginated(raw: Dict[str, Any], item_normalizer) -> Dict[str, Any]:
+def normalize_paginated(raw: dict[str, Any], item_normalizer) -> dict[str, Any]:
     """Normalize a paginated response {items, total, skip, limit}.
 
     Returns {items: [...normalized...], meta: {total, skip, limit}}.
@@ -277,7 +276,7 @@ def normalize_paginated(raw: Dict[str, Any], item_normalizer) -> Dict[str, Any]:
 
 # ── Empty DTO factories (guarantee no undefined/null propagation) ─────
 
-def _empty_target() -> Dict[str, Any]:
+def _empty_target() -> dict[str, Any]:
     return {
         "id": 0, "name": "", "domain": "", "payout": 0, "score": 0.0,
         "risk": 0.0, "roi": 0.0, "endpoints": 0, "findings": 0,
@@ -285,7 +284,7 @@ def _empty_target() -> Dict[str, Any]:
     }
 
 
-def _empty_opportunity() -> Dict[str, Any]:
+def _empty_opportunity() -> dict[str, Any]:
     return {
         "id": 0, "targetId": 0, "name": "", "domain": "", "payout": 0,
         "score": 0.0, "risk": 0.0, "roi": 0.0, "endpoints": 0,
@@ -294,7 +293,7 @@ def _empty_opportunity() -> Dict[str, Any]:
     }
 
 
-def _empty_endpoint() -> Dict[str, Any]:
+def _empty_endpoint() -> dict[str, Any]:
     return {
         "id": 0, "targetId": 0, "path": "", "method": "GET",
         "risk": 0.0, "confidence": 0.0, "vector": "",
@@ -303,7 +302,7 @@ def _empty_endpoint() -> Dict[str, Any]:
     }
 
 
-def _empty_finding() -> Dict[str, Any]:
+def _empty_finding() -> dict[str, Any]:
     return {
         "id": 0, "targetId": 0, "endpointId": 0, "title": "",
         "severity": "info", "confidence": 0.0, "status": "open",
@@ -311,14 +310,14 @@ def _empty_finding() -> Dict[str, Any]:
     }
 
 
-def _empty_evidence() -> Dict[str, Any]:
+def _empty_evidence() -> dict[str, Any]:
     return {
         "id": 0, "verdictId": 0, "findingId": 0, "requestUrl": "",
         "responseStatus": 0, "consistent": False,
     }
 
 
-def _empty_overview() -> Dict[str, Any]:
+def _empty_overview() -> dict[str, Any]:
     return {
         "targets": 0, "endpoints": 0, "findings": 0, "confirmed": 0,
         "activeScans": 0, "highSignal": 0, "avgRisk": 0.0,

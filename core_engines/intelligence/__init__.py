@@ -7,18 +7,23 @@ Sub-packages:
                   trend_detector, recommendation_engine, learning_snapshot
 """
 
+from core_engines.intelligence.adaptive_memory import AdaptiveMemory, get_memory, reset_memory
+from core_engines.intelligence.anti_drift import AntiDriftEnforcer
+from core_engines.intelligence.cache import ArtifactCache
 from core_engines.intelligence.dependency_graph import DependencyGraph
 from core_engines.intelligence.event_system import EventSystem
-from core_engines.intelligence.cache import ArtifactCache
-from core_engines.intelligence.anti_drift import AntiDriftEnforcer
-from core_engines.intelligence.unified_orchestrator import UnifiedOrchestrator, get_orchestrator
-from core_engines.intelligence.adaptive_memory import AdaptiveMemory, get_memory, reset_memory
-from core_engines.intelligence.pattern_registry import PatternRegistry, PatternStats, get_registry, reset_registry
 from core_engines.intelligence.historical_analyzer import HistoricalSummary, analyze_historical_data
-from core_engines.intelligence.trend_detector import TrendReport, TrendSignal, detect_trends
-from core_engines.intelligence.recommendation_engine import RecommendationBundle, generate_recommendations
 from core_engines.intelligence.learning_snapshot import LearningSnapshot, generate_snapshot
-from core_engines.intelligence.reward_learning import RewardLearner, RewardLearningReport, ProgramRewardMetrics, VulnTypeStats
+from core_engines.intelligence.pattern_registry import PatternRegistry, PatternStats, get_registry, reset_registry
+from core_engines.intelligence.recommendation_engine import RecommendationBundle, generate_recommendations
+from core_engines.intelligence.reward_learning import (
+    ProgramRewardMetrics,
+    RewardLearner,
+    RewardLearningReport,
+    VulnTypeStats,
+)
+from core_engines.intelligence.trend_detector import TrendReport, TrendSignal, detect_trends
+from core_engines.intelligence.unified_orchestrator import UnifiedOrchestrator, get_orchestrator
 
 __all__ = [
     "DependencyGraph", "EventSystem", "ArtifactCache", "AntiDriftEnforcer",

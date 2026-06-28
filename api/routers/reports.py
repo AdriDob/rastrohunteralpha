@@ -1,17 +1,19 @@
-from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException, Query
+from fastapi.responses import PlainTextResponse, Response
 
-from api.schemas.models import ReportCreate, ReportFullOut, ReportListItem, ReportOut, ReportUpdate
+from api.schemas.models import ReportCreate, ReportFullOut, ReportOut, ReportUpdate
 from api.services.data_service import generate_report
+from core_engines.export.service import export_report, get_report_versions, save_report_version
+from core_engines.intelligence.reward_learning import RewardLearner
 from core_engines.pipeline.report_service import (
+    create_report_from_findings,
     get_report,
     list_reports,
     report_stats,
     update_report,
-    create_report_from_findings,
 )
-from core_engines.intelligence.reward_learning import RewardLearner
+from core_engines.tracking.service import get_submission_status, submit_report_to_platform
 
 router = APIRouter(prefix="/api/reports", tags=["reports"])
 
@@ -46,7 +48,7 @@ def create_new_report(body: ReportCreate):
         )
         return ReportFullOut(**report)
     except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
     finally:
         session.close()
 
@@ -55,12 +57,12 @@ def create_new_report(body: ReportCreate):
 def get_reports_list(
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
-    status: Optional[str] = Query(None, description="Filter by status(es), comma-separated"),
-    search: Optional[str] = Query(None, description="Search program, target, vulnerability"),
+    status: str | None = Query(None, description="Filter by status(es), comma-separated"),
+    search: str | None = Query(None, description="Search program, target, vulnerability"),
     sort_by: str = Query("created_at", description="Sort column"),
     sort_order: str = Query("desc", pattern="^(asc|desc)$"),
-    date_from: Optional[str] = Query(None, description="ISO date filter start"),
-    date_to: Optional[str] = Query(None, description="ISO date filter end"),
+    date_from: str | None = Query(None, description="ISO date filter start"),
+    date_to: str | None = Query(None, description="ISO date filter end"),
 ):
     from database import db
 
@@ -109,6 +111,80 @@ def update_single_report(report_id: int, body: ReportUpdate):
         if not report:
             raise HTTPException(status_code=404, detail="Report not found")
         return ReportFullOut(**report)
+    finally:
+        session.close()
+
+
+@router.get("/{report_id}/export")
+def export_single_report(report_id: int, format: str = Query("markdown", pattern="^(markdown|html|pdf|txt)$")):
+    try:
+        content, mime = export_report(report_id, format)
+        if isinstance(content, bytes):
+            return Response(content=content, media_type=mime, headers={
+                "Content-Disposition": f'attachment; filename="report_{report_id}.{format}"',
+            })
+        if mime == "text/markdown":
+            return PlainTextResponse(content=content, media_type=mime, headers={
+                "Content-Disposition": f'attachment; filename="report_{report_id}.md"',
+            })
+        return PlainTextResponse(content=content, media_type=mime)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e)) from e
+
+
+@router.get("/{report_id}/versions")
+def list_report_versions(report_id: int):
+    from database import db
+    session = db.SessionLocal()
+    try:
+        report = get_report(session, report_id)
+        if not report:
+            raise HTTPException(status_code=404, detail="Report not found")
+        versions = get_report_versions(report_id)
+        return {"versions": versions, "total": len(versions)}
+    finally:
+        session.close()
+
+
+@router.post("/{report_id}/versions")
+def create_report_version(report_id: int, body: dict[str, str] = None):
+    from database import db
+    if body is None:
+        body = {}
+    session = db.SessionLocal()
+    try:
+        report = get_report(session, report_id)
+        if not report:
+            raise HTTPException(status_code=404, detail="Report not found")
+        version = save_report_version(report_id, summary=body.get("summary", ""))
+        return {**version, "status": "ok"}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e)) from e
+    finally:
+        session.close()
+
+
+@router.post("/{report_id}/submit")
+def submit_report_to_platform_endpoint(report_id: int, body: dict[str, str]):
+    platform = body.get("platform", "")
+    if not platform:
+        raise HTTPException(status_code=400, detail="platform is required")
+    result = submit_report_to_platform(report_id, platform)
+    if not result.get("success"):
+        raise HTTPException(status_code=400, detail=result.get("error", "Submission failed"))
+    return result
+
+
+@router.get("/{report_id}/submissions")
+def get_report_submissions(report_id: int):
+    from database import db
+    session = db.SessionLocal()
+    try:
+        report = get_report(session, report_id)
+        if not report:
+            raise HTTPException(status_code=404, detail="Report not found")
+        submissions = get_submission_status(report_id)
+        return {"submissions": submissions, "total": len(submissions)}
     finally:
         session.close()
 

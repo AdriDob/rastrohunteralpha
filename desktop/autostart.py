@@ -14,7 +14,6 @@ import os
 import platform
 import subprocess
 import sys
-from typing import Optional
 
 logger = logging.getLogger("rastro.desktop.autostart")
 
@@ -52,7 +51,7 @@ start "" "{sys.executable}" -m desktop.main_desktop --no-tray
 """
 
 
-def _windows_startup_path() -> Optional[str]:
+def _windows_startup_path() -> str | None:
     appdata = os.environ.get("APPDATA")
     if not appdata:
         return None
@@ -63,14 +62,14 @@ def _windows_startup_path() -> Optional[str]:
     )
 
 
-def _launchd_path() -> Optional[str]:
+def _launchd_path() -> str | None:
     home = os.environ.get("HOME")
     if not home:
         return None
     return os.path.join(home, "Library", "LaunchAgents", "com.rastro.desktop.plist")
 
 
-def _get_autostart_path() -> Optional[str]:
+def _get_autostart_path() -> str | None:
     system = platform.system()
     if system == "Darwin":
         return _launchd_path()
@@ -181,9 +180,7 @@ def is_autostart_enabled() -> bool:
     Returns True if autostart is configured, False otherwise.
     """
     path = _get_autostart_path()
-    if path and os.path.exists(path):
-        return True
-    return False
+    return bool(path and os.path.exists(path))
 
 
 # ── Legacy compatibility ────────────────────────────────────────────

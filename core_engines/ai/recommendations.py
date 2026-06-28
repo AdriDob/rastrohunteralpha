@@ -7,17 +7,18 @@ Each recommendation answers: what to do, why, and what's the expected value.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
-from database import db, models
-from core_engines.engine.unified_scoring import score as unified_score, score_target as unified_score_target
 from core_engines.engine.unified_scoring import generate_suggestions
+from core_engines.engine.unified_scoring import score as unified_score
+from core_engines.engine.unified_scoring import score_target as unified_score_target
+from database import db, models
 
 
-def generate_recommendations() -> List[Dict[str, Any]]:
+def generate_recommendations() -> list[dict[str, Any]]:
     session = db.SessionLocal()
     try:
-        recs: List[Dict[str, Any]] = []
+        recs: list[dict[str, Any]] = []
         targets = session.query(models.Target).all()
         endpoints = session.query(models.Endpoint).all()
         findings = session.query(models.Finding).all()
@@ -28,7 +29,7 @@ def generate_recommendations() -> List[Dict[str, Any]]:
             if not t_eps:
                 continue
 
-            t_findings = [f for f in findings if f.target_id == t.id]
+            [f for f in findings if f.target_id == t.id]
             t_verdicts = [v for v in verdicts if v.endpoint_id and v.endpoint_id in {ep.id for ep in t_eps}]
 
             roi = unified_score_target({
@@ -100,7 +101,7 @@ def generate_recommendations() -> List[Dict[str, Any]]:
         session.close()
 
 
-def get_best_recommendation() -> Dict[str, Any]:
+def get_best_recommendation() -> dict[str, Any]:
     recs = generate_recommendations()
     if recs:
         return recs[0]

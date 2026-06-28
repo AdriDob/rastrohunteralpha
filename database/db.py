@@ -1,10 +1,11 @@
+import contextlib
 import os
 import re
 from pathlib import Path
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
 
 from dotenv import load_dotenv
+from sqlalchemy import create_engine, text
+from sqlalchemy.orm import declarative_base, sessionmaker
 
 load_dotenv()
 
@@ -13,9 +14,16 @@ IS_SQLITE = DATABASE_URL.startswith("sqlite")
 
 _engine_args: dict = {}
 if IS_SQLITE:
-    _engine_args["connect_args"] = {"check_same_thread": False}
+    _engine_args["connect_args"] = {"check_same_thread": False, "timeout": 5}
 
 engine = create_engine(DATABASE_URL, **_engine_args)
+
+if IS_SQLITE:
+    with engine.connect() as conn:
+        conn.execute(text("PRAGMA journal_mode=WAL"))
+        conn.execute(text("PRAGMA synchronous=NORMAL"))
+        conn.execute(text("PRAGMA busy_timeout=5000"))
+        conn.commit()
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 Base = declarative_base()
 
@@ -30,7 +38,6 @@ def _ensure_db_dir() -> None:
 
 
 def init_db():
-    from . import models
 
     _ensure_db_dir()
     Base.metadata.create_all(bind=engine)
@@ -59,7 +66,7 @@ def init_db():
                     session.execute(text(f"ALTER TABLE targets_intel ADD COLUMN {col_name} {col_type};"))
                 except Exception as exc:
                     logger = __import__('logging').getLogger('rastro.db')
-                    logger.debug("Migration skip (targets_intel.%s): %s", col_name, exc)
+                    logger.warning("Migration skip (targets_intel.%s): %s", col_name, exc)
 
             # Auto-migration for reports table
             report_columns = [
@@ -82,7 +89,7 @@ def init_db():
                     session.execute(text(f"ALTER TABLE reports ADD COLUMN {col_name} {col_type};"))
                 except Exception as exc:
                     logger = __import__('logging').getLogger('rastro.db')
-                    logger.debug("Migration skip (reports.%s): %s", col_name, exc)
+                    logger.warning("Migration skip (reports.%s): %s", col_name, exc)
 
             # Auto-migration for notifications table
             notification_columns = [
@@ -93,10 +100,8 @@ def init_db():
                 ("delivered_via", "VARCHAR"),
             ]
             for col_name, col_type in notification_columns:
-                try:
+                with contextlib.suppress(Exception):
                     session.execute(text(f"ALTER TABLE notifications ADD COLUMN {col_name} {col_type};"))
-                except Exception:
-                    pass
 
             session.commit()
         except Exception as exc:

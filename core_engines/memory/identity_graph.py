@@ -2,8 +2,7 @@ import hashlib
 import re
 from collections import defaultdict
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Set
-
+from typing import Any
 
 ID_PATTERNS = [
     re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}"),
@@ -22,7 +21,7 @@ class IdentityLink:
     target_endpoint: str
     entity_type: str
     confidence: float
-    evidence: List[str]
+    evidence: list[str]
 
 
 @dataclass
@@ -30,17 +29,17 @@ class IdentityToken:
     token: str
     original_value: str
     entity_type: str
-    endpoints_seen: List[str] = field(default_factory=list)
+    endpoints_seen: list[str] = field(default_factory=list)
 
 
 class IdentityGraph:
     def __init__(self):
-        self._tokens: Dict[str, IdentityToken] = {}
-        self._reverse: Dict[str, str] = {}
-        self._links: List[IdentityLink] = []
-        self._endpoint_identities: Dict[str, Set[str]] = defaultdict(set)
+        self._tokens: dict[str, IdentityToken] = {}
+        self._reverse: dict[str, str] = {}
+        self._links: list[IdentityLink] = []
+        self._endpoint_identities: dict[str, set[str]] = defaultdict(set)
 
-    def tokenize(self, raw_value: str, entity_type: str = "unknown", source_endpoint: Optional[str] = None) -> str:
+    def tokenize(self, raw_value: str, entity_type: str = "unknown", source_endpoint: str | None = None) -> str:
         if raw_value in self._reverse:
             token = self._reverse[raw_value]
             existing = self._tokens[token]
@@ -61,11 +60,11 @@ class IdentityGraph:
             self._endpoint_identities[source_endpoint].add(token)
         return token
 
-    def resolve(self, token: str) -> Optional[str]:
+    def resolve(self, token: str) -> str | None:
         entry = self._tokens.get(token)
         return entry.original_value if entry else None
 
-    def propagate(self, endpoint_a: str, endpoint_b: str, entity_type: str, evidence: Optional[List[str]] = None) -> IdentityLink:
+    def propagate(self, endpoint_a: str, endpoint_b: str, entity_type: str, evidence: list[str] | None = None) -> IdentityLink:
         link = IdentityLink(
             source_endpoint=endpoint_a,
             target_endpoint=endpoint_b,
@@ -81,9 +80,9 @@ class IdentityGraph:
 
         return link
 
-    def detect_reuse(self, endpoint_ids: List[str]) -> List[Dict[str, Any]]:
-        reuse_chains: List[Dict[str, Any]] = []
-        seen_pairs: Set[tuple] = set()
+    def detect_reuse(self, endpoint_ids: list[str]) -> list[dict[str, Any]]:
+        reuse_chains: list[dict[str, Any]] = []
+        seen_pairs: set[tuple] = set()
 
         for i, ep_a in enumerate(endpoint_ids):
             for j in range(i + 1, len(endpoint_ids)):
@@ -103,12 +102,12 @@ class IdentityGraph:
 
         return reuse_chains
 
-    def get_identity_for_endpoint(self, endpoint_id: str) -> List[IdentityToken]:
+    def get_identity_for_endpoint(self, endpoint_id: str) -> list[IdentityToken]:
         token_keys = self._endpoint_identities.get(endpoint_id, set())
         return [self._tokens[t] for t in token_keys if t in self._tokens]
 
-    def scan_for_identities(self, path: str, params: Optional[Dict[str, Any]] = None, body: Optional[str] = None) -> Dict[str, str]:
-        found: Dict[str, str] = {}
+    def scan_for_identities(self, path: str, params: dict[str, Any] | None = None, body: str | None = None) -> dict[str, str]:
+        found: dict[str, str] = {}
         text = f"{path} {str(params or {})} {body or ''}"
 
         for pattern in ID_PATTERNS:
@@ -120,8 +119,8 @@ class IdentityGraph:
 
         return found
 
-    def link_endpoints_by_identity(self, endpoint_map: Dict[str, Dict[str, Any]]) -> List[IdentityLink]:
-        links: List[IdentityLink] = []
+    def link_endpoints_by_identity(self, endpoint_map: dict[str, dict[str, Any]]) -> list[IdentityLink]:
+        links: list[IdentityLink] = []
         eid_list = list(endpoint_map.keys())
 
         for i, eid_a in enumerate(eid_list):
@@ -142,10 +141,10 @@ class IdentityGraph:
 
         return links
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "tokens": {k: {"original": v.original_value, "entity_type": v.entity_type, "endpoints": v.endpoints_seen} for k, v in self._tokens.items()},
-            "links": [{"source": l.source_endpoint, "target": l.target_endpoint, "entity": l.entity_type, "confidence": l.confidence, "evidence": l.evidence} for l in self._links],
+            "links": [{"source": link.source_endpoint, "target": link.target_endpoint, "entity": link.entity_type, "confidence": link.confidence, "evidence": link.evidence} for link in self._links],
             "endpoint_identities": {k: list(v) for k, v in self._endpoint_identities.items()},
         }
 

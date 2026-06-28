@@ -7,15 +7,12 @@ without explicit user consent.
 
 from __future__ import annotations
 
-import json
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from sqlalchemy import Column, Integer, String, Float, Text, DateTime, Boolean, JSON
+from sqlalchemy import JSON, Boolean, Column, DateTime, Float, Integer, String
 from sqlalchemy.sql import func
 
 from database.db import Base, SessionLocal
-
 
 # ─── SQLAlchemy Models ─────────────────────────────────────────────────────
 
@@ -81,7 +78,7 @@ class LearningEvent(Base):
 class ProfileService:
     """Read/write the investigator profile."""
 
-    def get(self, user_id: str) -> Optional[InvestigatorProfile]:
+    def get(self, user_id: str) -> InvestigatorProfile | None:
         session = SessionLocal()
         try:
             return session.query(InvestigatorProfile).filter(
@@ -188,7 +185,7 @@ class ProfileService:
         finally:
             session.close()
 
-    def log_event(self, user_id: str, event_type: str, data: Optional[Dict] = None) -> None:
+    def log_event(self, user_id: str, event_type: str, data: dict | None = None) -> None:
         session = SessionLocal()
         try:
             event = LearningEvent(user_id=user_id, event_type=event_type, data=data or {})
@@ -197,7 +194,7 @@ class ProfileService:
         finally:
             session.close()
 
-    def get_events(self, user_id: str, event_type: Optional[str] = None, limit: int = 100) -> List[LearningEvent]:
+    def get_events(self, user_id: str, event_type: str | None = None, limit: int = 100) -> list[LearningEvent]:
         session = SessionLocal()
         try:
             query = session.query(LearningEvent).filter(LearningEvent.user_id == user_id).order_by(LearningEvent.created_at.desc())
@@ -207,7 +204,7 @@ class ProfileService:
         finally:
             session.close()
 
-    def get_stats(self, user_id: str) -> Dict[str, Any]:
+    def get_stats(self, user_id: str) -> dict[str, Any]:
         """Build a stats dictionary from the profile."""
         profile = self.get(user_id)
         if not profile:
@@ -290,7 +287,7 @@ class ProfileService:
 
 # ─── Singleton ─────────────────────────────────────────────────────────────
 
-_service: Optional[ProfileService] = None
+_service: ProfileService | None = None
 
 
 def get_profile_service() -> ProfileService:

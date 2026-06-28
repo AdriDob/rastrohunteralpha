@@ -7,11 +7,10 @@ only — no active scanning.
 
 import logging
 import re
-from typing import Dict, List, Optional, Set
 
 LOG = logging.getLogger("rastro.targets.technology")
 
-CMS_INDICATORS: Dict[str, List[str]] = {
+CMS_INDICATORS: dict[str, list[str]] = {
     "wordpress": [
         r"wordpress", r"wp-", r"wp_content", r"wp-includes",
         r"wp-admin", r"wp-login", r"xmlrpc\.php",
@@ -37,7 +36,7 @@ CMS_INDICATORS: Dict[str, List[str]] = {
     ],
 }
 
-FRAMEWORK_INDICATORS: Dict[str, List[str]] = {
+FRAMEWORK_INDICATORS: dict[str, list[str]] = {
     "laravel":       [r"laravel", r"\.env", r"artisan"],
     "symfony":       [r"symfony", r"app\.php", r"_sf2_"],
     "django":        [r"django", r"csrfmiddlewaretoken", r"wsgi\.py"],
@@ -52,7 +51,7 @@ FRAMEWORK_INDICATORS: Dict[str, List[str]] = {
     "aspnet":        [r"asp\.net", r"\.aspx", r"\.ashx", r"web\.config"],
 }
 
-INFRA_INDICATORS: Dict[str, List[str]] = {
+INFRA_INDICATORS: dict[str, list[str]] = {
     "nginx":         [r"nginx", r"nginx/"],
     "apache":        [r"apache", r"apache/", r"\.htaccess"],
     "cloudflare":    [r"cloudflare", r"__cfduid", r"cf-ray"],
@@ -66,7 +65,7 @@ INFRA_INDICATORS: Dict[str, List[str]] = {
     "docker":        [r"docker", r"container", r"dockerfile"],
 }
 
-WORDPRESS_PLUGINS: Dict[str, List[str]] = {
+WORDPRESS_PLUGINS: dict[str, list[str]] = {
     "woocommerce":   [r"woocommerce", r"wc-", r"wc_api", r"product/"],
     "elementor":     [r"elementor", r"elementor-"],
     "yoast":         [r"yoast", r"wordpress-seo"],
@@ -79,8 +78,8 @@ WORDPRESS_PLUGINS: Dict[str, List[str]] = {
 }
 
 
-def _match_indicators(text: str, indicators: Dict[str, List[str]]) -> Set[str]:
-    matched: Set[str] = set()
+def _match_indicators(text: str, indicators: dict[str, list[str]]) -> set[str]:
+    matched: set[str] = set()
     lower = text.lower()
     for name, patterns in indicators.items():
         for pattern in patterns:
@@ -90,14 +89,14 @@ def _match_indicators(text: str, indicators: Dict[str, List[str]]) -> Set[str]:
     return matched
 
 
-def fingerprint_program(program: Dict) -> List[str]:
+def fingerprint_program(program: dict) -> list[str]:
     """Passively detect technologies from program metadata.
 
     Examines the program name, scope keywords, domain, and any
     provided URL hints. Returns a sorted list of detected technology tags.
     """
-    tags: Set[str] = set()
-    text_parts: List[str] = []
+    tags: set[str] = set()
+    text_parts: list[str] = []
 
     name = program.get("name") or program.get("title") or ""
     domain = program.get("domain") or program.get("program_url") or ""
@@ -120,7 +119,7 @@ def fingerprint_program(program: Dict) -> List[str]:
     return sorted(tags)
 
 
-def classify_cms(technologies: List[str]) -> Optional[str]:
+def classify_cms(technologies: list[str]) -> str | None:
     """Return the primary CMS name from detected technology tags."""
     cms_map = {
         "wordpress", "drupal", "joomla", "magento",
@@ -132,14 +131,14 @@ def classify_cms(technologies: List[str]) -> Optional[str]:
     return None
 
 
-def is_wordpress_ecosystem(technologies: List[str]) -> bool:
+def is_wordpress_ecosystem(technologies: list[str]) -> bool:
     """Check if technology set indicates WordPress ecosystem."""
     wp_keywords = {"wordpress", "woocommerce", "elementor", "yoast",
                    "acf", "jetpack", "wpforms", "wordfence", "wprocket"}
     return bool(wp_keywords & set(technologies))
 
 
-def score_technology_relevance(technologies: List[str]) -> float:
+def score_technology_relevance(technologies: list[str]) -> float:
     """Score a program based on its tech stack relevance (0-100).
 
     WordPress ecosystem: +40 base

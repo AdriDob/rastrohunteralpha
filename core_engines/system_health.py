@@ -1,7 +1,7 @@
 import logging
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from database.db import SessionLocal
 
@@ -48,7 +48,7 @@ class SystemHealthSummary:
 
     generated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         result = {}
         for k, v in asdict(self).items():
             if isinstance(v, float):
@@ -61,9 +61,9 @@ class SystemHealthSummary:
 def collect_health() -> SystemHealthSummary:
     session = SessionLocal()
     try:
-        from database.models import Target, Endpoint, Finding, Verdict, Evidence, ScanRun
-        from core_engines.observability import get_metrics
         from core_engines.intelligence.adaptive_memory import get_memory
+        from core_engines.observability import get_metrics
+        from database.models import Endpoint, Evidence, Finding, ScanRun, Target, Verdict
 
         summary = SystemHealthSummary()
 
@@ -109,7 +109,7 @@ def collect_health() -> SystemHealthSummary:
                     conf_sum += float(v.confidence)
                     conf_count += 1
                 except (ValueError, TypeError):
-                    pass
+                    LOG.warning("Failed to parse verdict confidence value", exc_info=True)
         summary.verdict_confidence_samples = conf_count
         if conf_count:
             summary.avg_verdict_confidence = round(conf_sum / conf_count, 4)
@@ -117,8 +117,7 @@ def collect_health() -> SystemHealthSummary:
         # Pipeline timing from observability
         obs_metrics = get_metrics()
         for metric_name, stats in obs_metrics.items():
-            if "pipeline" in metric_name or "score" in metric_name:
-                if stats["count"] > summary.pipeline_latency_count:
+            if ("pipeline" in metric_name or "score" in metric_name) and stats["count"] > summary.pipeline_latency_count:
                     summary.pipeline_latency_count = stats["count"]
                     summary.pipeline_latency_avg_ms = stats["avg_ms"]
                     summary.pipeline_latency_max_ms = stats["max_ms"]
@@ -130,8 +129,8 @@ def collect_health() -> SystemHealthSummary:
             summary.historical_recommendations_count = state.get("total_recommendations_generated", 0)
             summary.patterns_learned = state.get("total_patterns_learned", 0)
             summary.snapshots_created = state.get("total_snapshots_created", 0)
-        except Exception:
-            pass
+        except Exception as exc:
+            LOG.warning("Failed to collect intelligence state: %s", exc)
 
         return summary
 

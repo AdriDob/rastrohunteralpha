@@ -1,7 +1,8 @@
-import json
 import ast
+import json
 import logging
-from sqlalchemy import Boolean, Column, Integer, String, DateTime, Text, ForeignKey, Float
+
+from sqlalchemy import Boolean, Column, DateTime, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.sql import func
 
 from .db import Base
@@ -669,6 +670,119 @@ class Report(Base):
     created_at = Column(
         DateTime(timezone=True),
         server_default=func.now(),
+    )
+
+
+class SubmissionRecord(Base):
+    """Tracks report submissions to external bug bounty platforms."""
+    __tablename__ = "submission_records"
+
+    id = Column(Integer, primary_key=True, index=True)
+    report_id = Column(Integer, ForeignKey("reports.id"), nullable=False, index=True)
+    platform = Column(String, nullable=False, index=True)
+    external_id = Column(String, nullable=True, index=True)
+    status = Column(String, nullable=False, default="submitted", index=True)
+    extra_data = Column(Text, nullable=True, default="{}")
+    submitted_at = Column(DateTime(timezone=True), server_default=func.now())
+    last_update = Column(DateTime(timezone=True), nullable=True)
+
+
+class ReportVersion(Base):
+    """Versioned snapshots of a report before finalization."""
+    __tablename__ = "report_versions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    report_id = Column(Integer, ForeignKey("reports.id"), nullable=False, index=True)
+    version = Column(Integer, nullable=False, default=1)
+    content = Column(Text, nullable=True)
+    summary = Column(String, nullable=True, default="")
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+
+class PipelineRun(Base):
+    """Persistent autonomous pipeline execution record."""
+    __tablename__ = "pipeline_runs"
+
+    id = Column(Integer, primary_key=True, index=True)
+
+    target_id = Column(
+        Integer,
+        ForeignKey("targets.id"),
+        nullable=False,
+        index=True,
+    )
+
+    correlation_id = Column(
+        String,
+        nullable=False,
+        unique=True,
+        index=True,
+    )
+
+    current_state = Column(
+        String,
+        nullable=False,
+        default="pending",
+        index=True,
+    )
+
+    state_history = Column(
+        Text,
+        nullable=True,
+        default="[]",
+    )
+
+    quality_score = Column(
+        Float,
+        nullable=True,
+        default=0.0,
+    )
+
+    retry_count = Column(
+        Integer,
+        nullable=False,
+        default=0,
+    )
+
+    max_retries = Column(
+        Integer,
+        nullable=False,
+        default=3,
+    )
+
+    error_message = Column(
+        Text,
+        nullable=True,
+    )
+
+    created_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+    )
+
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+
+    completed_at = Column(
+        DateTime(timezone=True),
+        nullable=True,
+    )
+
+
+class RastroConfig(Base):
+    """Persistent key-value configuration store."""
+    __tablename__ = "rastro_config"
+
+    id = Column(Integer, primary_key=True, index=True)
+    key = Column(String, unique=True, nullable=False, index=True)
+    value = Column(Text, nullable=False)
+    updated_at = Column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        onupdate=func.now(),
     )
 
 

@@ -12,7 +12,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger("rastro.accountability.outcome")
 
@@ -28,12 +28,12 @@ class OutcomeEntry:
     value_score: float = 0.0
     duration_ms: float = 0.0
     source: str = "system"
-    details: Dict[str, Any] = field(default_factory=dict)
-    user_id: Optional[str] = None
-    error: Optional[str] = None
+    details: dict[str, Any] = field(default_factory=dict)
+    user_id: str | None = None
+    error: str | None = None
     timestamp: float = field(default_factory=time.time)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "action_id": self.action_id,
             "action_type": self.action_type,
@@ -55,7 +55,7 @@ class OutcomeTracker:
     MAX_HISTORY = 1000
 
     def __init__(self) -> None:
-        self._outcomes: List[OutcomeEntry] = []
+        self._outcomes: list[OutcomeEntry] = []
 
     def record(self, entry: OutcomeEntry) -> None:
         self._outcomes.append(entry)
@@ -65,7 +65,7 @@ class OutcomeTracker:
 
     def _archive(self, entry: OutcomeEntry) -> None:
         try:
-            from core_engines.memory.insight_archive import get_insight_archive, Insight
+            from core_engines.memory.insight_archive import Insight, get_insight_archive
             archive = get_insight_archive()
             insight = Insight(
                 id=f"outcome-{entry.action_id}-{int(entry.timestamp)}",
@@ -81,7 +81,7 @@ class OutcomeTracker:
         except Exception as exc:
             logger.debug("Failed to archive outcome: %s", exc)
 
-    def get_success_rate(self, action_type: Optional[str] = None) -> float:
+    def get_success_rate(self, action_type: str | None = None) -> float:
         relevant = self._outcomes
         if action_type:
             relevant = [o for o in relevant if o.action_type == action_type]
@@ -90,17 +90,17 @@ class OutcomeTracker:
         successes = sum(1 for o in relevant if o.result == "success")
         return successes / len(relevant)
 
-    def get_by_type(self, action_type: str, limit: int = 50) -> List[Dict[str, Any]]:
+    def get_by_type(self, action_type: str, limit: int = 50) -> list[dict[str, Any]]:
         matching = [o for o in self._outcomes if o.action_type == action_type]
         return [o.to_dict() for o in matching[-limit:]]
 
-    def get_recent(self, limit: int = 20) -> List[Dict[str, Any]]:
+    def get_recent(self, limit: int = 20) -> list[dict[str, Any]]:
         return [o.to_dict() for o in self._outcomes[-limit:]]
 
-    def get_summary(self) -> Dict[str, Any]:
+    def get_summary(self) -> dict[str, Any]:
         if not self._outcomes:
             return {"total": 0, "success_rate": 0.5, "by_type": {}}
-        by_type: Dict[str, Dict[str, Any]] = {}
+        by_type: dict[str, dict[str, Any]] = {}
         for o in self._outcomes:
             if o.action_type not in by_type:
                 by_type[o.action_type] = {"count": 0, "successes": 0, "total_value": 0.0}
@@ -108,7 +108,7 @@ class OutcomeTracker:
             if o.result == "success":
                 by_type[o.action_type]["successes"] += 1
             by_type[o.action_type]["total_value"] += o.value_score
-        for t, stats in by_type.items():
+        for _t, stats in by_type.items():
             stats["success_rate"] = stats["successes"] / stats["count"] if stats["count"] > 0 else 0.5
             stats["avg_value"] = stats["total_value"] / stats["count"] if stats["count"] > 0 else 0.0
         total_successes = sum(1 for o in self._outcomes if o.result == "success")
@@ -122,7 +122,7 @@ class OutcomeTracker:
         return len(self._outcomes)
 
 
-_TRACKER: Optional[OutcomeTracker] = None
+_TRACKER: OutcomeTracker | None = None
 
 
 def get_outcome_tracker() -> OutcomeTracker:

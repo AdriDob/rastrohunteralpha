@@ -6,9 +6,12 @@ Manages per-device state snapshots with last-write-wins conflict resolution.
 from __future__ import annotations
 
 import json
+import logging
 import os
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any
+
+logger = logging.getLogger("rastro.sync.manager")
 
 SYNC_DIR = os.path.join(
     os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share")),
@@ -33,8 +36,8 @@ class SyncManager:
     """Manages state synchronization across devices."""
 
     def __init__(self, persist: bool = True) -> None:
-        self._devices: Dict[str, Dict[str, Any]] = {}
-        self._global_state: Dict[str, Any] = {}
+        self._devices: dict[str, dict[str, Any]] = {}
+        self._global_state: dict[str, Any] = {}
         self._persist = persist
         if persist:
             os.makedirs(SYNC_DIR, exist_ok=True)
@@ -54,7 +57,7 @@ class SyncManager:
                 with open(state_path) as f:
                     self._global_state = json.load(f)
         except (json.JSONDecodeError, OSError):
-            pass
+            logger.warning("Failed to load sync state from disk", exc_info=True)
 
     def _save(self) -> None:
         if not self._persist:
@@ -65,9 +68,9 @@ class SyncManager:
             with open(self._path("global.json"), "w") as f:
                 json.dump(self._global_state, f)
         except OSError:
-            pass
+            logger.warning("Failed to save sync state to disk", exc_info=True)
 
-    def push_state(self, device_id: str, state: Dict[str, Any]) -> Dict[str, Any]:
+    def push_state(self, device_id: str, state: dict[str, Any]) -> dict[str, Any]:
         """Push state from a device. Last-write-wins per key.
 
         Returns the merged global state after applying the push.
@@ -96,7 +99,7 @@ class SyncManager:
 
         return self._build_global_state(device_id)
 
-    def pull_state(self, device_id: str) -> Dict[str, Any]:
+    def pull_state(self, device_id: str) -> dict[str, Any]:
         """Pull the current merged state for a device."""
         return self._build_global_state(device_id)
 
@@ -112,7 +115,7 @@ class SyncManager:
             return state_a.get("value")
         return state_b.get("value")
 
-    def register_device(self, device_id: str, info: Dict[str, Any]) -> None:
+    def register_device(self, device_id: str, info: dict[str, Any]) -> None:
         """Register a new device for sync."""
         if device_id not in self._devices:
             self._devices[device_id] = {
@@ -129,13 +132,13 @@ class SyncManager:
             self._devices[device_id]["last_sync"] = time.time()
         self._save()
 
-    def get_devices(self) -> List[Dict[str, Any]]:
+    def get_devices(self) -> list[dict[str, Any]]:
         return [
             {"device_id": did, "last_sync": d.get("last_sync", 0), "info": d.get("info", {})}
             for did, d in self._devices.items()
         ]
 
-    def _build_global_state(self, device_id: str) -> Dict[str, Any]:
+    def _build_global_state(self, device_id: str) -> dict[str, Any]:
         """Build the response with global state + device-specific state."""
         device_state = self._devices.get(device_id, {}).get("state", {})
         return {
@@ -153,7 +156,7 @@ class SyncManager:
         }
 
 
-_SYNC: Optional[SyncManager] = None
+_SYNC: SyncManager | None = None
 
 
 def get_sync_manager() -> SyncManager:

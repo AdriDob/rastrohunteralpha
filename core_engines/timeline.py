@@ -1,7 +1,7 @@
 import logging
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from database.db import SessionLocal
 
@@ -28,19 +28,19 @@ class TimelineEvent:
     timestamp: str
     source: str
     description: str
-    target_id: Optional[int] = None
-    target_name: Optional[str] = None
-    endpoint_id: Optional[int] = None
-    endpoint_path: Optional[str] = None
-    verdict_id: Optional[int] = None
-    verdict_status: Optional[str] = None
-    finding_id: Optional[int] = None
-    report_title: Optional[str] = None
-    confidence: Optional[float] = None
-    duration_ms: Optional[float] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    target_id: int | None = None
+    target_name: str | None = None
+    endpoint_id: int | None = None
+    endpoint_path: str | None = None
+    verdict_id: int | None = None
+    verdict_status: str | None = None
+    finding_id: int | None = None
+    report_title: str | None = None
+    confidence: float | None = None
+    duration_ms: float | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
     def __post_init__(self) -> None:
@@ -50,7 +50,7 @@ class TimelineEvent:
 
 @dataclass
 class Timeline:
-    events: List[TimelineEvent] = field(default_factory=list)
+    events: list[TimelineEvent] = field(default_factory=list)
     generated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
     def add(self, event: TimelineEvent) -> None:
@@ -59,13 +59,13 @@ class Timeline:
     def sort(self) -> None:
         self.events.sort(key=lambda e: e.timestamp)
 
-    def filter_by_type(self, event_type: str) -> List[TimelineEvent]:
+    def filter_by_type(self, event_type: str) -> list[TimelineEvent]:
         return [e for e in self.events if e.event_type == event_type]
 
-    def filter_by_target(self, target_id: int) -> List[TimelineEvent]:
+    def filter_by_target(self, target_id: int) -> list[TimelineEvent]:
         return [e for e in self.events if e.target_id == target_id]
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "events": [e.to_dict() for e in sorted(self.events, key=lambda x: x.timestamp)],
             "total_events": len(self.events),
@@ -74,14 +74,14 @@ class Timeline:
 
 
 def build_timeline(
-    target_id: Optional[int] = None,
+    target_id: int | None = None,
     limit: int = 100,
     offset: int = 0,
-    event_type: Optional[str] = None,
+    event_type: str | None = None,
 ) -> Timeline:
     session = SessionLocal()
     try:
-        from database.models import Target, Endpoint, Finding, Verdict, Evidence, ScanRun, MemoryRecord
+        from database.models import Endpoint, Evidence, MemoryRecord, ScanRun, Target, Verdict
 
         timeline = Timeline()
 

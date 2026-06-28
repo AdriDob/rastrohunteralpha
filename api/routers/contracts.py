@@ -6,31 +6,28 @@ GET /api/contracts/debug  — Full contract report
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List
+from typing import Any
 
 from fastapi import APIRouter
 
 from core_engines.contracts.normalizers import (
-    normalize_target,
-    normalize_opportunity,
     normalize_endpoint,
-    normalize_finding,
     normalize_evidence,
+    normalize_finding,
+    normalize_opportunity,
+    normalize_target,
 )
 from core_engines.contracts.validator import (
-    EXPECTED_FIELDS,
-    validate_contract,
-    validate_paginated_response,
     build_debug_report,
+    validate_paginated_response,
 )
-from core_engines.contracts.wrapper import wrap_paginated, wrap_list
 
 logger = logging.getLogger("rastro.api.contracts")
 
 router = APIRouter(prefix="/api/contracts", tags=["contracts"])
 
 
-def _fetch_sample(router_name: str, list_call, normalizer, limit: int = 5) -> Dict[str, Any]:
+def _fetch_sample(router_name: str, list_call, normalizer, limit: int = 5) -> dict[str, Any]:
     """Fetch a sample from a list endpoint and validate it."""
     try:
         raw = list_call(skip=0, limit=limit)
@@ -60,12 +57,11 @@ async def contracts_debug():
 
     Shows expected schema vs actual backend response for every contract.
     """
-    from core_engines.contracts.validator import build_debug_report
 
     report = build_debug_report()
 
     # Test sample data from live endpoints
-    samples: List[Dict[str, Any]] = []
+    samples: list[dict[str, Any]] = []
 
     # Targets
     try:

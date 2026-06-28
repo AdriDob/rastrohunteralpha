@@ -1,8 +1,8 @@
 import json
 import logging
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from database.db import SessionLocal
 
@@ -13,10 +13,10 @@ LOG = logging.getLogger("rastro.replay")
 class ReplayFrame:
     stage: str
     timestamp: str
-    data: Dict[str, Any]
+    data: dict[str, Any]
     summary: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -24,22 +24,22 @@ class ReplayFrame:
 class Replay:
     target_id: int
     target_name: str
-    domain: Optional[str]
+    domain: str | None
     generated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
-    timeline: List[ReplayFrame] = field(default_factory=list)
-    endpoints: List[Dict[str, Any]] = field(default_factory=list)
-    hot_paths: List[Dict[str, Any]] = field(default_factory=list)
-    evidence: List[Dict[str, Any]] = field(default_factory=list)
-    verdicts: List[Dict[str, Any]] = field(default_factory=list)
-    findings: List[Dict[str, Any]] = field(default_factory=list)
-    reports: List[Dict[str, Any]] = field(default_factory=list)
-    screenshots: List[Dict[str, Any]] = field(default_factory=list)
-    quick_wins: List[Dict[str, Any]] = field(default_factory=list)
-    ai_explanations: List[Dict[str, Any]] = field(default_factory=list)
-    memory_records: List[Dict[str, Any]] = field(default_factory=list)
+    timeline: list[ReplayFrame] = field(default_factory=list)
+    endpoints: list[dict[str, Any]] = field(default_factory=list)
+    hot_paths: list[dict[str, Any]] = field(default_factory=list)
+    evidence: list[dict[str, Any]] = field(default_factory=list)
+    verdicts: list[dict[str, Any]] = field(default_factory=list)
+    findings: list[dict[str, Any]] = field(default_factory=list)
+    reports: list[dict[str, Any]] = field(default_factory=list)
+    screenshots: list[dict[str, Any]] = field(default_factory=list)
+    quick_wins: list[dict[str, Any]] = field(default_factory=list)
+    ai_explanations: list[dict[str, Any]] = field(default_factory=list)
+    memory_records: list[dict[str, Any]] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "target_id": self.target_id,
             "target_name": self.target_name,
@@ -64,8 +64,13 @@ def build_replay(target_id: int) -> Replay:
     session = SessionLocal()
     try:
         from database.models import (
-            Target, Endpoint, Finding, Verdict, Evidence,
-            ScanRun, MemoryRecord,
+            Endpoint,
+            Evidence,
+            Finding,
+            MemoryRecord,
+            ScanRun,
+            Target,
+            Verdict,
         )
 
         t = session.query(Target).filter(Target.id == target_id).first()
@@ -242,7 +247,7 @@ def build_replay(target_id: int) -> Replay:
         session.close()
 
 
-def list_replay_targets() -> List[Dict[str, Any]]:
+def list_replay_targets() -> list[dict[str, Any]]:
     session = SessionLocal()
     try:
         from database.models import Target

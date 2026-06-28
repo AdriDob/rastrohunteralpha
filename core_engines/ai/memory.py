@@ -9,14 +9,14 @@ from __future__ import annotations
 
 import json
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from database import db, models
 
 
 class ConversationMemory:
     def __init__(self, max_exchanges: int = 20):
-        self._exchanges: List[Dict[str, str]] = []
+        self._exchanges: list[dict[str, str]] = []
         self._max = max_exchanges
 
     def add(self, role: str, content: str) -> None:
@@ -24,16 +24,16 @@ class ConversationMemory:
         if len(self._exchanges) > self._max:
             self._exchanges = self._exchanges[-self._max:]
 
-    def recent(self, n: int = 5) -> List[Dict[str, str]]:
+    def recent(self, n: int = 5) -> list[dict[str, str]]:
         return [{"role": e["role"], "content": e["content"]} for e in self._exchanges[-n:]]
 
-    def all(self) -> List[Dict[str, str]]:
+    def all(self) -> list[dict[str, str]]:
         return [{"role": e["role"], "content": e["content"]} for e in self._exchanges]
 
     def clear(self) -> None:
         self._exchanges.clear()
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {"exchange_count": len(self._exchanges), "recent": self.recent(5)}
 
 
@@ -58,7 +58,7 @@ def save_interaction(role: str, content: str, category: str = "assistant_chat") 
         session.close()
 
 
-def get_recent_interactions(limit: int = 10) -> List[Dict[str, Any]]:
+def get_recent_interactions(limit: int = 10) -> list[dict[str, Any]]:
     session = db.SessionLocal()
     try:
         records = (

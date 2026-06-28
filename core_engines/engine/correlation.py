@@ -8,7 +8,7 @@ import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 LOG = logging.getLogger("rastro.engine.correlation")
 
@@ -39,10 +39,10 @@ class CorrelatedFinding:
     url: str = ""
     host: str = ""
     risk_score: float = 0.0
-    tags: List[str] = field(default_factory=list)
-    cwe_ids: List[str] = field(default_factory=list)
-    raw_data: Dict[str, Any] = field(default_factory=dict)
-    related_findings: List[str] = field(default_factory=list)
+    tags: list[str] = field(default_factory=list)
+    cwe_ids: list[str] = field(default_factory=list)
+    raw_data: dict[str, Any] = field(default_factory=dict)
+    related_findings: list[str] = field(default_factory=list)
     created_at: str = ""
 
 
@@ -55,20 +55,17 @@ class CorrelationEngine:
     """Fuses findings from multiple sources into correlated threat models."""
 
     def __init__(self):
-        self.findings: List[CorrelatedFinding] = []
-        self._dedup_cache: Set[str] = set()
+        self.findings: list[CorrelatedFinding] = []
+        self._dedup_cache: set[str] = set()
 
     def ingest(
         self,
         source: str,
-        items: List[Any],
+        items: list[Any],
         extractor_fn=None,
-    ) -> List[CorrelatedFinding]:
+    ) -> list[CorrelatedFinding]:
         """Ingest findings from a source, deduplicate, and correlate."""
-        if extractor_fn:
-            parsed = extractor_fn(items)
-        else:
-            parsed = self._default_extract(source, items)
+        parsed = extractor_fn(items) if extractor_fn else self._default_extract(source, items)
 
         new_findings = []
         for item in parsed:
@@ -87,8 +84,8 @@ class CorrelationEngine:
         return new_findings
 
     def _default_extract(
-        self, source: str, items: List[Dict[str, Any]]
-    ) -> List[CorrelatedFinding]:
+        self, source: str, items: list[dict[str, Any]]
+    ) -> list[CorrelatedFinding]:
         """Default extraction from dict items with common fields."""
         now = datetime.now().isoformat()
         findings = []
@@ -110,7 +107,7 @@ class CorrelationEngine:
                 ))
         return findings
 
-    def _correlate(self, new_findings: List[CorrelatedFinding]) -> None:
+    def _correlate(self, new_findings: list[CorrelatedFinding]) -> None:
         """Link related findings by URL host and CWE."""
         host_groups = defaultdict(list)
         cwe_groups = defaultdict(list)
@@ -137,7 +134,7 @@ class CorrelationEngine:
 
     def get_priority_findings(
         self, min_severity: str = "medium", top_n: int = 50
-    ) -> List[CorrelatedFinding]:
+    ) -> list[CorrelatedFinding]:
         """Get top findings by priority and severity."""
         min_score = _severity_score(min_severity)
         scored = [
@@ -150,23 +147,23 @@ class CorrelationEngine:
         )
         return scored[:top_n]
 
-    def get_findings_by_host(self, host: str) -> List[CorrelatedFinding]:
+    def get_findings_by_host(self, host: str) -> list[CorrelatedFinding]:
         """Get all findings for a specific host."""
         return [
             f for f in self.findings
             if host in (f.host or extract_host(f.url))
         ]
 
-    def get_source_summary(self) -> Dict[str, int]:
+    def get_source_summary(self) -> dict[str, int]:
         """Count findings per source."""
-        summary: Dict[str, int] = defaultdict(int)
+        summary: dict[str, int] = defaultdict(int)
         for f in self.findings:
             summary[f.source] += 1
         return dict(summary)
 
-    def get_severity_summary(self) -> Dict[str, int]:
+    def get_severity_summary(self) -> dict[str, int]:
         """Count findings by severity."""
-        summary: Dict[str, int] = defaultdict(int)
+        summary: dict[str, int] = defaultdict(int)
         for f in self.findings:
             summary[f.severity.lower()] += 1
         return dict(summary)
@@ -188,9 +185,9 @@ def extract_host(url: str) -> str:
         return url
 
 
-def _dedup(items: List[CorrelatedFinding], key_fn=None) -> List[CorrelatedFinding]:
+def _dedup(items: list[CorrelatedFinding], key_fn=None) -> list[CorrelatedFinding]:
     """Generic deduplication helper."""
-    seen: Set[str] = set()
+    seen: set[str] = set()
     result = []
     for item in items:
         k = key_fn(item) if key_fn else item.url

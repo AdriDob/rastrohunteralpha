@@ -18,7 +18,7 @@ import logging
 import os
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger("rastro.intelligence.priority")
 
@@ -42,11 +42,11 @@ class PrioritizedAction:
     combined_score: float = 0.0
     source: str = ""
     category: str = "general"
-    route: Optional[str] = None
-    payload: Dict[str, Any] = field(default_factory=dict)
+    route: str | None = None
+    payload: dict[str, Any] = field(default_factory=dict)
     timestamp: float = field(default_factory=time.time)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "action_type": self.action_type,
@@ -67,9 +67,9 @@ class PriorityEngine:
     """Ranks all signals into a single ordered action list."""
 
     def __init__(self) -> None:
-        self._actions: Dict[str, PrioritizedAction] = {}
+        self._actions: dict[str, PrioritizedAction] = {}
 
-    def ingest_opportunity(self, opp: Dict[str, Any]) -> None:
+    def ingest_opportunity(self, opp: dict[str, Any]) -> None:
         score = opp.get("score", 0)
         payout = opp.get("estimated_payout", 0)
         evh = opp.get("evh_score", score)
@@ -83,12 +83,12 @@ class PriorityEngine:
             confidence_score=opp.get("confidence", 0.5),
             source="opportunity_engine",
             category=opp.get("category", "general"),
-            route=f"/radar",
+            route="/radar",
             payload={"id": opp.get("id"), "name": opp.get("name")},
         )
         self._compute_and_store(action)
 
-    def ingest_quick_win(self, qw: Dict[str, Any]) -> None:
+    def ingest_quick_win(self, qw: dict[str, Any]) -> None:
         confidence = qw.get("confidence", 0)
         payout = qw.get("estimated_payout", 0)
         action = PrioritizedAction(
@@ -101,12 +101,12 @@ class PriorityEngine:
             confidence_score=confidence,
             source="quick_win_engine",
             category="quick_win",
-            route=f"/radar",
+            route="/radar",
             payload={"id": qw.get("id"), "title": qw.get("title")},
         )
         self._compute_and_store(action)
 
-    def ingest_system_alert(self, alert: Dict[str, Any]) -> None:
+    def ingest_system_alert(self, alert: dict[str, Any]) -> None:
         severity = alert.get("severity", "low")
         urgency = {"critical": 1.0, "high": 0.8, "medium": 0.5, "low": 0.2}.get(severity, 0.2)
         action = PrioritizedAction(
@@ -124,7 +124,7 @@ class PriorityEngine:
         )
         self._compute_and_store(action)
 
-    def ingest_assistant_recommendation(self, rec: Dict[str, Any]) -> None:
+    def ingest_assistant_recommendation(self, rec: dict[str, Any]) -> None:
         priority = rec.get("priority", "medium")
         urgency = {"critical": 0.9, "high": 0.7, "medium": 0.4, "low": 0.1}.get(priority, 0.4)
         action = PrioritizedAction(
@@ -179,7 +179,7 @@ class PriorityEngine:
             + RECENCY_WEIGHT * recency_factor
         )
 
-    def get_ranked(self, limit: int = 20, min_score: float = 0.0) -> List[PrioritizedAction]:
+    def get_ranked(self, limit: int = 20, min_score: float = 0.0) -> list[PrioritizedAction]:
         now = time.time()
         valid = [
             a for a in self._actions.values()
@@ -188,10 +188,10 @@ class PriorityEngine:
         valid.sort(key=lambda a: a.combined_score, reverse=True)
         return [a for a in valid if a.combined_score >= min_score][:limit]
 
-    def get_top(self, n: int = 5) -> List[PrioritizedAction]:
+    def get_top(self, n: int = 5) -> list[PrioritizedAction]:
         return self.get_ranked(limit=n, min_score=0.1)
 
-    def get_by_category(self, category: str, limit: int = 10) -> List[PrioritizedAction]:
+    def get_by_category(self, category: str, limit: int = 10) -> list[PrioritizedAction]:
         return [
             a for a in self.get_ranked(limit=100)
             if a.category == category
@@ -207,10 +207,10 @@ class PriorityEngine:
     def count(self) -> int:
         return len(self._actions)
 
-    def get_action(self, action_id: str) -> Optional[PrioritizedAction]:
+    def get_action(self, action_id: str) -> PrioritizedAction | None:
         return self._actions.get(action_id)
 
-    def consume_memory(self) -> Dict[str, Any]:
+    def consume_memory(self) -> dict[str, Any]:
         """Query decision memory and insight archive to adjust scores."""
         enabled = os.environ.get("RASTRO_MEMORY_CONSUME", "true").lower() == "true"
         if not enabled:
@@ -239,7 +239,7 @@ class PriorityEngine:
             logger.warning("Failed to consume memory: %s", exc)
             return {"status": "error", "error": str(exc)}
 
-    def get_consumption_stats(self) -> Dict[str, Any]:
+    def get_consumption_stats(self) -> dict[str, Any]:
         from core_engines.memory.decision_memory import get_decision_memory
         memory = get_decision_memory()
         return {
@@ -251,7 +251,7 @@ class PriorityEngine:
         }
 
 
-_PRIORITY: Optional[PriorityEngine] = None
+_PRIORITY: PriorityEngine | None = None
 
 
 def get_priority_engine() -> PriorityEngine:

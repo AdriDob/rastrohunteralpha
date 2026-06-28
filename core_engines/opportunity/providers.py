@@ -11,13 +11,13 @@ import logging
 import uuid
 from abc import ABC, abstractmethod
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from core_engines.opportunity.models import Opportunity, OpportunitySource, OpportunityProviderInfo
+from core_engines.opportunity.models import Opportunity, OpportunityProviderInfo, OpportunitySource
 
 logger = logging.getLogger("rastro.opportunity.providers")
 
-_GLOBAL_PROVIDERS: List[BaseProvider] = []
+_GLOBAL_PROVIDERS: list[BaseProvider] = []
 
 
 class BaseProvider(ABC):
@@ -28,20 +28,20 @@ class BaseProvider(ABC):
     health_status: str = "healthy"
 
     def __init__(self) -> None:
-        self._opportunities: List[Opportunity] = []
-        self._last_refresh: Optional[str] = None
+        self._opportunities: list[Opportunity] = []
+        self._last_refresh: str | None = None
 
     @abstractmethod
-    def discover(self) -> List[Opportunity]:
+    def discover(self) -> list[Opportunity]:
         """Fetch and return all available opportunities from this source."""
         ...
 
     @abstractmethod
-    def refresh(self) -> List[Opportunity]:
+    def refresh(self) -> list[Opportunity]:
         """Refresh opportunities, returning any new or updated items."""
         ...
 
-    def normalize(self, raw: Dict[str, Any]) -> Optional[Opportunity]:
+    def normalize(self, raw: dict[str, Any]) -> Opportunity | None:
         """Convert raw data into an Opportunity model.
 
         Override in subclasses. Return None if data is invalid.
@@ -58,7 +58,7 @@ class BaseProvider(ABC):
             health_status=self.health_status,
         )
 
-    def _make_id(self, raw: Dict[str, Any]) -> str:
+    def _make_id(self, raw: dict[str, Any]) -> str:
         return f"{self.name}_{raw.get('id', str(uuid.uuid4())[:8])}"
 
     def _ts(self) -> str:
@@ -75,10 +75,10 @@ class ManualProvider(BaseProvider):
     name = "manual"
     category = "independent"
 
-    def discover(self) -> List[Opportunity]:
+    def discover(self) -> list[Opportunity]:
         return list(self._opportunities)
 
-    def refresh(self) -> List[Opportunity]:
+    def refresh(self) -> list[Opportunity]:
         return []
 
     def add(self, opp: Opportunity) -> None:
@@ -97,7 +97,7 @@ class PublicProgramProvider(BaseProvider):
     name = "public_programs"
     category = "platform"
 
-    _SEED_OPPORTUNITIES: List[Dict[str, Any]] = [
+    _SEED_OPPORTUNITIES: list[dict[str, Any]] = [
         # ── Major Platforms ─────────────────────────────────────────────
         {
             "id": "hackerone_general",
@@ -353,7 +353,7 @@ class PublicProgramProvider(BaseProvider):
         },
     ]
 
-    def discover(self) -> List[Opportunity]:
+    def discover(self) -> list[Opportunity]:
         now = datetime.now(timezone.utc).isoformat()
         self._opportunities = []
         for seed in self._SEED_OPPORTUNITIES:
@@ -384,7 +384,7 @@ class PublicProgramProvider(BaseProvider):
                      sum(1 for o in self._opportunities if o.has_rewards))
         return list(self._opportunities)
 
-    def refresh(self) -> List[Opportunity]:
+    def refresh(self) -> list[Opportunity]:
         self._last_refresh = datetime.now(timezone.utc).isoformat()
         return []
 
@@ -398,7 +398,7 @@ class GitHubAdvisoryProvider(BaseProvider):
     name = "github_security"
     category = "open_source"
 
-    _SEEDS: List[Dict[str, Any]] = [
+    _SEEDS: list[dict[str, Any]] = [
         {
             "id": "github_security_lab",
             "name": "GitHub Security Lab Bounty",
@@ -425,7 +425,7 @@ class GitHubAdvisoryProvider(BaseProvider):
         },
     ]
 
-    def discover(self) -> List[Opportunity]:
+    def discover(self) -> list[Opportunity]:
         now = datetime.now(timezone.utc).isoformat()
         self._opportunities = []
         for seed in self._SEEDS:
@@ -453,7 +453,7 @@ class GitHubAdvisoryProvider(BaseProvider):
         self._last_refresh = now
         return list(self._opportunities)
 
-    def refresh(self) -> List[Opportunity]:
+    def refresh(self) -> list[Opportunity]:
         self._last_refresh = datetime.now(timezone.utc).isoformat()
         return []
 
@@ -468,7 +468,7 @@ class HuntrProvider(BaseProvider):
     name = "huntr"
     category = "open_source"
 
-    _SEEDS: List[Dict[str, Any]] = [
+    _SEEDS: list[dict[str, Any]] = [
         {
             "id": "huntr_main",
             "name": "huntr — Open Source Bug Bounty",
@@ -495,7 +495,7 @@ class HuntrProvider(BaseProvider):
         },
     ]
 
-    def discover(self) -> List[Opportunity]:
+    def discover(self) -> list[Opportunity]:
         now = datetime.now(timezone.utc).isoformat()
         self._opportunities = []
         for seed in self._SEEDS:
@@ -523,7 +523,7 @@ class HuntrProvider(BaseProvider):
         self._last_refresh = now
         return list(self._opportunities)
 
-    def refresh(self) -> List[Opportunity]:
+    def refresh(self) -> list[Opportunity]:
         self._last_refresh = datetime.now(timezone.utc).isoformat()
         return []
 
@@ -537,7 +537,7 @@ class AllSourcesProvider(BaseProvider):
     name = "all_sources"
     category = "platform"
 
-    def discover(self) -> List[Opportunity]:
+    def discover(self) -> list[Opportunity]:
         now = datetime.now(timezone.utc).isoformat()
         all_seeds = PublicProgramProvider._SEED_OPPORTUNITIES + GitHubAdvisoryProvider._SEEDS + HuntrProvider._SEEDS
         self._opportunities = []
@@ -566,7 +566,7 @@ class AllSourcesProvider(BaseProvider):
         self._last_refresh = now
         return list(self._opportunities)
 
-    def refresh(self) -> List[Opportunity]:
+    def refresh(self) -> list[Opportunity]:
         self._last_refresh = datetime.now(timezone.utc).isoformat()
         return []
 
@@ -576,7 +576,7 @@ def register_provider(provider: BaseProvider) -> None:
     _GLOBAL_PROVIDERS.append(provider)
 
 
-def get_providers() -> List[BaseProvider]:
+def get_providers() -> list[BaseProvider]:
     """Return all registered provider instances."""
     if not _GLOBAL_PROVIDERS:
         register_provider(ManualProvider())
@@ -587,7 +587,7 @@ def get_providers() -> List[BaseProvider]:
     return list(_GLOBAL_PROVIDERS)
 
 
-def get_provider(name: str) -> Optional[BaseProvider]:
+def get_provider(name: str) -> BaseProvider | None:
     for p in get_providers():
         if p.name == name:
             return p

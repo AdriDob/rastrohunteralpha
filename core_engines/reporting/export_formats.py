@@ -1,7 +1,5 @@
 import json
-import os
 from pathlib import Path
-from typing import Dict, List, Optional
 
 try:
     from jinja2 import Environment, FileSystemLoader
@@ -28,13 +26,13 @@ class ExportFormats:
         cvss: str,
         affected_endpoint: str,
         affected_method: str,
-        reproduction_steps: List[str],
+        reproduction_steps: list[str],
         poc_curl: str,
         remediation: str,
         program: str,
         platform: str,
-        cvss_score: Optional[float] = None,
-    ) -> Dict[str, str]:
+        cvss_score: float | None = None,
+    ) -> dict[str, str]:
         result = {
             "hackerone_json": self.to_hackerone_json(
                 title, narrative, severity, cvss, affected_endpoint,
@@ -67,13 +65,13 @@ class ExportFormats:
         cvss: str,
         affected_endpoint: str,
         affected_method: str,
-        reproduction_steps: List[str],
+        reproduction_steps: list[str],
         poc_curl: str,
         remediation: str,
         program: str,
         platform: str,
-        cvss_score: Optional[float] = None,
-    ) -> Optional[str]:
+        cvss_score: float | None = None,
+    ) -> str | None:
         if self._jinja_env is None:
             return None
         try:
@@ -103,7 +101,7 @@ class ExportFormats:
         cvss: str,
         affected_endpoint: str,
         affected_method: str,
-        reproduction_steps: List[str],
+        reproduction_steps: list[str],
         poc_curl: str,
         remediation: str,
     ) -> str:
@@ -132,7 +130,7 @@ class ExportFormats:
         cvss: str,
         affected_endpoint: str,
         affected_method: str,
-        reproduction_steps: List[str],
+        reproduction_steps: list[str],
         poc_curl: str,
         remediation: str,
     ) -> str:
@@ -156,7 +154,7 @@ class ExportFormats:
         cvss: str,
         affected_endpoint: str,
         affected_method: str,
-        reproduction_steps: List[str],
+        reproduction_steps: list[str],
         poc_curl: str,
         remediation: str,
         program: str,

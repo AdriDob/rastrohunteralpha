@@ -1,17 +1,16 @@
-from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Query
 
 router = APIRouter(prefix="/api/attack", tags=["attack"])
 
 
 @router.get("/decision")
 def attack_decision(
-    target_id: Optional[int] = Query(None),
+    target_id: int | None = Query(None),
     limit: int = Query(500, ge=1, le=2000),
 ):
-    from database import db, models
     from core_engines.attack import AttackDecisionEngine
+    from database import db, models
 
     engine = AttackDecisionEngine()
     session = db.SessionLocal()

@@ -2,11 +2,15 @@
 
 from __future__ import annotations
 
+import logging
+
 from fastapi import APIRouter
 
-from core_engines.license import validate_license, is_license_valid
+from core_engines.gateway.schemas import error, ok
+from core_engines.license import is_license_valid, validate_license
 from core_engines.license.store import get_license_store
-from core_engines.gateway.schemas import ok, error
+
+logger = logging.getLogger("rastro.api.license")
 
 router = APIRouter(prefix="/api/license", tags=["license"])
 
@@ -29,13 +33,18 @@ async def license_status():
 @router.post("/activate")
 async def activate_license(data: dict):
     key = data.get("key", "").strip()
+    logger.info("[HW] activate_license: key (truncated) = %s...", key[:12] if len(key) > 12 else key)
     if not key:
+        logger.info("[HW] activate_license: no key provided")
         return error("License key required", version="1.0")
 
     valid, reason = validate_license(key)
+    logger.info("[HW] activate_license: validate_license result = (%s, %s)", valid, reason)
     if not valid:
+        logger.info("[HW] activate_license: returning activation FAILED: %s", reason)
         return error(reason, version="1.0")
 
+    logger.info("[HW] activate_license: activation SUCCESS")
     return ok({"status": "activated", "key": key[:8] + "..."})
 
 

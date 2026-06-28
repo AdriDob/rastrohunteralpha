@@ -2,12 +2,11 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
-from typing import Any
 
-from database import db, models
 from core_engines.target_auth.identity_manager import get_identity_manager
 from core_engines.target_auth.login_service import TargetLoginService
 from core_engines.target_auth.vault import get_credential_vault
+from database import db, models
 
 logger = logging.getLogger("rastro.target_auth.session")
 
@@ -117,7 +116,7 @@ class TargetSessionManager:
         try:
             identity = session.query(models.TargetIdentity).filter(
                 models.TargetIdentity.id == identity_id,
-                models.TargetIdentity.is_active == True,
+                models.TargetIdentity.is_active,
             ).first()
             if not identity:
                 return {"token": None, "cookies": None, "expires_at": None, "error": "Identity not found or inactive"}

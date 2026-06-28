@@ -131,7 +131,7 @@ PyInstaller.__main__.run([
     script_path.write_text(pyinstaller_script)
 
     win_script = f"{win_temp}\\run_pyinstaller.py"
-    print(f"  Running PyInstaller (this may take several minutes)...")
+    print("  Running PyInstaller (this may take several minutes)...")
     result = subprocess.run(
         [win_python, win_script],
         capture_output=True, text=False, timeout=600,
@@ -208,7 +208,7 @@ def main() -> None:
         print("Specify the correct path with --python-path")
         sys.exit(1)
 
-    print(f"=== Rastro Windows Build ===")
+    print("=== Rastro Windows Build ===")
     print(f"  Project root: {ROOT}")
     print(f"  Windows Python: {win_python}")
     print(f"  Temp directory: {win_temp}")

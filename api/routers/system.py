@@ -1,21 +1,20 @@
-from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query
 
-from core_engines.timeline import build_timeline
+from core_engines.confidence import audit_findings, audit_single, audit_verdicts
 from core_engines.replay import build_replay, list_replay_targets
-from core_engines.confidence import audit_verdicts, audit_findings, audit_single
 from core_engines.review_queue import build_review_queue
+from core_engines.timeline import build_timeline
 
 router = APIRouter(prefix="/api/system", tags=["system"])
 
 
 @router.get("/timeline")
 def get_timeline(
-    target_id: Optional[int] = Query(None),
+    target_id: int | None = Query(None),
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
-    event_type: Optional[str] = Query(None),
+    event_type: str | None = Query(None),
 ):
     timeline = build_timeline(
         target_id=target_id,
@@ -38,7 +37,7 @@ def get_replay(target_id: int):
         replay = build_replay(target_id)
         return replay.to_dict()
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e
 
 
 @router.get("/confidence")
@@ -46,10 +45,7 @@ def get_confidence_audit(
     item_type: str = Query("verdict"),
     limit: int = Query(50, ge=1, le=200),
 ):
-    if item_type == "verdict":
-        report = audit_verdicts(limit=limit)
-    else:
-        report = audit_findings(limit=limit)
+    report = audit_verdicts(limit=limit) if item_type == "verdict" else audit_findings(limit=limit)
     return report.to_dict()
 
 
@@ -97,7 +93,7 @@ def get_system_state_events(
 
 @router.get("/update-check")
 def check_update():
-    from desktop.updater import check_for_updates, _current_version
+    from desktop.updater import _current_version, check_for_updates
     release = check_for_updates()
     if release is None:
         return {"available": False, "current_version": _current_version()}

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class VulnerabilityType(str, Enum):
@@ -39,7 +39,7 @@ class HypothesisScore:
     exploitability: float
     confidence: float
     priority_score: float
-    breakdown: Dict[str, float] = field(default_factory=dict)
+    breakdown: dict[str, float] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -48,39 +48,39 @@ class Hypothesis:
     vulnerability_type: VulnerabilityType
     target_id: int
     target_name: str
-    endpoint: Dict[str, Any]
+    endpoint: dict[str, Any]
     likelihood: float
     impact: float
     exploitability: float
     confidence: float
     priority_score: float
-    evidence: List[str]
+    evidence: list[str]
     reasoning: str
-    suggested_actions: List[str]
+    suggested_actions: list[str]
     source: HypothesisSource
     vector: str
     roi_score: float = 0.0
-    attack_surface_labels: List[str] = field(default_factory=list)
+    attack_surface_labels: list[str] = field(default_factory=list)
     similarity_to_past: float = 0.0
-    past_pattern_id: Optional[str] = None
+    past_pattern_id: str | None = None
     score: HypothesisScore = field(default_factory=lambda: HypothesisScore(0, 0, 0, 0, 0))
 
 
 @dataclass
 class AttackQueue:
-    hypotheses: List[Hypothesis] = field(default_factory=list)
+    hypotheses: list[Hypothesis] = field(default_factory=list)
     target_id: int = 0
 
     def add(self, h: Hypothesis):
         self.hypotheses.append(h)
 
-    def prioritized(self) -> List[Hypothesis]:
+    def prioritized(self) -> list[Hypothesis]:
         return sorted(self.hypotheses, key=lambda h: (h.priority_score, h.roi_score), reverse=True)
 
-    def top_k(self, k: int = 10) -> List[Hypothesis]:
+    def top_k(self, k: int = 10) -> list[Hypothesis]:
         return self.prioritized()[:k]
 
-    def by_type(self, vt: VulnerabilityType) -> List[Hypothesis]:
+    def by_type(self, vt: VulnerabilityType) -> list[Hypothesis]:
         return [h for h in self.hypotheses if h.vulnerability_type == vt]
 
     def count(self) -> int:
@@ -91,9 +91,9 @@ class AttackQueue:
 class HypothesisEngineOutput:
     attack_queue: AttackQueue
     total_hypotheses: int
-    by_source: Dict[str, int]
-    by_type: Dict[str, int]
-    top_priority: Optional[Hypothesis] = None
+    by_source: dict[str, int]
+    by_type: dict[str, int]
+    top_priority: Hypothesis | None = None
     summary: str = ""
     total_roi_value: float = 0.0
     avg_roi: float = 0.0

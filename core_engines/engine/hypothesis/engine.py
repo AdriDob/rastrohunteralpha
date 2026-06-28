@@ -11,8 +11,11 @@ This sits between the scoring layer and the validation layer in the pipeline.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
+from core_engines.engine.hypothesis.generators import generate_hypotheses
+from core_engines.engine.hypothesis.llm import detect_gaps, enrich_reasoning, refine_priority
+from core_engines.engine.hypothesis.memory import HypothesisMemory
 from core_engines.engine.hypothesis.models import (
     AttackQueue,
     Hypothesis,
@@ -20,10 +23,7 @@ from core_engines.engine.hypothesis.models import (
     HypothesisSource,
     VulnerabilityType,
 )
-from core_engines.engine.hypothesis.generators import generate_hypotheses
-from core_engines.engine.hypothesis.scorer import score_hypothesis, reorder_attack_queue
-from core_engines.engine.hypothesis.memory import HypothesisMemory
-from core_engines.engine.hypothesis.llm import enrich_reasoning, detect_gaps, refine_priority
+from core_engines.engine.hypothesis.scorer import reorder_attack_queue, score_hypothesis
 
 LOG = logging.getLogger("rastro.hypothesis")
 
@@ -31,7 +31,7 @@ LOG = logging.getLogger("rastro.hypothesis")
 class HypothesisEngine:
     def __init__(
         self,
-        memory: Optional[HypothesisMemory] = None,
+        memory: HypothesisMemory | None = None,
         ollama_host: str = "http://localhost:11434",
         llm_model: str = "qwen2.5-coder",
         enable_llm: bool = False,
@@ -45,12 +45,12 @@ class HypothesisEngine:
         self,
         target_id: int,
         target_name: str,
-        endpoints: List[Dict[str, Any]],
-        attack_surface_map: Optional[Dict[str, Any]] = None,
-        clusters: Optional[List[Dict[str, Any]]] = None,
-        hot_paths: Optional[List[Dict[str, Any]]] = None,
-        risk_verdicts: Optional[Dict[int, Dict[str, Any]]] = None,
-        nuclei_findings: Optional[List[Dict[str, Any]]] = None,
+        endpoints: list[dict[str, Any]],
+        attack_surface_map: dict[str, Any] | None = None,
+        clusters: list[dict[str, Any]] | None = None,
+        hot_paths: list[dict[str, Any]] | None = None,
+        risk_verdicts: dict[int, dict[str, Any]] | None = None,
+        nuclei_findings: list[dict[str, Any]] | None = None,
     ) -> HypothesisEngineOutput:
         LOG.info("HypothesisEngine.run: target=%s (%d endpoints)", target_name, len(endpoints))
 
@@ -87,8 +87,8 @@ class HypothesisEngine:
         hypotheses = reorder_attack_queue(hypotheses)
         queue = AttackQueue(hypotheses=hypotheses, target_id=target_id)
 
-        by_source: Dict[str, int] = {}
-        by_type: Dict[str, int] = {}
+        by_source: dict[str, int] = {}
+        by_type: dict[str, int] = {}
         for h in hypotheses:
             by_source[h.source.value] = by_source.get(h.source.value, 0) + 1
             by_type[h.vulnerability_type.value] = by_type.get(h.vulnerability_type.value, 0) + 1
@@ -113,11 +113,11 @@ class HypothesisEngine:
         )
 
     def _stage_1_generate(
-        self, target_id: int, target_name: str, endpoints: List[Dict[str, Any]],
-        nuclei_findings: Optional[List[Dict[str, Any]]] = None,
-        technologies: Optional[List[Dict[str, Any]]] = None,
-        discovered_paths: Optional[List[str]] = None,
-    ) -> List[Hypothesis]:
+        self, target_id: int, target_name: str, endpoints: list[dict[str, Any]],
+        nuclei_findings: list[dict[str, Any]] | None = None,
+        technologies: list[dict[str, Any]] | None = None,
+        discovered_paths: list[str] | None = None,
+    ) -> list[Hypothesis]:
         return generate_hypotheses(
             endpoints, target_id, target_name,
             nuclei_findings=nuclei_findings,
@@ -125,22 +125,22 @@ class HypothesisEngine:
             discovered_paths=discovered_paths,
         )
 
-    def _stage_2_score(self, hypotheses: List[Hypothesis]) -> List[Hypothesis]:
+    def _stage_2_score(self, hypotheses: list[Hypothesis]) -> list[Hypothesis]:
         scored = []
         for h in hypotheses:
             risk_score = float(h.endpoint.get("risk_score", 0))
             scored.append(score_hypothesis(h, risk_score))
         return scored
 
-    def _stage_3_memory(self, hypotheses: List[Hypothesis]) -> List[Hypothesis]:
+    def _stage_3_memory(self, hypotheses: list[Hypothesis]) -> list[Hypothesis]:
         return self.memory.refine(hypotheses)
 
-    def _stage_4_score(self, hypotheses: List[Hypothesis]) -> List[Hypothesis]:
+    def _stage_4_score(self, hypotheses: list[Hypothesis]) -> list[Hypothesis]:
         return self._stage_2_score(hypotheses)
 
     def _stage_5_llm(
-        self, hypotheses: List[Hypothesis], endpoints: List[Dict[str, Any]],
-    ) -> List[Hypothesis]:
+        self, hypotheses: list[Hypothesis], endpoints: list[dict[str, Any]],
+    ) -> list[Hypothesis]:
         enriched = enrich_reasoning(hypotheses, host=self.ollama_host, model=self.llm_model)
         gap_hypotheses = detect_gaps(endpoints, hypotheses, host=self.ollama_host, model=self.llm_model)
         if gap_hypotheses:
@@ -156,15 +156,15 @@ class HypothesisEngine:
         self,
         target_id: int,
         target_name: str,
-        clusters: Optional[List[Dict[str, Any]]],
-        hot_paths: Optional[List[Dict[str, Any]]],
-        endpoints: List[Dict[str, Any]],
+        clusters: list[dict[str, Any]] | None,
+        hot_paths: list[dict[str, Any]] | None,
+        endpoints: list[dict[str, Any]],
         max_id: int,
-    ) -> List[Hypothesis]:
+    ) -> list[Hypothesis]:
         if not clusters and not hot_paths:
             return []
 
-        hypotheses: List[Hypothesis] = []
+        hypotheses: list[Hypothesis] = []
         endpoint_map = {ep.get("id"): ep for ep in endpoints}
 
         if hot_paths:
@@ -218,7 +218,7 @@ class HypothesisEngine:
                 ))
 
         if clusters:
-            for i, cluster in enumerate(clusters):
+            for _, cluster in enumerate(clusters):
                 name = cluster.get("name", "") if isinstance(cluster, dict) else ""
                 endpoints_in_cluster = cluster.get("endpoints", []) if isinstance(cluster, dict) else []
                 cluster_entities = cluster.get("entities", []) if isinstance(cluster, dict) else []

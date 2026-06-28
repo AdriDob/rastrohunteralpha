@@ -18,7 +18,6 @@ import argparse
 import logging
 import os
 import sys
-import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -65,8 +64,11 @@ def test_path_resolution() -> None:
     section("1. Path Resolution")
 
     from core_engines.platform.system import (
-        is_frozen, get_project_root, get_frontend_dist_dir,
-        get_data_dir, get_config_dir,
+        get_config_dir,
+        get_data_dir,
+        get_frontend_dist_dir,
+        get_project_root,
+        is_frozen,
     )
 
     check("is_frozen() returns bool", isinstance(is_frozen(), bool))
@@ -188,12 +190,12 @@ def test_serve_frontend() -> None:
 def test_settings_and_autostart() -> None:
     section("5. Settings and autostart")
 
-    from desktop.settings import DesktopSettings, DEFAULT_SETTINGS
+    from desktop.settings import DEFAULT_SETTINGS
     check("DesktopSettings importable", True)
     check("DEFAULT_SETTINGS has first_run", "first_run" in DEFAULT_SETTINGS)
     check("DEFAULT_SETTINGS has onboarding_complete", "onboarding_complete" in DEFAULT_SETTINGS)
 
-    from desktop.autostart import enable_autostart, disable_autostart, is_autostart_enabled
+    from desktop.autostart import disable_autostart, enable_autostart, is_autostart_enabled
     check("enable_autostart exists", callable(enable_autostart))
     check("disable_autostart exists", callable(disable_autostart))
     check("is_autostart_enabled exists", callable(is_autostart_enabled))
@@ -205,7 +207,7 @@ def test_settings_and_autostart() -> None:
     else:
         check_skip("is_autostart_enabled (not Windows/macOS)")
 
-    from desktop.first_run import run_first_time, is_first_run_complete
+    from desktop.first_run import is_first_run_complete, run_first_time
     check("run_first_time exists", callable(run_first_time))
     check("is_first_run_complete exists", callable(is_first_run_complete))
 
@@ -219,8 +221,12 @@ def test_platform_abstraction() -> None:
     section("6. Platform Abstraction")
 
     from core_engines.platform.system import (
-        get_platform, Platform, is_windows, is_linux, is_macos, is_frozen,
-        PlatformInfo, get_platform_info,
+        get_platform,
+        get_platform_info,
+        is_frozen,
+        is_linux,
+        is_macos,
+        is_windows,
     )
 
     check("get_platform() returns str", isinstance(get_platform(), str))
@@ -262,7 +268,7 @@ def test_notifications() -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description="Test desktop boot sequence")
     parser.add_argument("--frozen", action="store_true", help="Simulate frozen mode path checks")
-    args = parser.parse_args()
+    parser.parse_args()
 
     log.info("")
     log.info("╔══════════════════════════════════════════════════════╗")

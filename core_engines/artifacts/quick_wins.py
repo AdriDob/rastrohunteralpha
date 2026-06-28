@@ -8,7 +8,7 @@ Dependencies: PipelineArtifact, EvidenceGraphArtifact
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from core_engines.contracts import Bundle
 
@@ -20,8 +20,8 @@ class QuickWinsArtifact(Bundle):
     total_estimated_value: float = 0.0
     avg_quick_win_score: float = 0.0
     fastest_path_minutes: int = 0
-    top_quick_wins: List[Dict[str, Any]] = field(default_factory=list)
-    immediate_actions: List[Dict[str, Any]] = field(default_factory=list)
+    top_quick_wins: list[dict[str, Any]] = field(default_factory=list)
+    immediate_actions: list[dict[str, Any]] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         super().__post_init__()
@@ -46,5 +46,5 @@ class QuickWinsArtifact(Bundle):
         return self.report
 
     @classmethod
-    def from_report(cls, report) -> "QuickWinsArtifact":
+    def from_report(cls, report) -> QuickWinsArtifact:
         return cls(report=report)

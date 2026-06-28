@@ -9,10 +9,10 @@ from __future__ import annotations
 import json
 import logging
 import os
+import uuid
 from datetime import datetime, timezone
 from pathlib import Path
-import uuid
-from typing import Any, Dict, Optional
+from typing import Any
 
 logger = logging.getLogger("rastro.desktop.settings")
 
@@ -20,13 +20,13 @@ SETTINGS_VERSION = 1
 
 _LEGACY_PORTS = {5173}
 
-DEFAULT_SETTINGS: Dict[str, Any] = {
+DEFAULT_SETTINGS: dict[str, Any] = {
     "backend_port": 8000,
     "auto_start": False,
     "auto_update": True,
     "silent": False,
     "theme": "detective_dark",
-    "language": "en",
+    "language": "es",
     "last_url": "/",
     "last_session_url": None,
     "last_opened_target": None,
@@ -70,7 +70,7 @@ class DesktopSettings:
 
     def __init__(self) -> None:
         self._path = str(_get_settings_path())
-        self._data: Dict[str, Any] = dict(DEFAULT_SETTINGS)
+        self._data: dict[str, Any] = dict(DEFAULT_SETTINGS)
         self._ensure_config_dir()
         self._load()
 
@@ -139,7 +139,7 @@ class DesktopSettings:
         target[keys[-1]] = value
         self.save()
 
-    def get_all(self) -> Dict[str, Any]:
+    def get_all(self) -> dict[str, Any]:
         return dict(self._data)
 
     def reset(self) -> None:
@@ -199,7 +199,7 @@ class DesktopSettings:
         return os.path.dirname(self._path)
 
 
-_SETTINGS_INSTANCE: Optional[DesktopSettings] = None
+_SETTINGS_INSTANCE: DesktopSettings | None = None
 
 
 def get_settings() -> DesktopSettings:

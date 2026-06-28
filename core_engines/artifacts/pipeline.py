@@ -7,24 +7,17 @@ Dependencies: None (leaf input artifact)
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from dataclasses import dataclass
 
 from core_engines.contracts import Bundle
 from core_engines.engine.snapshot import (
     PipelineSnapshot as _PipelineSnapshot,
-    EndpointSnapshot as _EndpointSnapshot,
-    HotPathSnapshot as _HotPathSnapshot,
-    VerdictSnapshot as _VerdictSnapshot,
-    ReportSnapshot as _ReportSnapshot,
-    AttackSurfaceSnapshot as _AttackSurfaceSnapshot,
-    TargetSnapshot as _TargetSnapshot,
 )
 
 
 @dataclass
 class PipelineArtifact(Bundle):
-    snapshot: Optional[_PipelineSnapshot] = None
+    snapshot: _PipelineSnapshot | None = None
     status: str = "unknown"
     target_name: str = ""
     endpoint_count: int = 0
@@ -53,5 +46,5 @@ class PipelineArtifact(Bundle):
         raise ValueError("No snapshot available")
 
     @classmethod
-    def from_snapshot(cls, snapshot: _PipelineSnapshot) -> "PipelineArtifact":
+    def from_snapshot(cls, snapshot: _PipelineSnapshot) -> PipelineArtifact:
         return cls(snapshot=snapshot)

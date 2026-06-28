@@ -7,9 +7,9 @@ concrete vulnerability hypotheses with supporting evidence.
 
 from __future__ import annotations
 
-import re
 import hashlib
-from typing import Any, Dict, List, Optional, Set
+import re
+from typing import Any
 
 from core_engines.engine.hypothesis.models import (
     Hypothesis,
@@ -31,13 +31,13 @@ def _hyp_id(vt: str, ep_id: int, suffix: str = "") -> str:
 
 
 def generate_idor(
-    ep: Dict[str, Any], target_id: int, target_name: str,
-) -> Optional[Hypothesis]:
+    ep: dict[str, Any], target_id: int, target_name: str,
+) -> Hypothesis | None:
     path: str = str(ep.get("path", ""))
     method: str = str(ep.get("method", "GET")).upper()
-    signals: List[str] = ep.get("signals", [])
-    labels: List[str] = ep.get("labels", [])
-    surface: List[str] = ep.get("attack_surface", [])
+    signals: list[str] = ep.get("signals", [])
+    labels: list[str] = ep.get("labels", [])
+    surface: list[str] = ep.get("attack_surface", [])
     risk_score: float = float(ep.get("risk_score", 0))
     potential_idor: bool = ep.get("potential_idor", False)
 
@@ -84,9 +84,9 @@ def generate_idor(
 
     actions = []
     if identifier == "UUID":
-        actions.append(f"Replace UUID in path with a different user's UUID and verify access")
+        actions.append("Replace UUID in path with a different user's UUID and verify access")
     elif identifier == "numeric_id":
-        actions.append(f"Increment/decrement numeric ID in path and verify unauthorized access")
+        actions.append("Increment/decrement numeric ID in path and verify unauthorized access")
     if has_multi_tenant and is_read:
         actions.append("Attempt to access resources from another tenant by modifying tenant-scoped identifiers")
     if is_mutating:
@@ -114,13 +114,13 @@ def generate_idor(
 
 
 def generate_auth_bypass(
-    ep: Dict[str, Any], target_id: int, target_name: str,
-) -> Optional[Hypothesis]:
+    ep: dict[str, Any], target_id: int, target_name: str,
+) -> Hypothesis | None:
     path: str = str(ep.get("path", ""))
-    method: str = str(ep.get("method", "GET")).upper()
-    signals: List[str] = ep.get("signals", [])
-    labels: List[str] = ep.get("labels", [])
-    surface: List[str] = ep.get("attack_surface", [])
+    str(ep.get("method", "GET")).upper()
+    signals: list[str] = ep.get("signals", [])
+    labels: list[str] = ep.get("labels", [])
+    surface: list[str] = ep.get("attack_surface", [])
     risk_score: float = float(ep.get("risk_score", 0))
     lower = path.lower()
 
@@ -179,12 +179,12 @@ def generate_auth_bypass(
 
 
 def generate_ssrf(
-    ep: Dict[str, Any], target_id: int, target_name: str,
-) -> Optional[Hypothesis]:
+    ep: dict[str, Any], target_id: int, target_name: str,
+) -> Hypothesis | None:
     path: str = str(ep.get("path", ""))
     method: str = str(ep.get("method", "GET")).upper()
-    signals: List[str] = ep.get("signals", [])
-    labels: List[str] = ep.get("labels", [])
+    signals: list[str] = ep.get("signals", [])
+    labels: list[str] = ep.get("labels", [])
     risk_score: float = float(ep.get("risk_score", 0))
     lower = path.lower()
 
@@ -233,7 +233,7 @@ def generate_ssrf(
         confidence=0.0,
         priority_score=0.0,
         evidence=evidence,
-        reasoning=f"Endpoint accepts URLs or file inputs — test for server-side request forgery to internal resources.",
+        reasoning="Endpoint accepts URLs or file inputs — test for server-side request forgery to internal resources.",
         suggested_actions=actions,
         source=HypothesisSource.RULE,
         vector="SSRF",
@@ -242,13 +242,13 @@ def generate_ssrf(
 
 
 def generate_privilege_escalation(
-    ep: Dict[str, Any], target_id: int, target_name: str,
-) -> Optional[Hypothesis]:
+    ep: dict[str, Any], target_id: int, target_name: str,
+) -> Hypothesis | None:
     path: str = str(ep.get("path", ""))
     method: str = str(ep.get("method", "GET")).upper()
-    signals: List[str] = ep.get("signals", [])
-    labels: List[str] = ep.get("labels", [])
-    surface: List[str] = ep.get("attack_surface", [])
+    signals: list[str] = ep.get("signals", [])
+    labels: list[str] = ep.get("labels", [])
+    surface: list[str] = ep.get("attack_surface", [])
     risk_score: float = float(ep.get("risk_score", 0))
     lower = path.lower()
 
@@ -292,7 +292,7 @@ def generate_privilege_escalation(
         confidence=0.0,
         priority_score=0.0,
         evidence=evidence,
-        reasoning=f"Admin/internal endpoint detected — verify authorization at the role level, not just the UI layer.",
+        reasoning="Admin/internal endpoint detected — verify authorization at the role level, not just the UI layer.",
         suggested_actions=actions,
         source=HypothesisSource.RULE,
         vector="Privilege escalation",
@@ -301,13 +301,13 @@ def generate_privilege_escalation(
 
 
 def generate_data_exposure(
-    ep: Dict[str, Any], target_id: int, target_name: str,
-) -> Optional[Hypothesis]:
+    ep: dict[str, Any], target_id: int, target_name: str,
+) -> Hypothesis | None:
     path: str = str(ep.get("path", ""))
     method: str = str(ep.get("method", "GET")).upper()
-    signals: List[str] = ep.get("signals", [])
-    labels: List[str] = ep.get("labels", [])
-    surface: List[str] = ep.get("attack_surface", [])
+    signals: list[str] = ep.get("signals", [])
+    labels: list[str] = ep.get("labels", [])
+    surface: list[str] = ep.get("attack_surface", [])
     risk_score: float = float(ep.get("risk_score", 0))
     lower = path.lower()
 
@@ -328,7 +328,7 @@ def generate_data_exposure(
         evidence.append("Billing endpoint — payment data, invoices, subscription details")
     if is_identity:
         evidence.append("Identity endpoint — PII, emails, phone numbers, address data")
-    evidence.append(f"Export/Data download endpoint — sensitive data may be leaked")
+    evidence.append("Export/Data download endpoint — sensitive data may be leaked")
     evidence.append(f"risk_score={risk_score:.0f} | method={method}")
 
     sensitivity_base = 0.75 if is_billing else (0.7 if is_identity else 0.5)
@@ -354,7 +354,7 @@ def generate_data_exposure(
         confidence=0.0,
         priority_score=0.0,
         evidence=evidence,
-        reasoning=f"Data export/sensitive data endpoint — inspect response for PII, billing data, or internal information beyond authorization scope.",
+        reasoning="Data export/sensitive data endpoint — inspect response for PII, billing data, or internal information beyond authorization scope.",
         suggested_actions=actions,
         source=HypothesisSource.RULE,
         vector="Data exposure",
@@ -363,13 +363,13 @@ def generate_data_exposure(
 
 
 def generate_graphql(
-    ep: Dict[str, Any], target_id: int, target_name: str,
-) -> Optional[Hypothesis]:
+    ep: dict[str, Any], target_id: int, target_name: str,
+) -> Hypothesis | None:
     path: str = str(ep.get("path", ""))
-    method: str = str(ep.get("method", "GET")).upper()
-    signals: List[str] = ep.get("signals", [])
-    labels: List[str] = ep.get("labels", [])
-    surface: List[str] = ep.get("attack_surface", [])
+    str(ep.get("method", "GET")).upper()
+    ep.get("signals", [])
+    labels: list[str] = ep.get("labels", [])
+    surface: list[str] = ep.get("attack_surface", [])
     risk_score: float = float(ep.get("risk_score", 0))
     lower = path.lower()
 
@@ -420,12 +420,12 @@ def generate_graphql(
 
 
 def generate_business_logic(
-    ep: Dict[str, Any], target_id: int, target_name: str,
-) -> Optional[Hypothesis]:
+    ep: dict[str, Any], target_id: int, target_name: str,
+) -> Hypothesis | None:
     path: str = str(ep.get("path", ""))
     method: str = str(ep.get("method", "GET")).upper()
-    signals: List[str] = ep.get("signals", [])
-    labels: List[str] = ep.get("labels", [])
+    signals: list[str] = ep.get("signals", [])
+    labels: list[str] = ep.get("labels", [])
     risk_score: float = float(ep.get("risk_score", 0))
     lower = path.lower()
 
@@ -476,7 +476,7 @@ def generate_business_logic(
         confidence=0.0,
         priority_score=0.0,
         evidence=evidence,
-        reasoning=f"Business logic endpoint detected — test for race conditions, price manipulation, and state transition flaws.",
+        reasoning="Business logic endpoint detected — test for race conditions, price manipulation, and state transition flaws.",
         suggested_actions=actions,
         source=HypothesisSource.RULE,
         vector="Business logic",
@@ -485,13 +485,13 @@ def generate_business_logic(
 
 
 def generate_file_operation(
-    ep: Dict[str, Any], target_id: int, target_name: str,
-) -> Optional[Hypothesis]:
+    ep: dict[str, Any], target_id: int, target_name: str,
+) -> Hypothesis | None:
     path: str = str(ep.get("path", ""))
     method: str = str(ep.get("method", "GET")).upper()
-    labels: List[str] = ep.get("labels", [])
-    surface: List[str] = ep.get("attack_surface", [])
-    signals: List[str] = ep.get("signals", [])
+    labels: list[str] = ep.get("labels", [])
+    surface: list[str] = ep.get("attack_surface", [])
+    ep.get("signals", [])
     risk_score: float = float(ep.get("risk_score", 0))
     lower = path.lower()
 
@@ -531,7 +531,7 @@ def generate_file_operation(
         confidence=0.0,
         priority_score=0.0,
         evidence=evidence,
-        reasoning=f"File operation endpoint — test for path traversal, unrestricted upload, and SSRF via file processing.",
+        reasoning="File operation endpoint — test for path traversal, unrestricted upload, and SSRF via file processing.",
         suggested_actions=actions,
         source=HypothesisSource.RULE,
         vector="File operation",
@@ -540,13 +540,13 @@ def generate_file_operation(
 
 
 def generate_web3(
-    ep: Dict[str, Any], target_id: int, target_name: str,
-) -> Optional[Hypothesis]:
+    ep: dict[str, Any], target_id: int, target_name: str,
+) -> Hypothesis | None:
     path: str = str(ep.get("path", ""))
-    method: str = str(ep.get("method", "GET")).upper()
-    labels: List[str] = ep.get("labels", [])
-    signals: List[str] = ep.get("signals", [])
-    surface: List[str] = ep.get("attack_surface", [])
+    str(ep.get("method", "GET")).upper()
+    labels: list[str] = ep.get("labels", [])
+    signals: list[str] = ep.get("signals", [])
+    surface: list[str] = ep.get("attack_surface", [])
     risk_score: float = float(ep.get("risk_score", 0))
     lower = path.lower()
 
@@ -592,7 +592,7 @@ def generate_web3(
         confidence=0.0,
         priority_score=0.0,
         evidence=evidence,
-        reasoning=f"Web3/crypto endpoint — test for RPC method exposure, signature replay, and wallet manipulation.",
+        reasoning="Web3/crypto endpoint — test for RPC method exposure, signature replay, and wallet manipulation.",
         suggested_actions=actions,
         source=HypothesisSource.RULE,
         vector="Web3",
@@ -601,11 +601,11 @@ def generate_web3(
 
 
 def generate_nuclei(
-    nuclei_findings: List[Dict[str, Any]],
+    nuclei_findings: list[dict[str, Any]],
     target_id: int,
     target_name: str,
-) -> List[Hypothesis]:
-    hypotheses: List[Hypothesis] = []
+) -> list[Hypothesis]:
+    hypotheses: list[Hypothesis] = []
     for i, nf in enumerate(nuclei_findings):
         info = nf.get("info", {})
         sev = info.get("severity", "medium")
@@ -681,7 +681,7 @@ def generate_nuclei(
     return hypotheses
 
 
-TECHNOLOGY_HYPOTHESES: Dict[str, List[Dict[str, Any]]] = {
+TECHNOLOGY_HYPOTHESES: dict[str, list[dict[str, Any]]] = {
     "wordpress": [
         {"type": VulnerabilityType.MISCONFIGURATION, "vector": "xmlrpc",
          "reasoning": "WordPress XML-RPC enabled — brute force / SSRF / pingback DDoS",
@@ -741,12 +741,12 @@ def _tech_hyp_id(vt: str, tech: str, vector: str) -> str:
 
 
 def generate_from_technology(
-    technologies: List[Dict[str, Any]],
+    technologies: list[dict[str, Any]],
     target_id: int,
     target_name: str,
-) -> List[Hypothesis]:
-    hypotheses: List[Hypothesis] = []
-    seen: Set[str] = set()
+) -> list[Hypothesis]:
+    hypotheses: list[Hypothesis] = []
+    seen: set[str] = set()
     for tech in technologies:
         name = str(tech.get("name", "")).lower()
         version = str(tech.get("version", ""))
@@ -784,12 +784,12 @@ def generate_from_technology(
 
 
 def generate_from_discovered_paths(
-    paths: List[str],
+    paths: list[str],
     target_id: int,
     target_name: str,
-) -> List[Hypothesis]:
-    hypotheses: List[Hypothesis] = []
-    seen: Set[str] = set()
+) -> list[Hypothesis]:
+    hypotheses: list[Hypothesis] = []
+    seen: set[str] = set()
     suspicious_endpoints = {
         ".git/config": (VulnerabilityType.INFO_LEAK, "git_exposure",
                         "Git repository exposed — source code and credentials at risk"),
@@ -868,14 +868,14 @@ GENERATORS = [
 
 
 def generate_hypotheses(
-    endpoints: List[Dict[str, Any]],
+    endpoints: list[dict[str, Any]],
     target_id: int,
     target_name: str,
-    nuclei_findings: Optional[List[Dict[str, Any]]] = None,
-    technologies: Optional[List[Dict[str, Any]]] = None,
-    discovered_paths: Optional[List[str]] = None,
-) -> List[Hypothesis]:
-    hypotheses: List[Hypothesis] = []
+    nuclei_findings: list[dict[str, Any]] | None = None,
+    technologies: list[dict[str, Any]] | None = None,
+    discovered_paths: list[str] | None = None,
+) -> list[Hypothesis]:
+    hypotheses: list[Hypothesis] = []
     seen = set()
     for ep in endpoints:
         for gen in GENERATORS:

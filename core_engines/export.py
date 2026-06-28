@@ -1,14 +1,14 @@
 import csv
 import io
 import json
-from typing import Any, Dict, List
+from typing import Any
 
 
 def to_json(data: Any, indent: int = 2) -> str:
     return json.dumps(data, indent=indent, default=str)
 
 
-def to_markdown_table(headers: List[str], rows: List[List[str]]) -> str:
+def to_markdown_table(headers: list[str], rows: list[list[str]]) -> str:
     buf = io.StringIO()
     buf.write(" | ".join(headers) + "\n")
     buf.write(" | ".join("---" for _ in headers) + "\n")
@@ -17,7 +17,7 @@ def to_markdown_table(headers: List[str], rows: List[List[str]]) -> str:
     return buf.getvalue()
 
 
-def to_csv(headers: List[str], rows: List[List[str]]) -> str:
+def to_csv(headers: list[str], rows: list[list[str]]) -> str:
     buf = io.StringIO()
     writer = csv.writer(buf)
     writer.writerow(headers)
@@ -25,7 +25,7 @@ def to_csv(headers: List[str], rows: List[List[str]]) -> str:
     return buf.getvalue()
 
 
-def export_findings(findings: List[Dict[str, Any]], fmt: str = "json") -> str:
+def export_findings(findings: list[dict[str, Any]], fmt: str = "json") -> str:
     headers = ["id", "title", "severity", "target_name", "endpoint_path", "payout", "description"]
     rows = []
     for f in findings:

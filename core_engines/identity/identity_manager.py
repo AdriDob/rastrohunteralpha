@@ -11,7 +11,7 @@ import os
 import time
 import uuid
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from core_engines.identity.device_registry import DeviceRegistry
 from core_engines.identity.session_store import SessionStore
@@ -30,13 +30,13 @@ class UserIdentity:
     user_id: str
     created_at: float = field(default_factory=time.time)
     display_name: str = ""
-    preferences: Dict[str, Any] = field(default_factory=dict)
-    last_active_context: Dict[str, Any] = field(default_factory=dict)
-    permissions: List[str] = field(default_factory=lambda: ["self"])
-    api_tokens: List[Dict[str, Any]] = field(default_factory=list)
+    preferences: dict[str, Any] = field(default_factory=dict)
+    last_active_context: dict[str, Any] = field(default_factory=dict)
+    permissions: list[str] = field(default_factory=lambda: ["self"])
+    api_tokens: list[dict[str, Any]] = field(default_factory=list)
     device_count: int = 0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "user_id": self.user_id,
             "created_at": self.created_at,
@@ -52,7 +52,7 @@ class IdentityManager:
     """Single logical user manager. Links devices, persists sessions, maintains context."""
 
     def __init__(self) -> None:
-        self._identity: Optional[UserIdentity] = None
+        self._identity: UserIdentity | None = None
         self._device_registry = DeviceRegistry()
         self._session_store = SessionStore()
         os.makedirs(DATA_DIR, exist_ok=True)
@@ -60,7 +60,7 @@ class IdentityManager:
 
     # ── Identity lifecycle ────────────────────────────────────────────
 
-    def ensure_identity(self, device_id: Optional[str] = None) -> UserIdentity:
+    def ensure_identity(self, device_id: str | None = None) -> UserIdentity:
         if self._identity is None:
             stored = self._load_identity_file()
             if stored:
@@ -77,28 +77,28 @@ class IdentityManager:
 
         return self._identity
 
-    def get_identity(self) -> Optional[UserIdentity]:
+    def get_identity(self) -> UserIdentity | None:
         return self._identity
 
-    def update_preferences(self, prefs: Dict[str, Any]) -> None:
+    def update_preferences(self, prefs: dict[str, Any]) -> None:
         if not self._identity:
             self.ensure_identity()
         self._identity.preferences.update(prefs)
         self._save_identity()
 
-    def update_context(self, context: Dict[str, Any]) -> None:
+    def update_context(self, context: dict[str, Any]) -> None:
         if not self._identity:
             self.ensure_identity()
         self._identity.last_active_context.update(context)
         self._identity.last_active_context["updated_at"] = time.time()
         self._save_identity()
 
-    def get_context(self) -> Dict[str, Any]:
+    def get_context(self) -> dict[str, Any]:
         if not self._identity:
             self.ensure_identity()
         return dict(self._identity.last_active_context)
 
-    def get_preferences(self) -> Dict[str, Any]:
+    def get_preferences(self) -> dict[str, Any]:
         if not self._identity:
             self.ensure_identity()
         return dict(self._identity.preferences)
@@ -111,7 +111,7 @@ class IdentityManager:
 
     # ── Device linking ────────────────────────────────────────────────
 
-    def link_device(self, device_id: str, device_info: Dict[str, Any]) -> None:
+    def link_device(self, device_id: str, device_info: dict[str, Any]) -> None:
         self.ensure_identity(device_id)
         self._device_registry.update_device_info(device_id, device_info)
         self._identity.device_count = len(self._device_registry.get_devices(self._identity.user_id))
@@ -119,7 +119,7 @@ class IdentityManager:
     def unlink_device(self, device_id: str) -> None:
         self._device_registry.unregister_device(device_id)
 
-    def get_devices(self) -> List[Dict[str, Any]]:
+    def get_devices(self) -> list[dict[str, Any]]:
         if not self._identity:
             return []
         return self._device_registry.get_devices(self._identity.user_id)
@@ -134,7 +134,7 @@ class IdentityManager:
     def save_session(self, key: str, value: Any) -> None:
         self._session_store.set(key, value)
 
-    def get_session(self, key: str) -> Optional[Any]:
+    def get_session(self, key: str) -> Any | None:
         return self._session_store.get(key)
 
     def clear_session(self) -> None:
@@ -163,14 +163,14 @@ class IdentityManager:
     def _identity_path(self) -> str:
         return os.path.join(DATA_DIR, "identity.json")
 
-    def _load_identity_file(self) -> Optional[Dict[str, Any]]:
+    def _load_identity_file(self) -> dict[str, Any] | None:
         path = self._identity_path()
         try:
             if os.path.exists(path):
                 with open(path) as f:
                     return json.load(f)
         except (json.JSONDecodeError, OSError):
-            pass
+            logger.warning("Failed to load identity file", exc_info=True)
         return None
 
     def _save_identity(self) -> None:
@@ -191,9 +191,9 @@ class IdentityManager:
                     data = json.load(f)
                 self._session_store._data.update(data)
         except (json.JSONDecodeError, OSError):
-            pass
+            logger.warning("Failed to load legacy session data", exc_info=True)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         if not self._identity:
             return {}
         return {
@@ -203,7 +203,7 @@ class IdentityManager:
         }
 
 
-_IDENTITY: Optional[IdentityManager] = None
+_IDENTITY: IdentityManager | None = None
 
 
 def get_identity_manager() -> IdentityManager:

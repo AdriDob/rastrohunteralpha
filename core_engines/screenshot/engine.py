@@ -12,14 +12,22 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from core_engines.engine.extraction import (
     extract_endpoints,
+)
+from core_engines.engine.extraction import (
     extract_hot_paths as _extract_hot_paths_shared,
-    extract_verdict_map as _extract_verdict_map_shared,
-    extract_surface as _extract_surface_shared,
+)
+from core_engines.engine.extraction import (
     extract_quick_wins as _extract_quick_wins_shared,
+)
+from core_engines.engine.extraction import (
+    extract_surface as _extract_surface_shared,
+)
+from core_engines.engine.extraction import (
+    extract_verdict_map as _extract_verdict_map_shared,
 )
 
 LOG = logging.getLogger("rastro.screenshot")
@@ -75,8 +83,8 @@ class ScreenshotSpec:
     vulnerability_type: str
     severity: str
     roi_score: float
-    visual_blocks: List[VisualBlock] = field(default_factory=list)
-    annotations: List[AnnotationItem] = field(default_factory=list)
+    visual_blocks: list[VisualBlock] = field(default_factory=list)
+    annotations: list[AnnotationItem] = field(default_factory=list)
     before_state: str = ""
     after_state: str = ""
     attack_path_summary: str = ""
@@ -85,10 +93,10 @@ class ScreenshotSpec:
 
 @dataclass
 class ScreenshotBundle:
-    specs: List[ScreenshotSpec] = field(default_factory=list)
+    specs: list[ScreenshotSpec] = field(default_factory=list)
     summary: str = ""
-    key_risks: List[str] = field(default_factory=list)
-    roi_highlights: List[str] = field(default_factory=list)
+    key_risks: list[str] = field(default_factory=list)
+    roi_highlights: list[str] = field(default_factory=list)
 
 
 # ── Engine ──────────────────────────────────────────────────────────
@@ -104,10 +112,10 @@ class ScreenshotEngine:
         self,
         snapshot=None,
         evidence_graph=None,
-        verdicts: Optional[List] = None,
+        verdicts: list | None = None,
         attack_surface=None,
-        hot_paths: Optional[List] = None,
-        roi_metadata: Optional[Dict[str, Any]] = None,
+        hot_paths: list | None = None,
+        roi_metadata: dict[str, Any] | None = None,
         quick_wins=None,
         target_name: str = "",
     ) -> ScreenshotBundle:
@@ -122,7 +130,7 @@ class ScreenshotEngine:
         qw_data = _extract_quick_wins_shared(quick_wins)
 
         # -- Build specs --
-        specs: List[ScreenshotSpec] = self._build_specs_from_hot_paths(
+        specs: list[ScreenshotSpec] = self._build_specs_from_hot_paths(
             hp_list, endpoints, vd_map, comparisons, surface_data, qw_data, target_name,
         )
 
@@ -149,7 +157,7 @@ class ScreenshotEngine:
     # ── Data Extraction ─────────────────────────────────────────────
 
     @staticmethod
-    def _extract_endpoints(snapshot) -> List[Dict[str, Any]]:
+    def _extract_endpoints(snapshot) -> list[dict[str, Any]]:
         if snapshot is None:
             return []
         raw = getattr(snapshot, "endpoints", [])
@@ -170,7 +178,7 @@ class ScreenshotEngine:
         return out
 
     @staticmethod
-    def _extract_hot_paths(snapshot, hot_paths: Optional[List]) -> List[Dict[str, Any]]:
+    def _extract_hot_paths(snapshot, hot_paths: list | None) -> list[dict[str, Any]]:
         out = []
         if hot_paths:
             for hp in hot_paths:
@@ -196,8 +204,8 @@ class ScreenshotEngine:
         return out
 
     @staticmethod
-    def _extract_verdict_map(snapshot, verdicts: Optional[List], evidence_graph) -> Dict[str, Dict[str, Any]]:
-        vd_map: Dict[str, Dict[str, Any]] = {}
+    def _extract_verdict_map(snapshot, verdicts: list | None, evidence_graph) -> dict[str, dict[str, Any]]:
+        vd_map: dict[str, dict[str, Any]] = {}
 
         if verdicts:
             for v in verdicts:
@@ -237,14 +245,14 @@ class ScreenshotEngine:
         return vd_map
 
     @staticmethod
-    def _extract_comparisons(evidence_graph) -> List[Dict[str, Any]]:
+    def _extract_comparisons(evidence_graph) -> list[dict[str, Any]]:
         if evidence_graph is None:
             return []
         return evidence_graph.get_comparisons()
 
     @staticmethod
-    def _extract_surface(attack_surface, snapshot) -> Dict[str, List[Dict[str, Any]]]:
-        out: Dict[str, List[Dict[str, Any]]] = {
+    def _extract_surface(attack_surface, snapshot) -> dict[str, list[dict[str, Any]]]:
+        out: dict[str, list[dict[str, Any]]] = {
             "idor_clusters": [],
             "auth_boundaries": [],
             "multi_tenant_zones": [],
@@ -276,7 +284,7 @@ class ScreenshotEngine:
         return out
 
     @staticmethod
-    def _extract_quick_wins(quick_wins) -> Dict[str, Any]:
+    def _extract_quick_wins(quick_wins) -> dict[str, Any]:
         if quick_wins is None:
             return {}
         out = {
@@ -326,15 +334,15 @@ class ScreenshotEngine:
 
     def _build_specs_from_hot_paths(
         self,
-        hot_paths: List[Dict[str, Any]],
-        endpoints: List[Dict[str, Any]],
-        verdict_map: Dict[str, Dict[str, Any]],
-        comparisons: List[Dict[str, Any]],
-        surface_data: Dict[str, List[Dict[str, Any]]],
-        quick_wins: Dict[str, Any],
+        hot_paths: list[dict[str, Any]],
+        endpoints: list[dict[str, Any]],
+        verdict_map: dict[str, dict[str, Any]],
+        comparisons: list[dict[str, Any]],
+        surface_data: dict[str, list[dict[str, Any]]],
+        quick_wins: dict[str, Any],
         target_name: str,
-    ) -> List[ScreenshotSpec]:
-        specs: List[ScreenshotSpec] = []
+    ) -> list[ScreenshotSpec]:
+        specs: list[ScreenshotSpec] = []
         seen: set = set()
 
         ep_by_path = {ep["path"]: ep for ep in endpoints if "path" in ep}
@@ -412,14 +420,14 @@ class ScreenshotEngine:
 
     def _build_specs_from_endpoints(
         self,
-        endpoints: List[Dict[str, Any]],
-        verdict_map: Dict[str, Dict[str, Any]],
-        comparisons: List[Dict[str, Any]],
-        surface_data: Dict[str, List[Dict[str, Any]]],
-        quick_wins: Dict[str, Any],
+        endpoints: list[dict[str, Any]],
+        verdict_map: dict[str, dict[str, Any]],
+        comparisons: list[dict[str, Any]],
+        surface_data: dict[str, list[dict[str, Any]]],
+        quick_wins: dict[str, Any],
         target_name: str,
-    ) -> List[ScreenshotSpec]:
-        specs: List[ScreenshotSpec] = []
+    ) -> list[ScreenshotSpec]:
+        specs: list[ScreenshotSpec] = []
 
         for ep in endpoints:
             path = ep.get("path", "/")
@@ -465,12 +473,12 @@ class ScreenshotEngine:
     def _build_visual_blocks(
         path: str,
         method: str,
-        verdict: Optional[Dict[str, Any]],
-        comparisons: List[Dict[str, Any]],
-        ep_data: Dict[str, Any],
+        verdict: dict[str, Any] | None,
+        comparisons: list[dict[str, Any]],
+        ep_data: dict[str, Any],
         risk_score: float,
-    ) -> List[VisualBlock]:
-        blocks: List[VisualBlock] = []
+    ) -> list[VisualBlock]:
+        blocks: list[VisualBlock] = []
 
         # Request block
         req_content = f"{method} {path}"
@@ -530,7 +538,7 @@ class ScreenshotEngine:
             ))
 
         # Web3 blocks
-        if "web3" in signals or any("web3" in str(l) for l in labels):
+        if "web3" in signals or any("web3" in str(lab) for lab in labels):
             blocks.append(VisualBlock(
                 type="contract_call",
                 content="Web3 contract interaction detected",
@@ -558,10 +566,10 @@ class ScreenshotEngine:
     def _build_annotations(
         path: str,
         vuln_type: str,
-        ep_data: Dict[str, Any],
-        surface_data: Dict[str, List[Dict[str, Any]]],
-    ) -> List[AnnotationItem]:
-        annotations: List[AnnotationItem] = []
+        ep_data: dict[str, Any],
+        surface_data: dict[str, list[dict[str, Any]]],
+    ) -> list[AnnotationItem]:
+        annotations: list[AnnotationItem] = []
         seen_categories: set = set()
 
         labels = ep_data.get("labels", [])
@@ -570,18 +578,16 @@ class ScreenshotEngine:
         potential_idor = ep_data.get("potential_idor", False)
 
         # IDOR annotation
-        if vuln_type == "IDOR" or potential_idor:
-            if "IDOR" not in seen_categories:
-                annotations.append(AnnotationItem(
-                    category="IDOR",
-                    detail="Insecure Direct Object Reference — possible unauthorized data access",
-                    severity="critical",
-                ))
-                seen_categories.add("IDOR")
+        if (vuln_type == "IDOR" or potential_idor) and "IDOR" not in seen_categories:
+            annotations.append(AnnotationItem(
+                category="IDOR",
+                detail="Insecure Direct Object Reference — possible unauthorized data access",
+                severity="critical",
+            ))
+            seen_categories.add("IDOR")
 
         # Cross-tenant exposure
-        if "multi_tenant" in labels or "cross_tenant" in attack_surface:
-            if "cross_tenant_exposure" not in seen_categories:
+        if ("multi_tenant" in labels or "cross_tenant" in attack_surface) and "cross_tenant_exposure" not in seen_categories:
                 annotations.append(AnnotationItem(
                     category="cross_tenant_exposure",
                     detail="Multi-tenant boundary — possible cross-tenant data access (BOLA)",
@@ -590,18 +596,16 @@ class ScreenshotEngine:
                 seen_categories.add("cross_tenant_exposure")
 
         # Auth bypass
-        if "auth_bypass" in signals or "auth" in vuln_type.lower():
-            if "auth_bypass" not in seen_categories:
-                annotations.append(AnnotationItem(
-                    category="auth_bypass",
-                    detail="Authentication bypass surface detected",
-                    severity="high",
-                ))
-                seen_categories.add("auth_bypass")
+        if ("auth_bypass" in signals or "auth" in vuln_type.lower()) and "auth_bypass" not in seen_categories:
+            annotations.append(AnnotationItem(
+                category="auth_bypass",
+                detail="Authentication bypass surface detected",
+                severity="high",
+            ))
+            seen_categories.add("auth_bypass")
 
         # Sensitive fields
-        if "sensitive" in labels or "data_exfiltration" in attack_surface:
-            if "sensitive_fields" not in seen_categories:
+        if ("sensitive" in labels or "data_exfiltration" in attack_surface) and "sensitive_fields" not in seen_categories:
                 annotations.append(AnnotationItem(
                     category="sensitive_fields",
                     detail="Sensitive data exposure — PII, billing, or internal data",
@@ -610,14 +614,13 @@ class ScreenshotEngine:
                 seen_categories.add("sensitive_fields")
 
         # Financial impact
-        if "billing" in signals or "export" in signals:
-            if "financial_impact" not in seen_categories:
-                annotations.append(AnnotationItem(
-                    category="financial_impact",
-                    detail="Financial operation endpoint — possible monetary impact",
-                    severity="critical",
-                ))
-                seen_categories.add("financial_impact")
+        if ("billing" in signals or "export" in signals) and "financial_impact" not in seen_categories:
+            annotations.append(AnnotationItem(
+                category="financial_impact",
+                detail="Financial operation endpoint — possible monetary impact",
+                severity="critical",
+            ))
+            seen_categories.add("financial_impact")
 
         # Web3 annotations
         if "web3" in signals:
@@ -635,16 +638,14 @@ class ScreenshotEngine:
                     severity="critical",
                 ))
                 seen_categories.add("contract_privilege_boundaries")
-            if "rpc" in str(signals).lower() or "oracle" in str(signals).lower():
-                if "oracle_dependencies" not in seen_categories:
+            if ("rpc" in str(signals).lower() or "oracle" in str(signals).lower()) and "oracle_dependencies" not in seen_categories:
                     annotations.append(AnnotationItem(
                         category="oracle_dependencies",
                         detail="Oracle dependency — possible price manipulation or data feed attack",
                         severity="high",
                     ))
                     seen_categories.add("oracle_dependencies")
-            if "bridge" in str(signals).lower() or "swap" in str(signals).lower():
-                if "bridge_interactions" not in seen_categories:
+            if ("bridge" in str(signals).lower() or "swap" in str(signals).lower()) and "bridge_interactions" not in seen_categories:
                     annotations.append(AnnotationItem(
                         category="bridge_interactions",
                         detail="Bridge interaction — possible bridge exploit or signature replay",
@@ -655,21 +656,20 @@ class ScreenshotEngine:
         # Surface-driven annotations
         for cluster_ep in surface_data.get("idor_clusters", []):
             cpath = cluster_ep.get("path", "") if isinstance(cluster_ep, dict) else ""
-            if cpath and cpath in path:
-                if "IDOR" not in seen_categories:
-                    annotations.append(AnnotationItem(
-                        category="IDOR",
-                        detail="Endpoint in IDOR cluster — attack surface mapping",
-                        severity="high",
-                    ))
-                    seen_categories.add("IDOR")
+            if cpath and cpath in path and "IDOR" not in seen_categories:
+                annotations.append(AnnotationItem(
+                    category="IDOR",
+                    detail="Endpoint in IDOR cluster — attack surface mapping",
+                    severity="high",
+                ))
+                seen_categories.add("IDOR")
 
         return annotations
 
     # ── Helpers ─────────────────────────────────────────────────────
 
     @staticmethod
-    def _derive_vulnerability_type(vector: str, ep_data: Dict[str, Any]) -> str:
+    def _derive_vulnerability_type(vector: str, ep_data: dict[str, Any]) -> str:
         if vector:
             return vector
         signals = ep_data.get("signals", [])
@@ -715,11 +715,11 @@ class ScreenshotEngine:
 
     @staticmethod
     def _find_matching_verdict(
-        hp: Dict[str, Any],
-        nodes: List[str],
-        verdict_map: Dict[str, Dict[str, Any]],
+        hp: dict[str, Any],
+        nodes: list[str],
+        verdict_map: dict[str, dict[str, Any]],
         primary_path: str,
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         # Try exact match by node_id
         for node in nodes:
             if node in verdict_map:
@@ -737,8 +737,8 @@ class ScreenshotEngine:
     @staticmethod
     def _find_roi_score(
         path: str,
-        quick_wins: Dict[str, Any],
-        ep_data: Dict[str, Any],
+        quick_wins: dict[str, Any],
+        ep_data: dict[str, Any],
     ) -> float:
         for qw in quick_wins.get("top_quick_wins", []):
             if qw.get("endpoint_path", "") == path:
@@ -746,7 +746,7 @@ class ScreenshotEngine:
         return float(ep_data.get("risk_score", 0)) / 10.0
 
     @staticmethod
-    def _build_attack_path_summary(hp: Dict[str, Any], nodes: List[str]) -> str:
+    def _build_attack_path_summary(hp: dict[str, Any], nodes: list[str]) -> str:
         why = hp.get("why_it_matters", "")
         if why:
             return why
@@ -763,8 +763,8 @@ class ScreenshotEngine:
 
     @staticmethod
     def _build_state_summary(
-        verdict: Optional[Dict[str, Any]],
-        comparisons: List[Dict[str, Any]],
+        verdict: dict[str, Any] | None,
+        comparisons: list[dict[str, Any]],
         path: str,
     ) -> tuple:
         if not comparisons:
@@ -783,10 +783,10 @@ class ScreenshotEngine:
 
     @staticmethod
     def _aggregate_risks(
-        specs: List[ScreenshotSpec],
-        surface_data: Dict[str, List[Dict[str, Any]]],
-    ) -> List[str]:
-        risks: List[str] = []
+        specs: list[ScreenshotSpec],
+        surface_data: dict[str, list[dict[str, Any]]],
+    ) -> list[str]:
+        risks: list[str] = []
         seen_risks: set = set()
 
         for spec in specs:
@@ -815,11 +815,11 @@ class ScreenshotEngine:
 
     @staticmethod
     def _extract_roi_highlights(
-        quick_wins: Dict[str, Any],
-        specs: List[ScreenshotSpec],
-        roi_metadata: Optional[Dict[str, Any]],
-    ) -> List[str]:
-        highlights: List[str] = []
+        quick_wins: dict[str, Any],
+        specs: list[ScreenshotSpec],
+        roi_metadata: dict[str, Any] | None,
+    ) -> list[str]:
+        highlights: list[str] = []
 
         for qw in quick_wins.get("top_quick_wins", [])[:5]:
             path = qw.get("endpoint_path", "")
@@ -855,7 +855,7 @@ class ScreenshotEngine:
 
     @staticmethod
     def _build_summary(
-        specs: List[ScreenshotSpec],
+        specs: list[ScreenshotSpec],
         snapshot,
         target_name: str,
     ) -> str:

@@ -1,25 +1,26 @@
+import json
 import logging
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from core_engines.ai.assistant import ScanAssistant
 from core_engines.analysis.investigation_graph import InvestigationGraphBuilder
-from core_engines.engine.unified_scoring import score as unified_score
 from core_engines.analysis.noise_reduction import NoiseReductionEngine
 from core_engines.attack.engine import AttackDecisionEngine
+from core_engines.engine.hypothesis.engine import HypothesisEngine
+from core_engines.engine.priority_rebalancer import PriorityRebalancer
+from core_engines.engine.risk_model import AttackSurfaceMapper, ROIEstimator
+from core_engines.engine.snapshot import from_pipeline_output
+from core_engines.engine.unified_scoring import score as unified_score
 from core_engines.evidence.graph import EvidenceGraph
 from core_engines.evidence.store import EvidenceStore
 from core_engines.execution.differential_engine import DifferentialEngine
 from core_engines.execution.gap_analyzer import GapAnalyzer
 from core_engines.execution.poc_generator import PoCGenerator
 from core_engines.memory.identity_graph import IdentityGraph
-from core_engines.reporting.report_engine import ProgramData, ReportEngine
-from core_engines.engine.priority_rebalancer import PriorityRebalancer
-from core_engines.engine.risk_model import AttackSurfaceMapper, ROIEstimator
-from core_engines.targets.technology import fingerprint_program
-from core_engines.engine.hypothesis.engine import HypothesisEngine
-from core_engines.engine.snapshot import PipelineSnapshot, from_pipeline_output
-from core_engines.validation.gate import Verdict
 from core_engines.observability import timer
+from core_engines.reporting.report_engine import ProgramData, ReportEngine
+from core_engines.targets.technology import fingerprint_program
+from core_engines.validation.gate import Verdict
 
 LOG = logging.getLogger("rastro.pipeline")
 
@@ -48,13 +49,13 @@ class Pipeline:
 
     def run(
         self,
-        endpoints: List[Dict[str, Any]],
-        baseline_token: Optional[str] = None,
-        probe_token: Optional[str] = None,
-        program_data: Optional[ProgramData] = None,
+        endpoints: list[dict[str, Any]],
+        baseline_token: str | None = None,
+        probe_token: str | None = None,
+        program_data: ProgramData | None = None,
         target_id: int = 0,
         target_name: str = "",
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         if not endpoints:
             return {"status": "no_endpoints", "verdicts": {}, "reports": []}
 
@@ -108,9 +109,9 @@ class Pipeline:
                 "surface_map": vars(surface_map),
             }
 
-        endpoint_details_map: Dict[str, Dict[str, Any]] = {}
-        endpoint_signals_map: Dict[str, Dict[str, Any]] = {}
-        entity_endpoints_map: Dict[str, List[str]] = {}
+        endpoint_details_map: dict[str, dict[str, Any]] = {}
+        endpoint_signals_map: dict[str, dict[str, Any]] = {}
+        entity_endpoints_map: dict[str, list[str]] = {}
         for node in inv_report.graph.get("nodes", []):
             node_id = node.get("node_id", "")
             ntype = node.get("type", "")
@@ -148,13 +149,13 @@ class Pipeline:
 
         # Priority rebalancing before validation
         LOG.info("Pipeline: rebalancing priorities across %d hot paths", len(hot_paths))
-        priority_map: Dict[str, float] = {}
+        priority_map: dict[str, float] = {}
         for hp in hot_paths:
             if hp.nodes:
                 priority_map[hp.nodes[0]] = float(
                     endpoint_signals_map.get(hp.nodes[0], {}).get("risk_score", 0)
                 )
-        web3_targets: Dict[str, str] = {}
+        web3_targets: dict[str, str] = {}
         for node_id, signals in endpoint_signals_map.items():
             if "web3" in signals.get("signals", []):
                 web3_targets[node_id] = "rpc_method"
@@ -204,8 +205,8 @@ class Pipeline:
             )
 
         LOG.info("Pipeline: persisting verdicts and evidence")
-        confirmed: List[Verdict] = []
-        verdict_db_ids: Dict[str, int] = {}
+        confirmed: list[Verdict] = []
+        verdict_db_ids: dict[str, int] = {}
 
         # Batch-resolve endpoint IDs for all node_ids across all hot_paths
         all_node_ids = list({nid for hp in hot_paths for nid in hp.nodes})
@@ -277,7 +278,7 @@ class Pipeline:
             reports=reports,
         )
 
-        result: Dict[str, Any] = {
+        result: dict[str, Any] = {
             "status": "completed",
             "total_endpoints": len(endpoints),
             "endpoints": clean,
@@ -353,7 +354,7 @@ class Pipeline:
 
         return result
 
-    def _score_endpoints(self, endpoints: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _score_endpoints(self, endpoints: list[dict[str, Any]]) -> list[dict[str, Any]]:
         scored = []
         for ep in endpoints:
             path = str(ep.get("path", "/"))
@@ -372,15 +373,15 @@ class Pipeline:
         return scored
 
     @staticmethod
-    def _detect_technologies(target_id: int, target_name: str) -> List[Dict[str, Any]]:
+    def _detect_technologies(target_id: int, target_name: str) -> list[dict[str, Any]]:
         """Detect technologies for a target from metadata and stored program intel."""
-        technologies: List[Dict[str, Any]] = []
+        technologies: list[dict[str, Any]] = []
         if not target_id and not target_name:
             return technologies
 
         try:
-            from database.models import TargetIntel
             from database.db import SessionLocal
+            from database.models import TargetIntel
 
             session = SessionLocal()
             try:
@@ -410,7 +411,7 @@ class Pipeline:
         return technologies
 
     @staticmethod
-    def _extract_discovered_paths(endpoints: List[Dict[str, Any]]) -> List[str]:
+    def _extract_discovered_paths(endpoints: list[dict[str, Any]]) -> list[str]:
         """Extract suspicious paths from clean endpoints for hypothesis generation."""
         suspicious_suffixes = {
             ".git/config", ".env", "wp-config.php.bak", "backup.sql",
@@ -419,7 +420,7 @@ class Pipeline:
             "swagger/v1/swagger.json", "api-docs", "graphql",
             "console", "actuator/gateway/routes",
         }
-        paths: List[str] = []
+        paths: list[str] = []
         seen: set = set()
         for ep in endpoints:
             path = str(ep.get("path", ""))
@@ -432,19 +433,20 @@ class Pipeline:
         return paths
 
     @staticmethod
-    def _node_to_url(node_id: str, meta: Dict[str, Any]) -> str:
+    def _node_to_url(node_id: str, meta: dict[str, Any]) -> str:
         path = meta.get("path", "")
         return f"https://target.example.com{path}"
 
     @staticmethod
-    def _batch_resolve_endpoint_ids(node_ids: List[str]) -> Dict[str, Optional[int]]:
+    def _batch_resolve_endpoint_ids(node_ids: list[str]) -> dict[str, int | None]:
         import re
+
         from database import models
         from database.db import SessionLocal
 
-        cache: Dict[str, Optional[int]] = {}
-        method_path_pairs: List[tuple] = []
-        id_to_pair: Dict[str, tuple] = {}
+        cache: dict[str, int | None] = {}
+        method_path_pairs: list[tuple] = []
+        id_to_pair: dict[str, tuple] = {}
 
         for nid in node_ids:
             match = re.search(r"endpoint:(\w+):(.+)", nid)

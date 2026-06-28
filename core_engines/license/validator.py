@@ -13,7 +13,6 @@ import logging
 import os
 import re
 import time
-from typing import Optional, Tuple
 
 from core_engines.license.hardware import get_hardware_id
 from core_engines.license.store import get_license_store
@@ -64,7 +63,7 @@ def _b32_decode(s: str) -> bytes:
     return bytes(result)
 
 
-def _generate_key_data(hw_id: str, expiry_days: int = 365) -> Tuple[str, bytes]:
+def _generate_key_data(hw_id: str, expiry_days: int = 365) -> tuple[str, bytes]:
     now = time.gmtime()
     year = now.tm_year % 100
     month = now.tm_mon
@@ -98,7 +97,7 @@ def generate_license(expiry_days: int = 365) -> str:
     return _format_key(data_str, sig)
 
 
-def parse_license(key: str) -> Optional[dict]:
+def parse_license(key: str) -> dict | None:
     """Parse a license key without verifying signature."""
     clean = key.replace("-", "").upper()
     if len(clean) != 25:
@@ -126,7 +125,7 @@ def parse_license(key: str) -> Optional[dict]:
     }
 
 
-def verify_license_key(key: str) -> Tuple[bool, str]:
+def verify_license_key(key: str) -> tuple[bool, str]:
     """Verify a license key's signature and expiry.
 
     Returns (is_valid, reason).
@@ -160,13 +159,16 @@ def verify_license_key(key: str) -> Tuple[bool, str]:
     return True, "Valid"
 
 
-def validate_license(license_key: str) -> Tuple[bool, str]:
+def validate_license(license_key: str) -> tuple[bool, str]:
     """Full license validation: signature + hardware binding + expiry.
 
     Returns (is_valid, reason).
     """
+    logger.info("[HW] validate_license: ENTER key (truncated) = %s...", license_key[:12] if len(license_key) > 12 else license_key)
     valid, reason = verify_license_key(license_key)
+    logger.info("[HW] validate_license: verify_license_key result = (%s, %s)", valid, reason)
     if not valid:
+        logger.info("[HW] validate_license: returning False because verify failed: %s", reason)
         return valid, reason
 
     store = get_license_store()
@@ -174,27 +176,54 @@ def validate_license(license_key: str) -> Tuple[bool, str]:
     hw_id = get_hardware_id()
     parsed = parse_license(license_key)
 
+    logger.info("[HW] validate_license: stored = %s", stored is not None)
+    if stored:
+        logger.info("[HW] validate_license: stored.hardware_id = %s", stored.get("hardware_id", ""))
+        logger.info("[HW] validate_license: stored.hardware_id[:7] = %s", stored.get("hardware_id", "")[:7])
+    logger.info("[HW] validate_license: current hw_id = %s", hw_id)
+    logger.info("[HW] validate_license: current hw_id[:7] = %s", hw_id[:7])
+    if parsed:
+        logger.info("[HW] validate_license: parsed.hardware_prefix = %s", parsed["hardware_prefix"])
+    else:
+        logger.info("[HW] validate_license: parsed = None (parse_license failed)")
+
     # First activation: always accept, bind HWID
     if not stored:
+        logger.info("[HW] validate_license: FIRST ACTIVATION — saving HWID %s", hw_id)
         store.save(license_key, hw_id)
+        logger.info("[HW] validate_license: first activation SUCCESS")
         return True, "Valid"
 
     # Subsequent runs: verify HW binding
     stored_hw = stored.get("hardware_id", "")
+    logger.info("[HW] validate_license: SUBSEQUENT RUN — stored_hw = %s, current_hw = %s", stored_hw, hw_id)
+    logger.info("[HW] validate_license: SUBSEQUENT RUN — checking prefix: hw_id[:7]=%s vs parsed.hardware_prefix=%s", hw_id[:7].upper(), parsed["hardware_prefix"] if parsed else "N/A")
 
     if parsed and not hw_id.upper().startswith(parsed["hardware_prefix"]):
+        logger.info("[HW] validate_license: HARDWARE MISMATCH — current prefix %s does not match license prefix %s", hw_id[:7].upper(), parsed["hardware_prefix"])
         return False, "Hardware mismatch"
 
-    if stored_hw != hw_id:
-        store.save(license_key, hw_id)
+    logger.info("[HW] validate_license: prefix check PASSED")
 
+    if stored_hw != hw_id:
+        logger.info("[HW] validate_license: stored_hw differs from current — auto-updating binding to %s", hw_id)
+        store.save(license_key, hw_id)
+    else:
+        logger.info("[HW] validate_license: stored_hw == current_hw, no update needed")
+
+    logger.info("[HW] validate_license: returning VALID")
     return True, "Valid"
 
 
-def is_license_valid() -> Tuple[bool, str]:
+def is_license_valid() -> tuple[bool, str]:
     """Check if a valid license is already activated on this machine."""
+    logger.info("[HW] is_license_valid: ENTER")
     store = get_license_store()
     stored = store.load()
     if not stored:
+        logger.info("[HW] is_license_valid: returning False — no license activated")
         return False, "No license activated"
-    return validate_license(stored["license_key"])
+    logger.info("[HW] is_license_valid: stored license found, delegating to validate_license")
+    result = validate_license(stored["license_key"])
+    logger.info("[HW] is_license_valid: result = (%s, %s)", result[0], result[1])
+    return result

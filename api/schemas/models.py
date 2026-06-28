@@ -1,13 +1,12 @@
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
 
 class PaginatedResponse(BaseModel):
-    items: List[Dict[str, Any]]
+    items: list[dict[str, Any]]
     total: int
     skip: int = 0
     limit: int = 100
@@ -16,8 +15,8 @@ class PaginatedResponse(BaseModel):
 class TargetOut(BaseModel):
     id: int
     name: str
-    domain: Optional[str] = None
-    created_at: Optional[str] = None
+    domain: str | None = None
+    created_at: str | None = None
     endpoint_count: int = 0
     finding_count: int = 0
     confirmed_findings: int = 0
@@ -32,15 +31,15 @@ class TargetOut(BaseModel):
 class TargetSummaryOut(BaseModel):
     id: int
     name: str
-    domain: Optional[str] = None
+    domain: str | None = None
     endpoint_count: int
     finding_count: int
     confirmed_count: int
     estimated_payout: int
     roi: float
     max_risk: float
-    surfaces: List[str] = []
-    vectors: List[str] = []
+    surfaces: list[str] = []
+    vectors: list[str] = []
     opportunity_score: float = 0.0
     competition_score: int = 0
     freshness_score: int = 0
@@ -54,40 +53,40 @@ class EndpointOut(BaseModel):
     risk_score: float = 0.0
     confidence: float = 0.0
     vector: str = "unknown"
-    labels: List[str] = []
-    signals: List[str] = []
-    attack_surface: List[str] = []
+    labels: list[str] = []
+    signals: list[str] = []
+    attack_surface: list[str] = []
     actionable: bool = False
 
 
 class FindingOut(BaseModel):
     id: int
     target_id: int
-    endpoint_id: Optional[int] = None
+    endpoint_id: int | None = None
     title: str
     severity: str = "medium"
-    description: Optional[str] = None
+    description: str | None = None
     payout: int = 0
     target_name: str = ""
     endpoint_path: str = ""
-    created_at: Optional[str] = None
+    created_at: str | None = None
 
 
 class EvidenceOut(BaseModel):
     id: int
     verdict_id: int
-    endpoint_id: Optional[int] = None
+    endpoint_id: int | None = None
     attempt_label: str = ""
     request_url: str = ""
     request_method: str = "GET"
-    response_status: Optional[int] = None
+    response_status: int | None = None
     consistent: bool = False
-    curl_command: Optional[str] = None
+    curl_command: str | None = None
     body_diff_ratio: float = 0.0
-    request_body: Optional[str] = None
-    response_body: Optional[str] = None
-    request_headers: Optional[str] = None
-    response_headers: Optional[str] = None
+    request_body: str | None = None
+    response_body: str | None = None
+    request_headers: str | None = None
+    response_headers: str | None = None
 
 
 class OpportunityOut(BaseModel):
@@ -98,8 +97,8 @@ class OpportunityOut(BaseModel):
     max_risk: float = 0.0
     endpoint_count: int = 0
     finding_count: int = 0
-    surfaces: List[str] = []
-    vectors: List[str] = []
+    surfaces: list[str] = []
+    vectors: list[str] = []
     estimated_payout: int = 0
     opportunity_score: float = 0.0
     competition_score: int = 0
@@ -108,26 +107,26 @@ class OpportunityOut(BaseModel):
 
 class AttackSurfaceGroup(BaseModel):
     name: str
-    endpoints: List[EndpointOut]
+    endpoints: list[EndpointOut]
 
 
 class VerdictOut(BaseModel):
     id: int
-    hotspot_path_id: Optional[str] = None
-    endpoint_id: Optional[int] = None
+    hotspot_path_id: str | None = None
+    endpoint_id: int | None = None
     status: str = "inconclusive"
     confidence: float = 0.0
     reproducibility_score: float = 0.0
     retry_count: int = 0
-    reason: Optional[str] = None
-    created_at: Optional[str] = None
+    reason: str | None = None
+    created_at: str | None = None
 
 
 class PipelineStageOut(BaseModel):
-    detected: List[FindingOut] = []
-    validated: List[FindingOut] = []
-    confirmed: List[FindingOut] = []
-    reported: List[FindingOut] = []
+    detected: list[FindingOut] = []
+    validated: list[FindingOut] = []
+    confirmed: list[FindingOut] = []
+    reported: list[FindingOut] = []
 
 
 class HypothesisScoreOut(BaseModel):
@@ -136,7 +135,7 @@ class HypothesisScoreOut(BaseModel):
     exploitability: float = 0.0
     confidence: float = 0.0
     priority_score: float = 0.0
-    breakdown: Dict[str, float] = {}
+    breakdown: dict[str, float] = {}
 
 
 class HypothesisOut(BaseModel):
@@ -144,30 +143,30 @@ class HypothesisOut(BaseModel):
     vulnerability_type: str
     target_id: int
     target_name: str
-    endpoint: Dict[str, Any] = {}
+    endpoint: dict[str, Any] = {}
     likelihood: float = 0.0
     impact: float = 0.0
     exploitability: float = 0.0
     confidence: float = 0.0
     priority_score: float = 0.0
     roi_score: float = 0.0
-    evidence: List[str] = []
+    evidence: list[str] = []
     reasoning: str = ""
-    suggested_actions: List[str] = []
+    suggested_actions: list[str] = []
     source: str = "rule"
     vector: str = ""
-    attack_surface_labels: List[str] = []
+    attack_surface_labels: list[str] = []
     similarity_to_past: float = 0.0
-    past_pattern_id: Optional[str] = None
+    past_pattern_id: str | None = None
     score: HypothesisScoreOut = Field(default_factory=HypothesisScoreOut)
 
 
 class HypothesisEngineOutputOut(BaseModel):
-    attack_queue: List[HypothesisOut] = []
+    attack_queue: list[HypothesisOut] = []
     total_hypotheses: int = 0
-    by_source: Dict[str, int] = {}
-    by_type: Dict[str, int] = {}
-    top_priority: Optional[HypothesisOut] = None
+    by_source: dict[str, int] = {}
+    by_type: dict[str, int] = {}
+    top_priority: HypothesisOut | None = None
     summary: str = ""
     total_roi_value: float = 0.0
     avg_roi: float = 0.0
@@ -176,8 +175,8 @@ class HypothesisEngineOutputOut(BaseModel):
 
 
 class ROIDetailOut(BaseModel):
-    endpoint_id: Optional[int] = None
-    hypothesis_id: Optional[str] = None
+    endpoint_id: int | None = None
+    hypothesis_id: str | None = None
     vulnerability_type: str = ""
     path: str = ""
     method: str = "GET"
@@ -190,7 +189,7 @@ class ROIDetailOut(BaseModel):
     probability_success: float = 0.0
     priority_score: float = 0.0
     is_profitable: bool = False
-    breakdown: Dict[str, float] = {}
+    breakdown: dict[str, float] = {}
 
 
 class TargetROIOut(BaseModel):
@@ -203,14 +202,14 @@ class TargetROIOut(BaseModel):
     total_expected_return: float = 0.0
     total_expected_cost: float = 0.0
     highest_payout: float = 0.0
-    top_opportunities: List[ROIDetailOut] = []
-    all_roi: List[ROIDetailOut] = []
+    top_opportunities: list[ROIDetailOut] = []
+    all_roi: list[ROIDetailOut] = []
 
 
 class ReportOut(BaseModel):
     title: str = ""
     summary: str = ""
-    findings: List[FindingOut] = []
+    findings: list[FindingOut] = []
     total_findings: int = 0
     total_estimated_value: int = 0
     generated_at: str = ""
@@ -228,42 +227,42 @@ class TargetIdentityOut(BaseModel):
     is_baseline: bool
     is_active: bool
     session_valid: bool = False
-    session_expires_at: Optional[str] = None
-    created_at: Optional[str] = None
+    session_expires_at: str | None = None
+    created_at: str | None = None
 
 
 class TargetIdentityCreate(BaseModel):
     label: str = "Default"
     auth_type: str = "none"
-    username: Optional[str] = None
-    password: Optional[str] = None
-    token: Optional[str] = None
-    api_key: Optional[str] = None
-    cookies: Optional[Dict[str, str]] = None
-    login_url: Optional[str] = None
-    login_params: Optional[Dict[str, Any]] = None
+    username: str | None = None
+    password: str | None = None
+    token: str | None = None
+    api_key: str | None = None
+    cookies: dict[str, str] | None = None
+    login_url: str | None = None
+    login_params: dict[str, Any] | None = None
     is_baseline: bool = False
 
 
 class TargetIdentityUpdate(BaseModel):
-    label: Optional[str] = None
-    auth_type: Optional[str] = None
-    username: Optional[str] = None
-    password: Optional[str] = None
-    token: Optional[str] = None
-    api_key: Optional[str] = None
-    cookies: Optional[Dict[str, str]] = None
-    login_url: Optional[str] = None
-    login_params: Optional[Dict[str, Any]] = None
-    is_baseline: Optional[bool] = None
-    is_active: Optional[bool] = None
+    label: str | None = None
+    auth_type: str | None = None
+    username: str | None = None
+    password: str | None = None
+    token: str | None = None
+    api_key: str | None = None
+    cookies: dict[str, str] | None = None
+    login_url: str | None = None
+    login_params: dict[str, Any] | None = None
+    is_baseline: bool | None = None
+    is_active: bool | None = None
 
 
 class TargetSessionStatus(BaseModel):
     identity_id: int
     is_valid: bool
-    expires_at: Optional[str] = None
-    last_refresh_at: Optional[str] = None
+    expires_at: str | None = None
+    last_refresh_at: str | None = None
     failure_count: int = 0
 
 
@@ -273,42 +272,42 @@ class InvestigationOut(BaseModel):
     target_name: str = ""
     name: str
     status: str
-    pipeline_state: Dict[str, Any] = {}
-    notes: Optional[str] = None
-    tags: List[str] = []
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
+    pipeline_state: dict[str, Any] = {}
+    notes: str | None = None
+    tags: list[str] = []
+    created_at: str | None = None
+    updated_at: str | None = None
 
 
 class InvestigationCreate(BaseModel):
     target_id: int
     name: str
-    notes: Optional[str] = None
-    tags: Optional[List[str]] = None
+    notes: str | None = None
+    tags: list[str] | None = None
 
 
 class InvestigationUpdate(BaseModel):
-    name: Optional[str] = None
-    status: Optional[str] = None
-    notes: Optional[str] = None
-    tags: Optional[List[str]] = None
+    name: str | None = None
+    status: str | None = None
+    notes: str | None = None
+    tags: list[str] | None = None
 
 
 class ValidationRunOut(BaseModel):
     id: int
-    investigation_id: Optional[int] = None
+    investigation_id: int | None = None
     endpoint_id: int
-    identity_baseline_id: Optional[int] = None
-    identity_probe_id: Optional[int] = None
+    identity_baseline_id: int | None = None
+    identity_probe_id: int | None = None
     status: str
-    verdict_id: Optional[int] = None
-    started_at: Optional[str] = None
-    finished_at: Optional[str] = None
+    verdict_id: int | None = None
+    started_at: str | None = None
+    finished_at: str | None = None
 
 
 class ReportNewOut(BaseModel):
     id: int
-    investigation_id: Optional[int] = None
+    investigation_id: int | None = None
     format: str
     program: str = ""
     target: str = ""
@@ -317,15 +316,15 @@ class ReportNewOut(BaseModel):
     status: str = "draft"
     estimated_reward: float = 0.0
     confirmed_reward: float = 0.0
-    created_at: Optional[str] = None
+    created_at: str | None = None
 
 
 class ReportFullOut(BaseModel):
     id: int
-    investigation_id: Optional[int] = None
+    investigation_id: int | None = None
     format: str
-    content: Optional[Dict[str, Any]] = None
-    finding_ids: List[int] = []
+    content: dict[str, Any] | None = None
+    finding_ids: list[int] = []
     program: str = ""
     target: str = ""
     vulnerability: str = ""
@@ -336,10 +335,10 @@ class ReportFullOut(BaseModel):
     currency: str = "USD"
     evidence_count: int = 0
     notes: str = ""
-    timeline: List[Dict[str, Any]] = []
-    attachments: List[str] = []
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
+    timeline: list[dict[str, Any]] = []
+    attachments: list[str] = []
+    created_at: str | None = None
+    updated_at: str | None = None
 
 
 class ReportListItem(BaseModel):
@@ -355,28 +354,28 @@ class ReportListItem(BaseModel):
     confirmed_reward: float = 0.0
     currency: str = "USD"
     evidence_count: int = 0
-    finding_ids: List[int] = []
-    created_at: Optional[str] = None
-    updated_at: Optional[str] = None
+    finding_ids: list[int] = []
+    created_at: str | None = None
+    updated_at: str | None = None
 
 
 class ReportUpdate(BaseModel):
-    status: Optional[str] = None
-    program: Optional[str] = None
-    target: Optional[str] = None
-    vulnerability: Optional[str] = None
-    severity: Optional[str] = None
-    estimated_reward: Optional[float] = None
-    confirmed_reward: Optional[float] = None
-    currency: Optional[str] = None
-    evidence_count: Optional[int] = None
-    notes: Optional[str] = None
-    timeline: Optional[List[Dict[str, Any]]] = None
-    attachments: Optional[List[str]] = None
+    status: str | None = None
+    program: str | None = None
+    target: str | None = None
+    vulnerability: str | None = None
+    severity: str | None = None
+    estimated_reward: float | None = None
+    confirmed_reward: float | None = None
+    currency: str | None = None
+    evidence_count: int | None = None
+    notes: str | None = None
+    timeline: list[dict[str, Any]] | None = None
+    attachments: list[str] | None = None
 
 
 class ReportCreate(BaseModel):
-    finding_ids: List[int]
+    finding_ids: list[int]
     program: str = ""
     target: str = ""
     vulnerability: str = ""

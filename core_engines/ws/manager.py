@@ -5,7 +5,7 @@ import logging
 import time
 import uuid
 from threading import Lock
-from typing import Any, Dict, Optional, Set
+from typing import Any
 
 from fastapi import WebSocket
 
@@ -21,11 +21,11 @@ SERVER_EVENT_ERROR = "error"
 
 
 class WSClient:
-    def __init__(self, websocket: WebSocket, user_id: Optional[str] = None) -> None:
+    def __init__(self, websocket: WebSocket, user_id: str | None = None) -> None:
         self.id = uuid.uuid4().hex[:12]
         self.websocket = websocket
         self.user_id = user_id
-        self.subscriptions: Set[str] = set()
+        self.subscriptions: set[str] = set()
         self.connected_at = time.time()
         self._last_pong = time.time()
 
@@ -46,7 +46,7 @@ class WSClient:
 
 class WSManager:
     def __init__(self) -> None:
-        self._clients: Dict[str, WSClient] = {}
+        self._clients: dict[str, WSClient] = {}
         self._lock = Lock()
 
     @property
@@ -59,7 +59,7 @@ class WSManager:
         with self._lock:
             return list(self._clients.values())
 
-    async def connect(self, websocket: WebSocket, user_id: Optional[str] = None) -> WSClient:
+    async def connect(self, websocket: WebSocket, user_id: str | None = None) -> WSClient:
         await websocket.accept()
         client = WSClient(websocket, user_id=user_id)
         with self._lock:
@@ -72,7 +72,7 @@ class WSManager:
             self._clients.pop(client_id, None)
         logger.info("WS client disconnected: %s (total=%d)", client_id, self.active_count)
 
-    async def broadcast(self, event_type: str, payload: Dict[str, Any]) -> None:
+    async def broadcast(self, event_type: str, payload: dict[str, Any]) -> None:
         msg = json.dumps({"type": event_type, "payload": payload, "ts": time.time()})
         dead: list[str] = []
         now = time.time()
@@ -90,7 +90,7 @@ class WSManager:
         for cid in dead:
             self.disconnect(cid)
 
-    async def send_to(self, client_id: str, event_type: str, payload: Dict[str, Any]) -> bool:
+    async def send_to(self, client_id: str, event_type: str, payload: dict[str, Any]) -> bool:
         with self._lock:
             client = self._clients.get(client_id)
             if not client:
@@ -122,7 +122,7 @@ class WSManager:
             await self.send_to(client.id, SERVER_EVENT_PONG, {})
 
 
-_MANAGER: Optional[WSManager] = None
+_MANAGER: WSManager | None = None
 
 
 def get_ws_manager() -> WSManager:

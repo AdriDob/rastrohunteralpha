@@ -4,25 +4,22 @@ Screenshot Engine API — expose visual evidence representations.
 
 from __future__ import annotations
 
-from typing import Optional
 from fastapi import APIRouter, HTTPException
 
 from core_engines.engine.snapshot import (
     EndpointSnapshot,
-    HotPathSnapshot,
     PipelineSnapshot,
     TargetSnapshot,
-    VerdictSnapshot,
 )
-from core_engines.screenshot.engine import ScreenshotEngine
 from core_engines.engine.unified_scoring import score as unified_score
+from core_engines.screenshot.engine import ScreenshotEngine
 from database import db, models
 
 router = APIRouter(prefix="/api/screenshots", tags=["screenshots"])
 
 
 @router.get("")
-def get_screenshots(target_id: Optional[int] = None):
+def get_screenshots(target_id: int | None = None):
     session = db.SessionLocal()
     try:
         targets = session.query(models.Target).all()

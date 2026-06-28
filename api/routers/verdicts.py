@@ -1,19 +1,17 @@
 from __future__ import annotations
 
-from typing import Optional
-
 from fastapi import APIRouter, HTTPException, Query
 
-from api.services.data_service import list_verdicts, get_verdict, get_evidence_for_verdict
+from api.services.data_service import get_evidence_for_verdict, get_verdict, list_verdicts
 
 router = APIRouter(prefix="/api/verdicts", tags=["verdicts"])
 
 
 @router.get("")
 def get_verdicts(
-    status: Optional[str] = Query(None),
+    status: str | None = Query(None),
     confidence_min: float = Query(0.0, ge=0.0, le=1.0),
-    target_id: Optional[int] = Query(None),
+    target_id: int | None = Query(None),
     limit: int = Query(100, ge=1, le=500),
 ):
     return list_verdicts(status=status, confidence_min=confidence_min, target_id=target_id, limit=limit)

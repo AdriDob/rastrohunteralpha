@@ -1,8 +1,7 @@
-from typing import Dict, Optional, Tuple
 
 SEVERITY_LEVELS = ["critical", "high", "medium", "low", "info"]
 
-SEVERITY_THRESHOLDS: Dict[str, Tuple[float, float]] = {
+SEVERITY_THRESHOLDS: dict[str, tuple[float, float]] = {
     "critical": (85.0, 100.0),
     "high": (65.0, 84.9),
     "medium": (40.0, 64.9),
@@ -39,7 +38,7 @@ def severity_score(severity: str) -> float:
     return mapping.get(severity, 0.0)
 
 
-def parse_cvss_vector(vector: Optional[str]) -> tuple:
+def parse_cvss_vector(vector: str | None) -> tuple:
     """Parse a CVSS vector string and return (numeric_score, severity_label).
 
     Tries CVSS 3.x, 2.0, and 4.0 in order.

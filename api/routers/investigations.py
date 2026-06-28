@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
@@ -12,16 +12,16 @@ router = APIRouter(prefix="/api/investigations", tags=["investigations"])
 class InvestigationCreateBody(BaseModel):
     target_id: int
     name: str
-    notes: Optional[str] = None
-    tags: Optional[List[str]] = None
+    notes: str | None = None
+    tags: list[str] | None = None
 
 
 class InvestigationUpdateBody(BaseModel):
-    name: Optional[str] = None
-    status: Optional[str] = None
-    notes: Optional[str] = None
-    tags: Optional[List[str]] = None
-    pipeline_state: Optional[Dict[str, Any]] = None
+    name: str | None = None
+    status: str | None = None
+    notes: str | None = None
+    tags: list[str] | None = None
+    pipeline_state: dict[str, Any] | None = None
 
 
 @router.post("")
@@ -64,8 +64,8 @@ def create_investigation(body: InvestigationCreateBody):
 
 @router.get("")
 def list_investigations(
-    target_id: Optional[int] = Query(None),
-    status: Optional[str] = Query(None),
+    target_id: int | None = Query(None),
+    status: str | None = Query(None),
     limit: int = Query(20, ge=1, le=100),
     offset: int = Query(0, ge=0),
 ):
@@ -88,7 +88,7 @@ def list_investigations(
 
 @router.get("/{investigation_id}")
 def get_investigation(investigation_id: int):
-    from database import db, models
+    from database import db
 
     session = db.SessionLocal()
     try:
@@ -100,7 +100,7 @@ def get_investigation(investigation_id: int):
 
 @router.put("/{investigation_id}")
 def update_investigation(investigation_id: int, body: InvestigationUpdateBody):
-    from database import db, models
+    from database import db
 
     session = db.SessionLocal()
     try:
@@ -128,7 +128,7 @@ def update_investigation(investigation_id: int, body: InvestigationUpdateBody):
 
 @router.delete("/{investigation_id}")
 def delete_investigation(investigation_id: int):
-    from database import db, models
+    from database import db
 
     session = db.SessionLocal()
     try:
@@ -158,7 +158,7 @@ def investigation_dashboard(investigation_id: int):
             .all()
         )
         finding_count = len(findings)
-        by_severity: Dict[str, int] = {}
+        by_severity: dict[str, int] = {}
         for f in findings:
             s = f.severity or "unknown"
             by_severity[s] = by_severity.get(s, 0) + 1
@@ -245,7 +245,7 @@ def _get_or_404(session, investigation_id: int):
     return inv
 
 
-def _serialize(inv) -> Dict[str, Any]:
+def _serialize(inv) -> dict[str, Any]:
     tags_list = json.loads(inv.tags) if inv.tags else []
     pipeline = json.loads(inv.pipeline_state) if inv.pipeline_state else {}
     return {

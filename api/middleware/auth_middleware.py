@@ -1,5 +1,4 @@
-import re
-from typing import Set
+import logging
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -8,8 +7,10 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from core_engines.auth.session_validator import get_session_validator
 from core_engines.license import is_license_valid
 
+logger = logging.getLogger("rastro.api.middleware")
+
 # Paths that do NOT require authentication
-PUBLIC_PATHS: Set[str] = {
+PUBLIC_PATHS: set[str] = {
     "/api/health",
     "/api/version",
     "/api/docs",
@@ -18,7 +19,7 @@ PUBLIC_PATHS: Set[str] = {
 }
 
 # Prefixes that do NOT require authentication
-PUBLIC_PREFIXES: Set[str] = {
+PUBLIC_PREFIXES: set[str] = {
     "/api/auth",
     "/api/license",
 }
@@ -61,13 +62,17 @@ class AuthMiddleware(BaseHTTPMiddleware):
             )
 
         # License check — skip for public/auth/license paths
-        valid_license, _ = is_license_valid()
+        logger.info("[HW] AuthMiddleware.dispatch: checking license for path=%s", path)
+        valid_license, lic_reason = is_license_valid()
+        logger.info("[HW] AuthMiddleware.dispatch: is_license_valid() = (%s, %s)", valid_license, lic_reason)
         if not valid_license and path not in PUBLIC_PATHS and not any(
             path.startswith(p) for p in PUBLIC_PREFIXES
         ):
+            logger.info("[HW] AuthMiddleware.dispatch: RETURNING 403 — license invalid, reason=%s", lic_reason)
             return JSONResponse(
                 status_code=403,
                 content={"error": "License required", "detail": "Activate at /api/license/activate"},
             )
 
+        logger.info("[HW] AuthMiddleware.dispatch: license OK, passing request through")
         return await call_next(request)

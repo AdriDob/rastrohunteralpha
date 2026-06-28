@@ -2,9 +2,9 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException
 
+from core_engines.gateway.schemas import error, ok
 from core_engines.target_auth.identity_manager import get_identity_manager
 from core_engines.target_auth.session_manager import get_session_manager
-from core_engines.gateway.schemas import ok, error
 
 router = APIRouter(prefix="/api/targets/{target_id}/identities", tags=["targets"])
 

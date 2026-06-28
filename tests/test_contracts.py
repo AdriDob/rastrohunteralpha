@@ -8,8 +8,6 @@ Validates that:
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
-
 # ── Expected DTO fields (camelCase) ───────────────────────────────────
 
 EXPECTED_TARGET_FIELDS = {
@@ -193,7 +191,7 @@ def test_evidence_dto_contract():
 
 
 def test_paginated_wrapper():
-    from core_engines.contracts.wrapper import wrap_paginated, unwrap_items, unwrap_meta
+    from core_engines.contracts.wrapper import unwrap_items, unwrap_meta, wrap_paginated
 
     wrapped = wrap_paginated([{"id": 1}], 1, 0, 10)
     assert wrapped == {"items": [{"id": 1}], "meta": {"total": 1, "skip": 0, "limit": 10}}
@@ -206,7 +204,7 @@ def test_paginated_wrapper():
 
 
 def test_validation_contract():
-    from core_engines.contracts.validator import validate_contract, EXPECTED_FIELDS
+    from core_engines.contracts.validator import EXPECTED_FIELDS, validate_contract
 
     assert "target" in EXPECTED_FIELDS
     assert "opportunity" in EXPECTED_FIELDS

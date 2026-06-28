@@ -1,19 +1,16 @@
 from __future__ import annotations
 
-from typing import Optional
-
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
-from api.schemas.models import PaginatedResponse
-from api.services.data_service import list_scan_runs, get_scan_run
+from api.services.data_service import get_scan_run, list_scan_runs
 
 router = APIRouter(prefix="/api/scans", tags=["scans"])
 
 
 class ScanRequest(BaseModel):
     target_name: str
-    target_domain: Optional[str] = None
+    target_domain: str | None = None
     mode: str = "FAST"
 
 
@@ -36,7 +33,7 @@ async def launch_scan(request: ScanRequest):
 
 @router.get("/runs")
 def get_scan_runs(
-    target_id: Optional[int] = Query(None),
+    target_id: int | None = Query(None),
     limit: int = Query(50, ge=1, le=200),
 ):
     return list_scan_runs(target_id=target_id, limit=limit)
@@ -53,8 +50,8 @@ def get_scan_run_detail(scan_id: int):
 class NucleiScanRequest(BaseModel):
     urls: list[str]
     severity: str = "medium,high,critical"
-    tags: Optional[list[str]] = None
-    exclude_tags: Optional[list[str]] = None
+    tags: list[str] | None = None
+    exclude_tags: list[str] | None = None
 
 
 @router.post("/nuclei")
@@ -62,6 +59,7 @@ async def run_nuclei_scan(request: NucleiScanRequest):
     import shutil
     import tempfile
     from pathlib import Path
+
     from core_engines.recon.nuclei_runner import NucleiRunner
 
     tmp = Path(tempfile.mkdtemp(prefix="rastro_nuclei_"))

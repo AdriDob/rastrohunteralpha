@@ -8,19 +8,19 @@ Dependencies: PipelineArtifact
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from core_engines.contracts import Bundle
 
 
 @dataclass
 class AttackSurfaceArtifact(Bundle):
-    idor_clusters: List[Dict[str, Any]] = field(default_factory=list)
-    auth_boundaries: List[Dict[str, Any]] = field(default_factory=list)
-    multi_tenant_zones: List[Dict[str, Any]] = field(default_factory=list)
-    graphql_surfaces: List[Dict[str, Any]] = field(default_factory=list)
-    technologies: List[Dict[str, Any]] = field(default_factory=list)
-    discovered_paths: List[str] = field(default_factory=list)
+    idor_clusters: list[dict[str, Any]] = field(default_factory=list)
+    auth_boundaries: list[dict[str, Any]] = field(default_factory=list)
+    multi_tenant_zones: list[dict[str, Any]] = field(default_factory=list)
+    graphql_surfaces: list[dict[str, Any]] = field(default_factory=list)
+    technologies: list[dict[str, Any]] = field(default_factory=list)
+    discovered_paths: list[str] = field(default_factory=list)
     total_surfaces: int = 0
     summary: str = ""
 
@@ -33,7 +33,7 @@ class AttackSurfaceArtifact(Bundle):
         )
 
     @classmethod
-    def from_surface_map(cls, surface_map) -> "AttackSurfaceArtifact":
+    def from_surface_map(cls, surface_map) -> AttackSurfaceArtifact:
         return cls(
             idor_clusters=list(getattr(surface_map, "idor_clusters", [])),
             auth_boundaries=list(getattr(surface_map, "auth_boundaries", [])),

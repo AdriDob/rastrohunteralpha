@@ -402,6 +402,75 @@ export function getIdentityAccounts() {
 }
 
 
+// ─── Identity Center ───────────────────────────────────────────────
+
+export interface IdentityCenterData {
+  platforms: Array<{
+    provider: string;
+    connected: boolean;
+    has_token: boolean;
+    last_sync: string;
+    mode: string;
+    email: string;
+  }>;
+  email: { primary: string; secondary: string };
+  wallets: Record<string, string>;
+  never_submit_without_approval: boolean;
+}
+
+export function getIdentityCenter() {
+  return fetchJson<any>('/identity-center').then(r => r.data as IdentityCenterData);
+}
+
+export function connectPlatform(provider: string, token: string, email: string, password?: string) {
+  return fetchJson<any>(`/identity-center/platform/${provider}/connect`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token, email, password }),
+  });
+}
+
+export function disconnectPlatform(provider: string) {
+  return fetchJson<any>(`/identity-center/platform/${provider}/disconnect`, { method: 'POST' });
+}
+
+export function setPlatformMode(provider: string, mode: string) {
+  return fetchJson<any>(`/identity-center/platform/${provider}/mode`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mode }),
+  });
+}
+
+export function removePlatform(provider: string) {
+  return fetchJson<any>(`/identity-center/platform/${provider}/remove`, { method: 'POST' });
+}
+
+export function setEmail(primary: string, secondary: string) {
+  return fetchJson<any>('/identity-center/email', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ primary, secondary }),
+  });
+}
+
+export function setWallets(wallets: Record<string, string>) {
+  return fetchJson<any>('/identity-center/wallets', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(wallets),
+  });
+}
+
+export function setNeverSubmit(enabled: boolean) {
+  return fetchJson<any>('/identity-center/never-submit', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ enabled }),
+  });
+}
+
+
 // ─── Execution Layer ─────────────────────────────────────────────────
 
 export function getExecutionTrackerStats() {
@@ -700,6 +769,73 @@ export function fetchPublicPrograms(platforms?: string[]) {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ platforms }),
+  });
+}
+
+// ── Runtime Settings (Mode + Platforms) ───────────────────────────
+
+export interface RastroSettings {
+  mode: 'manual' | 'automatic';
+  platforms: Record<string, PlatformConfig>;
+}
+
+export interface PlatformConfig {
+  enabled: boolean;
+  action: 'prepare_only' | 'prepare_and_open' | 'prepare_and_fill' | 'auto_submit';
+  username: string;
+  api_key: string;
+}
+
+export function getRuntimeSettings() {
+  return fetchJson<RastroSettings>('/settings/runtime');
+}
+
+export function getMode() {
+  return fetchJson<{ mode: string }>('/settings/runtime/mode');
+}
+
+export function setMode(mode: 'manual' | 'automatic') {
+  return fetchJson<{ mode: string; status: string }>('/settings/runtime/mode', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mode }),
+  });
+}
+
+export function getPlatformConfigs() {
+  return fetchJson<Record<string, PlatformConfig>>('/settings/runtime/platforms');
+}
+
+export function getPlatformConfig(platformId: string) {
+  return fetchJson<PlatformConfig>(`/settings/runtime/platforms/${platformId}`);
+}
+
+export function updatePlatformConfig(platformId: string, config: Partial<PlatformConfig>) {
+  return fetchJson<PlatformConfig & { status: string }>(`/settings/runtime/platforms/${platformId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(config),
+  });
+}
+
+// ── Report Export & Versions ──────────────────────────────────────
+
+export function exportReport(reportId: number, format: 'markdown' | 'html' | 'pdf' | 'txt') {
+  const token = sessionStorage.getItem('rastro-token');
+  return fetch(`${BASE}/reports/${reportId}/export?format=${format}`, {
+    headers: { ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+  });
+}
+
+export function getReportVersions(reportId: number) {
+  return fetchJson<{ versions: any[]; total: number }>(`/reports/${reportId}/versions`);
+}
+
+export function createReportVersion(reportId: number, summary?: string) {
+  return fetchJson<any>(`/reports/${reportId}/versions`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ summary: summary || '' }),
   });
 }
 

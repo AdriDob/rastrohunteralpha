@@ -3,7 +3,7 @@ import json
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 from .tools import _resolve_tool
 
@@ -13,7 +13,7 @@ LOG = logging.getLogger("rastro.recon.ffuf")
 class FfufRunner:
     """Runs ffuf for directory/file fuzzing with predefined profiles."""
 
-    PROFILES: Dict[str, Dict[str, Any]] = {
+    PROFILES: dict[str, dict[str, Any]] = {
         "fast": {
             "description": "Quick scan for common admin panels and backups",
             "wordlist": "discovery/Web-Content/common.txt",
@@ -53,7 +53,7 @@ class FfufRunner:
     def __init__(
         self,
         output_dir: Path,
-        seclists_dir: Optional[str] = None,
+        seclists_dir: str | None = None,
         timeout: int = 300,
     ):
         self.output_dir = output_dir
@@ -66,7 +66,7 @@ class FfufRunner:
             or "/usr/share/seclists"
         )
 
-    def _resolve_wordlist(self, profile: str) -> Optional[str]:
+    def _resolve_wordlist(self, profile: str) -> str | None:
         """Resolve wordlist path for a profile."""
         if profile not in self.PROFILES:
             LOG.warning("Unknown ffuf profile '%s'", profile)
@@ -82,11 +82,11 @@ class FfufRunner:
         self,
         target_url: str,
         profile: str = "fast",
-        out_file: Optional[str] = None,
-        wordlist: Optional[str] = None,
-        extensions: Optional[List[str]] = None,
-        extra_args: Optional[List[str]] = None,
-        max_time: Optional[int] = None,
+        out_file: str | None = None,
+        wordlist: str | None = None,
+        extensions: list[str] | None = None,
+        extra_args: list[str] | None = None,
+        max_time: int | None = None,
     ) -> Path:
         """Run ffuf against a URL using a named profile or custom settings."""
         if profile and profile not in self.PROFILES:
@@ -147,7 +147,7 @@ class FfufRunner:
 
         return path
 
-    def parse_results(self, json_path: Path) -> List[Dict[str, Any]]:
+    def parse_results(self, json_path: Path) -> list[dict[str, Any]]:
         """Parse ffuf JSON output into structured results."""
         if not json_path.exists():
             return []
@@ -173,10 +173,10 @@ class FfufRunner:
             return []
 
     def categorize_findings(
-        self, results: List[Dict[str, Any]]
-    ) -> Dict[str, List[Dict[str, Any]]]:
+        self, results: list[dict[str, Any]]
+    ) -> dict[str, list[dict[str, Any]]]:
         """Categorize ffuf results by response status."""
-        categories: Dict[str, List[Dict[str, Any]]] = {
+        categories: dict[str, list[dict[str, Any]]] = {
             "admin_panels": [],
             "api_endpoints": [],
             "backups": [],
@@ -204,7 +204,7 @@ class FfufRunner:
 
     async def discover_paths(
         self, target_url: str, profile: str = "fast"
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Convenience: run ffuf and parse results in one call."""
         out = await self.run_ffuf(target_url, profile=profile)
         json_path = out.with_suffix(".json") if out.suffix != ".json" else out

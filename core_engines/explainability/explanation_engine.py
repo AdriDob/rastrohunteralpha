@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger("rastro.explainability.engine")
 
@@ -26,15 +26,15 @@ class Explanation:
     decision_id: str
     action: str
     summary: str
-    reasoning_chain: List[str]
+    reasoning_chain: list[str]
     confidence: float = 0.0
     source: str = "system"
-    input_signals: List[Dict[str, Any]] = field(default_factory=list)
-    alternatives: List[str] = field(default_factory=list)
-    outcome: Optional[str] = None
+    input_signals: list[dict[str, Any]] = field(default_factory=list)
+    alternatives: list[str] = field(default_factory=list)
+    outcome: str | None = None
     timestamp: float = field(default_factory=time.time)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "decision_id": self.decision_id,
@@ -54,18 +54,18 @@ class ExplanationEngine:
     """Generates, stores, and retrieves explanations for system decisions."""
 
     def __init__(self) -> None:
-        self._explanations: Dict[str, Explanation] = {}
+        self._explanations: dict[str, Explanation] = {}
 
     def explain(
         self,
         decision_id: str,
         action: str,
         summary: str,
-        reasoning_chain: List[str],
+        reasoning_chain: list[str],
         confidence: float = 0.0,
         source: str = "system",
-        input_signals: Optional[List[Dict[str, Any]]] = None,
-        alternatives: Optional[List[str]] = None,
+        input_signals: list[dict[str, Any]] | None = None,
+        alternatives: list[str] | None = None,
     ) -> Explanation:
         explanation = Explanation(
             id=f"expl-{decision_id}",
@@ -82,14 +82,14 @@ class ExplanationEngine:
         self._archive(explanation)
         return explanation
 
-    def get_explanation(self, decision_id: str) -> Optional[Explanation]:
+    def get_explanation(self, decision_id: str) -> Explanation | None:
         # Look up by decision_id directly
         for exp in self._explanations.values():
             if exp.decision_id == decision_id:
                 return exp
         return None
 
-    def get_explanation_by_id(self, explanation_id: str) -> Optional[Explanation]:
+    def get_explanation_by_id(self, explanation_id: str) -> Explanation | None:
         return self._explanations.get(explanation_id)
 
     def explain_feedback(self, action: str, outcome: str) -> Explanation:
@@ -97,7 +97,7 @@ class ExplanationEngine:
         alternatives = ["no_action", "different_priority"]
         reasoning = [
             f"User action '{action}' completed with outcome '{outcome}'",
-            f"Recording feedback for learning loop adjustment",
+            "Recording feedback for learning loop adjustment",
         ]
         return self.explain(
             decision_id=decision_id,
@@ -109,7 +109,7 @@ class ExplanationEngine:
             alternatives=alternatives,
         )
 
-    def explain_priority_rank(self, action_id: str, score: float, signals: List[str]) -> Explanation:
+    def explain_priority_rank(self, action_id: str, score: float, signals: list[str]) -> Explanation:
         decision_id = f"prio-{action_id}-{int(time.time())}"
         reasoning = [
             f"Priority score: {score:.3f}",
@@ -125,7 +125,7 @@ class ExplanationEngine:
             input_signals=[{"type": s} for s in signals],
         )
 
-    def list_recent(self, limit: int = 20) -> List[Dict[str, Any]]:
+    def list_recent(self, limit: int = 20) -> list[dict[str, Any]]:
         sorted_exps = sorted(
             self._explanations.values(),
             key=lambda e: e.timestamp,
@@ -135,7 +135,7 @@ class ExplanationEngine:
 
     def _archive(self, explanation: Explanation) -> None:
         try:
-            from core_engines.memory.insight_archive import get_insight_archive, Insight
+            from core_engines.memory.insight_archive import Insight, get_insight_archive
             archive = get_insight_archive()
             insight = Insight(
                 id=explanation.id,
@@ -163,7 +163,7 @@ class ExplanationEngine:
         self._explanations.clear()
 
 
-_ENGINE: Optional[ExplanationEngine] = None
+_ENGINE: ExplanationEngine | None = None
 
 
 def get_explanation_engine() -> ExplanationEngine:

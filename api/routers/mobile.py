@@ -1,11 +1,10 @@
 import json
-from typing import Any, Dict, Optional
 
 from fastapi import APIRouter, Query, Request
 
-from core_engines.opportunity import get_engine
-from core_engines.gateway.schemas import ok, error
+from core_engines.gateway.schemas import error, ok
 from core_engines.notifications.push import get_push_router
+from core_engines.opportunity import get_engine
 from database import db
 
 router = APIRouter(prefix="/api/mobile", tags=["mobile"])

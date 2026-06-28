@@ -5,8 +5,7 @@ Hooks into system events via the event bus to record behavioural metrics.
 
 from __future__ import annotations
 
-from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any
 
 from .profile import ProfileService, get_profile_service
 
@@ -14,12 +13,12 @@ from .profile import ProfileService, get_profile_service
 class EventTracker:
     """Observes user actions and updates the profile."""
 
-    def __init__(self, profile_service: Optional[ProfileService] = None):
+    def __init__(self, profile_service: ProfileService | None = None):
         self._profile = profile_service or get_profile_service()
 
     # ── Public API ─────────────────────────────────────────────────────
 
-    def track_target_viewed(self, user_id: str, target_data: Dict[str, Any]) -> None:
+    def track_target_viewed(self, user_id: str, target_data: dict[str, Any]) -> None:
         self._profile.increment(user_id, "total_targets")
         self._profile.append_json_list(user_id, "industries", target_data.get("industry"))
         self._profile.append_json_list(user_id, "technologies", target_data.get("technology"))
@@ -27,7 +26,7 @@ class EventTracker:
         self._profile.append_json_list(user_id, "domains", target_data.get("domain"))
         self._profile.log_event(user_id, "target_viewed", target_data)
 
-    def track_finding_created(self, user_id: str, finding_data: Dict[str, Any]) -> None:
+    def track_finding_created(self, user_id: str, finding_data: dict[str, Any]) -> None:
         bug_class = finding_data.get("bug_class", "").lower()
         if bug_class:
             self._profile.increment_nested(user_id, "favorite_bug_classes", bug_class)
@@ -42,7 +41,7 @@ class EventTracker:
             self._profile.increment(user_id, "informational_findings")
         self._profile.log_event(user_id, "finding_created", finding_data)
 
-    def track_finding_validated(self, user_id: str, validation_data: Dict[str, Any]) -> None:
+    def track_finding_validated(self, user_id: str, validation_data: dict[str, Any]) -> None:
         confirmed = validation_data.get("confirmed", False)
         if confirmed:
             self._profile.increment(user_id, "confirmed_findings")
@@ -81,7 +80,7 @@ class EventTracker:
         self._profile.log_event(user_id, "preference_changed", {pref: value})
 
 
-_tracker: Optional[EventTracker] = None
+_tracker: EventTracker | None = None
 
 
 def get_event_tracker() -> EventTracker:

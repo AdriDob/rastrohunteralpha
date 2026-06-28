@@ -7,13 +7,16 @@ Uses in-memory dict with optional SQLite persistence.
 from __future__ import annotations
 
 import json
+import logging
 import os
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any
+
+logger = logging.getLogger("rastro.auth.session")
 
 from .auth import (
-    create_session_token,
     create_refresh_token,
+    create_session_token,
     verify_token,
 )
 
@@ -28,8 +31,8 @@ class SessionStore:
     """In-memory session store with optional file persistence."""
 
     def __init__(self, persist: bool = True) -> None:
-        self._sessions: Dict[str, Dict[str, Any]] = {}
-        self._devices: Dict[str, Dict[str, Any]] = {}
+        self._sessions: dict[str, dict[str, Any]] = {}
+        self._devices: dict[str, dict[str, Any]] = {}
         self._persist = persist
         if persist:
             os.makedirs(SESSION_DIR, exist_ok=True)
@@ -47,7 +50,7 @@ class SessionStore:
                     self._sessions = data.get("sessions", {})
                     self._devices = data.get("devices", {})
             except (json.JSONDecodeError, OSError):
-                pass
+                logger.warning("Failed to load sessions from disk", exc_info=True)
 
     def _save(self) -> None:
         if not self._persist:
@@ -56,9 +59,9 @@ class SessionStore:
             with open(self._path("sessions.json"), "w") as f:
                 json.dump({"sessions": self._sessions, "devices": self._devices}, f)
         except OSError:
-            pass
+            logger.warning("Failed to save sessions to disk", exc_info=True)
 
-    def create_session(self, device_id: str, meta: Optional[Dict[str, Any]] = None) -> Dict[str, str]:
+    def create_session(self, device_id: str, meta: dict[str, Any] | None = None) -> dict[str, str]:
         """Create a new session for a device. Returns tokens."""
         token = create_session_token(device_id, meta=meta)
         refresh = create_refresh_token(device_id)
@@ -73,7 +76,7 @@ class SessionStore:
         self._save()
         return {"token": token, "refresh": refresh, "device_id": device_id}
 
-    def register_device(self, device_id: str, info: Dict[str, Any]) -> None:
+    def register_device(self, device_id: str, info: dict[str, Any]) -> None:
         """Register or update a device."""
         self._devices[device_id] = {
             **self._devices.get(device_id, {}),
@@ -82,10 +85,10 @@ class SessionStore:
         }
         self._save()
 
-    def get_session(self, device_id: str) -> Optional[Dict[str, Any]]:
+    def get_session(self, device_id: str) -> dict[str, Any] | None:
         return self._sessions.get(device_id)
 
-    def refresh_session(self, device_id: str, refresh_token: str) -> Optional[Dict[str, str]]:
+    def refresh_session(self, device_id: str, refresh_token: str) -> dict[str, str] | None:
         """Refresh a session using a refresh token. Returns new tokens or None."""
         data = verify_token(refresh_token)
         if data is None or data.get("type") != "refresh":
@@ -98,20 +101,20 @@ class SessionStore:
         self._sessions.pop(device_id, None)
         self._save()
 
-    def list_devices(self) -> List[Dict[str, Any]]:
+    def list_devices(self) -> list[dict[str, Any]]:
         return [
             {"device_id": did, **info}
             for did, info in self._devices.items()
         ]
 
-    def list_sessions(self) -> List[Dict[str, Any]]:
+    def list_sessions(self) -> list[dict[str, Any]]:
         return list(self._sessions.values())
 
     def get_device_count(self) -> int:
         return len(self._devices)
 
 
-_STORE: Optional[SessionStore] = None
+_STORE: SessionStore | None = None
 
 
 def get_session_store() -> SessionStore:

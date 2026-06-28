@@ -1,5 +1,4 @@
-import json
-from typing import Any, Dict, List
+from typing import Any
 
 from core_engines.validation.replayer import ComparisonResult, RequestSpec
 
@@ -11,7 +10,7 @@ class EvidenceBuilder:
         auth_label: str,
         comparison: ComparisonResult,
         verdict_id: int | None = None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         import json as _json
 
         return {
@@ -38,9 +37,9 @@ class EvidenceBuilder:
         self,
         request_spec: RequestSpec,
         auth_context: Any,
-        comparisons: List[ComparisonResult],
+        comparisons: list[ComparisonResult],
         verdict_id: int | None = None,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         auth_label = getattr(auth_context, "label", "unknown")
         return [
             self.build_from_comparison(request_spec, auth_label, c, verdict_id)
@@ -48,8 +47,8 @@ class EvidenceBuilder:
         ]
 
     def build_comparison_summary(
-        self, comparisons: List[ComparisonResult]
-    ) -> Dict[str, Any]:
+        self, comparisons: list[ComparisonResult]
+    ) -> dict[str, Any]:
         if not comparisons:
             return {"total": 0}
         return {

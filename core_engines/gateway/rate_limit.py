@@ -6,9 +6,8 @@ Single-instance only; swap for Redis in multi-instance deployments.
 
 from __future__ import annotations
 
-import time
 import re
-from typing import Dict, List, Optional, Tuple
+import time
 
 
 class RateLimitRule:
@@ -26,19 +25,19 @@ class TokenBucket:
     def __init__(self, rate: float = 30.0, burst: int = 50) -> None:
         self.default_rate = rate
         self.default_burst = burst
-        self._buckets: Dict[str, Tuple[float, float]] = {}
-        self._rules: List[RateLimitRule] = []
+        self._buckets: dict[str, tuple[float, float]] = {}
+        self._rules: list[RateLimitRule] = []
 
     def add_rule(self, pattern: str, rate: float, burst: int) -> None:
         self._rules.append(RateLimitRule(pattern, rate, burst))
 
-    def _get_limits(self, key: str) -> Tuple[float, int]:
+    def _get_limits(self, key: str) -> tuple[float, int]:
         for rule in self._rules:
             if rule.pattern.search(key):
                 return rule.rate, rule.burst
         return self.default_rate, self.default_burst
 
-    def _refill(self, key: str, burst: int) -> Tuple[float, float]:
+    def _refill(self, key: str, burst: int) -> tuple[float, float]:
         now = time.monotonic()
         tokens, last = self._buckets.get(key, (float(burst), now))
         rate, _ = self._get_limits(key)
@@ -64,7 +63,7 @@ class TokenBucket:
         self._buckets.pop(key, None)
 
 
-_rate_limiter: Optional[TokenBucket] = None
+_rate_limiter: TokenBucket | None = None
 
 
 def reset_rate_limiter() -> None:

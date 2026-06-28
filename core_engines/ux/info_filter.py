@@ -13,7 +13,7 @@ Usage:
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 MAX_DESCRIPTION_LENGTH = 120
 MAX_REASON_LENGTH = 100
@@ -21,7 +21,7 @@ MAX_ACTIONS = 4
 MAX_INSIGHTS = 1
 
 
-def truncate(text: Optional[str], max_len: int = MAX_DESCRIPTION_LENGTH) -> str:
+def truncate(text: str | None, max_len: int = MAX_DESCRIPTION_LENGTH) -> str:
     if not text:
         return ""
     text = text.strip()
@@ -30,7 +30,7 @@ def truncate(text: Optional[str], max_len: int = MAX_DESCRIPTION_LENGTH) -> str:
     return text[: max_len - 3].rsplit(" ", 1)[0] + "..."
 
 
-def dedup_actions(actions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+def dedup_actions(actions: list[dict[str, Any]]) -> list[dict[str, Any]]:
     seen_labels: set = set()
     deduped = []
     for a in actions:
@@ -41,8 +41,8 @@ def dedup_actions(actions: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
     return deduped
 
 
-def reduce_briefing(briefing: Dict[str, Any]) -> Dict[str, Any]:
-    output: Dict[str, Any] = {}
+def reduce_briefing(briefing: dict[str, Any]) -> dict[str, Any]:
+    output: dict[str, Any] = {}
 
     # Primary action
     recommended = briefing.get("recommended_action")

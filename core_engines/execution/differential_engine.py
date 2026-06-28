@@ -1,12 +1,9 @@
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from core_engines.execution.poc_generator import PoCGenerator, TestScenario
-from core_engines.validation.confidence import ConfidenceScorer
+from core_engines.execution.poc_generator import PoCGenerator
 from core_engines.validation.gate import Verdict
 from core_engines.validation.loop_engine import ValidationLoopEngine
-from core_engines.validation.replayer import RequestReplayer
-from core_engines.validation.rules import ValidationRuleSet
 
 LOG = logging.getLogger("rastro.execution.differential")
 
@@ -14,21 +11,21 @@ LOG = logging.getLogger("rastro.execution.differential")
 class DifferentialEngine:
     def __init__(
         self,
-        poc_generator: Optional[PoCGenerator] = None,
-        vle: Optional[ValidationLoopEngine] = None,
+        poc_generator: PoCGenerator | None = None,
+        vle: ValidationLoopEngine | None = None,
     ):
         self._poc_generator = poc_generator or PoCGenerator()
         self._vle = vle or ValidationLoopEngine()
 
     def run(
         self,
-        hot_paths: List[Dict[str, Any]],
-        endpoint_details_map: Dict[str, Dict[str, Any]],
-        endpoint_signals_map: Dict[str, Dict[str, Any]],
-        baseline_token: Optional[str] = None,
-        probe_token: Optional[str] = None,
+        hot_paths: list[dict[str, Any]],
+        endpoint_details_map: dict[str, dict[str, Any]],
+        endpoint_signals_map: dict[str, dict[str, Any]],
+        baseline_token: str | None = None,
+        probe_token: str | None = None,
         min_attempts: int = 3,
-    ) -> Dict[str, Verdict]:
+    ) -> dict[str, Verdict]:
         scenarios = self._poc_generator.build_test_plan(
             hot_paths=hot_paths,
             endpoint_details_map=endpoint_details_map,
@@ -37,7 +34,7 @@ class DifferentialEngine:
             probe_token=probe_token,
         )
 
-        verdicts: Dict[str, Verdict] = {}
+        verdicts: dict[str, Verdict] = {}
         for scenario in scenarios:
             verdict = self._vle.evaluate(
                 hot_path_id=scenario.hot_path_id,

@@ -1,0 +1,51 @@
+[tool.ruff]
+target-version = "py310"
+line-length = 120
+indent-width = 4
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "SIM"]
+ignore = ["E501", "E731"]
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]
+"tests/*" = ["SIM"]
+"desktop/service.py" = ["N802"]
+
+[tool.mypy]
+python_version = "3.10"
+strict = false
+warn_unused_configs = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+disallow_any_unimported = false
+disallow_untyped_defs = false
+ignore_missing_imports = true
+follow_imports = "skip"
+
+# Platform-specific false positives
+[[tool.mypy.overrides]]
+module = [
+    "desktop.main_desktop",
+    "desktop.updater",
+    "core_engines.license.hardware",
+    "core_engines.platform.system",
+]
+ignore_errors = true
+
+# Known false positives in agent system
+[[tool.mypy.overrides]]
+module = [
+    "core_engines.agents.financial",
+    "core_engines.agents.memory",
+    "core_engines.agents.coordinator",
+    "core_engines.agents.exploit",
+    "core_engines.agents.documentation",
+    "core_engines.agents.research",
+    "core_engines.agents.base",
+]
+ignore_errors = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-v --tb=short"

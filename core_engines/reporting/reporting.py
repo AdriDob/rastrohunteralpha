@@ -1,4 +1,4 @@
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from core_engines.validation.gate import Verdict
 
@@ -14,10 +14,10 @@ class ConfidenceThresholdError(ValidationError):
 class ReportGenerator:
     def draft_report(
         self,
-        findings: Dict[str, str],
-        verdict: Optional[Verdict] = None,
-        evidence_list: Optional[List[Dict[str, Any]]] = None,
-    ) -> Dict[str, str]:
+        findings: dict[str, str],
+        verdict: Verdict | None = None,
+        evidence_list: list[dict[str, Any]] | None = None,
+    ) -> dict[str, str]:
         severity = findings.get("severity", "medium")
 
         if verdict and verdict.confidence < 0.6:

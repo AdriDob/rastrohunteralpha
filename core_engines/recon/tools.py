@@ -7,7 +7,6 @@ import logging
 import os
 import shutil
 from pathlib import Path
-from typing import Dict, List
 
 logger = logging.getLogger("rastro.recon.tools")
 
@@ -48,7 +47,7 @@ def check_tool_available(tool_name: str) -> bool:
 
 
 async def check_tool_async(
-    tool_name: str, test_cmd: List[str], timeout: int = 5
+    tool_name: str, test_cmd: list[str], timeout: int = 5
 ) -> bool:
     """
     Async check if a tool responds to a version/help command.
@@ -75,7 +74,7 @@ async def check_tool_async(
         return False
 
 
-async def verify_recon_tools(mode: str = "FAST") -> Dict[str, bool]:
+async def verify_recon_tools(mode: str = "FAST") -> dict[str, bool]:
     """
     Verify availability of required recon tools for the given mode.
 
@@ -108,7 +107,7 @@ async def verify_recon_tools(mode: str = "FAST") -> Dict[str, bool]:
 
 
 def validate_mode_compatibility(
-    mode: str, tool_status: Dict[str, bool]
+    mode: str, tool_status: dict[str, bool]
 ) -> tuple[bool, str]:
     """
     Check if requested recon mode is compatible with available tools.

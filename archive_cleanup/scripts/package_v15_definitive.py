@@ -18,10 +18,8 @@ import argparse
 import hashlib
 import os
 import shutil
-import subprocess
 import sys
 import zipfile
-from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -111,7 +109,7 @@ def _make_zip_staging(dest_dir: Path, skip_windows: bool) -> Path:
     android_dir = staging / "Android"
     android_dir.mkdir(exist_ok=True)
     shutil.copy2(ANDROID_SRC, android_dir / ANDROID_SRC.name)
-    print(f"  ✓ Android/")
+    print("  ✓ Android/")
 
     # ── Docs ───────────────────────────────────────────────────
     docs_dir = staging / "docs"
@@ -119,7 +117,7 @@ def _make_zip_staging(dest_dir: Path, skip_windows: bool) -> Path:
     for doc in DOCS_SRC:
         if doc.exists():
             shutil.copy2(doc, docs_dir / doc.name)
-    print(f"  ✓ docs/")
+    print("  ✓ docs/")
 
     # ── Installer scripts ─────────────────────────────────────
     scripts_dir = staging / "scripts"
@@ -128,7 +126,7 @@ def _make_zip_staging(dest_dir: Path, skip_windows: bool) -> Path:
         shutil.copy2(WINDOWS_INSTALLER, scripts_dir / WINDOWS_INSTALLER.name)
     if LINUX_INSTALLER.exists():
         shutil.copy2(LINUX_INSTALLER, scripts_dir / LINUX_INSTALLER.name)
-    print(f"  ✓ scripts/")
+    print("  ✓ scripts/")
 
     return staging
 

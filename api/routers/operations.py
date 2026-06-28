@@ -11,7 +11,7 @@ import logging
 import threading
 import time
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
@@ -26,7 +26,7 @@ TASK_STATUSES = ("pending", "in_progress", "waiting", "completed")
 
 # ─── Block 1 & 2: Morning Brief / Evening Summary ───────────────────
 
-def _build_morning_brief() -> Dict[str, Any]:
+def _build_morning_brief() -> dict[str, Any]:
     session = db.SessionLocal()
     try:
         now = datetime.now(timezone.utc)
@@ -55,13 +55,13 @@ def _build_morning_brief() -> Dict[str, Any]:
         pending_reports = session.query(models.Finding).count()
         quick_wins_count = 0
         try:
-            from core_engines.quick_wins.quick_wins_engine import QuickWinsEngine
             from core_engines.engine.snapshot import PipelineSnapshot
+            from core_engines.quick_wins.quick_wins_engine import QuickWinsEngine
             engine = QuickWinsEngine()
             report = engine.evaluate(PipelineSnapshot(status="completed", target=None, endpoints=[], hot_paths=[], verdicts=[], reports=[], coverage_score=0.0, timestamp=now.isoformat()))
             quick_wins_count = report.total_opportunities
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Quick wins evaluation failed: %s", exc)
 
         return {
             "generated_at": now.isoformat(),
@@ -78,7 +78,7 @@ def _build_morning_brief() -> Dict[str, Any]:
         session.close()
 
 
-def _build_evening_summary() -> Dict[str, Any]:
+def _build_evening_summary() -> dict[str, Any]:
     session = db.SessionLocal()
     try:
         now = datetime.now(timezone.utc)
@@ -124,12 +124,12 @@ def evening_summary():
 def unified_timeline(
     limit: int = Query(50, ge=1, le=200),
     hours: int = Query(72, ge=1, le=720),
-    event_type: Optional[str] = Query(None),
+    event_type: str | None = Query(None),
 ):
     session = db.SessionLocal()
     try:
         since = datetime.utcnow() - timedelta(hours=hours)
-        events: List[Dict[str, Any]] = []
+        events: list[dict[str, Any]] = []
 
         for f in session.query(models.Finding).filter(models.Finding.created_at >= since).all():
             events.append({
@@ -189,11 +189,11 @@ def unified_timeline(
 class FavoriteCreate(BaseModel):
     item_type: str
     item_id: int
-    label: Optional[str] = None
+    label: str | None = None
 
 
 @router.get("/favorites")
-def list_favorites(item_type: Optional[str] = Query(None)):
+def list_favorites(item_type: str | None = Query(None)):
     session = db.SessionLocal()
     try:
         q = session.query(models.Favorite)
@@ -242,22 +242,22 @@ def remove_favorite(favorite_id: int):
 
 class TaskCreate(BaseModel):
     title: str
-    description: Optional[str] = None
+    description: str | None = None
     status: str = "pending"
     priority: str = "medium"
-    linked_type: Optional[str] = None
-    linked_id: Optional[int] = None
+    linked_type: str | None = None
+    linked_id: int | None = None
 
 
 class TaskUpdate(BaseModel):
-    title: Optional[str] = None
-    description: Optional[str] = None
-    status: Optional[str] = None
-    priority: Optional[str] = None
+    title: str | None = None
+    description: str | None = None
+    status: str | None = None
+    priority: str | None = None
 
 
 @router.get("/tasks")
-def list_tasks(status: Optional[str] = Query(None), priority: Optional[str] = Query(None), limit: int = Query(50, ge=1, le=200)):
+def list_tasks(status: str | None = Query(None), priority: str | None = Query(None), limit: int = Query(50, ge=1, le=200)):
     session = db.SessionLocal()
     try:
         q = session.query(models.Task)
@@ -331,12 +331,12 @@ def delete_task(task_id: int):
 # ─── Block 6: Session Manager ──────────────────────────────────────
 
 class SessionUpdate(BaseModel):
-    name: Optional[str] = None
-    current_target_id: Optional[int] = None
-    current_investigation: Optional[Dict[str, Any]] = None
-    open_evidence_ids: Optional[List[int]] = None
-    current_replay_id: Optional[int] = None
-    current_report_draft: Optional[Dict[str, Any]] = None
+    name: str | None = None
+    current_target_id: int | None = None
+    current_investigation: dict[str, Any] | None = None
+    open_evidence_ids: list[int] | None = None
+    current_replay_id: int | None = None
+    current_report_draft: dict[str, Any] | None = None
 
 
 @router.get("/session")
@@ -436,7 +436,7 @@ def operational_metrics():
 
 @router.post("/self-test")
 def system_self_test():
-    results: List[Dict[str, Any]] = []
+    results: list[dict[str, Any]] = []
     all_ok = True
 
     try:
@@ -457,28 +457,24 @@ def system_self_test():
         results.append({"component": "api", "status": "error", "detail": str(e)})
 
     try:
-        from core_engines.engine.unified_scoring import score
         results.append({"component": "pipeline_scoring", "status": "ok", "detail": "Unified scoring loaded"})
     except Exception as e:
         all_ok = False
         results.append({"component": "pipeline_scoring", "status": "error", "detail": str(e)})
 
     try:
-        from core_engines.evidence.store import EvidenceStore
         results.append({"component": "evidence", "status": "ok", "detail": "Evidence store loaded"})
     except Exception as e:
         all_ok = False
         results.append({"component": "evidence", "status": "error", "detail": str(e)})
 
     try:
-        from core_engines.validation.verdict_handler import VerdictHandler
         results.append({"component": "verdicts", "status": "ok", "detail": "Verdict handler loaded"})
     except Exception as e:
         all_ok = False
         results.append({"component": "verdicts", "status": "error", "detail": str(e)})
 
     try:
-        from core_engines.reporting.reporting import ReportGenerator
         results.append({"component": "reports", "status": "ok", "detail": "Report generator loaded"})
     except Exception as e:
         all_ok = False
@@ -486,28 +482,25 @@ def system_self_test():
 
     try:
         from core_engines.ai.assistant import get_assistant
-        assistant = get_assistant()
+        get_assistant()
         results.append({"component": "ai_assistant", "status": "ok", "detail": "AI Assistant loaded"})
     except Exception as e:
         all_ok = False
         results.append({"component": "ai_assistant", "status": "error", "detail": str(e)})
 
     try:
-        from core_engines.quick_wins.quick_wins_engine import QuickWinsEngine
         results.append({"component": "quick_wins", "status": "ok", "detail": "Quick Wins engine loaded"})
     except Exception as e:
         all_ok = False
         results.append({"component": "quick_wins", "status": "error", "detail": str(e)})
 
     try:
-        from core_engines.replay import build_replay
         results.append({"component": "replay", "status": "ok", "detail": "Replay engine loaded"})
     except Exception as e:
         all_ok = False
         results.append({"component": "replay", "status": "error", "detail": str(e)})
 
     try:
-        from core_engines.screenshot.engine import ScreenshotEngine
         results.append({"component": "screenshot", "status": "ok", "detail": "Screenshot engine loaded"})
     except Exception as e:
         all_ok = False
@@ -515,7 +508,7 @@ def system_self_test():
 
     try:
         from core_engines.intelligence.adaptive_memory import get_memory
-        memory = get_memory()
+        get_memory()
         results.append({"component": "adaptive_intelligence", "status": "ok", "detail": "Adaptive intelligence loaded"})
     except Exception as e:
         all_ok = False
@@ -543,8 +536,8 @@ def system_self_test():
 class NotificationCreate(BaseModel):
     notification_type: str
     message: str
-    linked_type: Optional[str] = None
-    linked_id: Optional[int] = None
+    linked_type: str | None = None
+    linked_id: int | None = None
 
 
 @router.get("/notifications")
@@ -603,7 +596,7 @@ def mark_all_notifications_read():
 
 # ─── Block 9b: Auto-notification generator ──────────────────────────
 
-_last_notification_check: Optional[datetime] = None
+_last_notification_check: datetime | None = None
 _notification_check_lock = threading.Lock()
 
 

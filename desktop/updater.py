@@ -12,15 +12,12 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
-import os
 import shutil
 import sys
-import tempfile
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
-from urllib.request import urlopen, Request
+from urllib.request import Request, urlopen
 
 logger = logging.getLogger("rastro.desktop.updater")
 
@@ -77,7 +74,7 @@ def _current_version() -> str:
     return "0.0.0"
 
 
-def check_for_updates(current_version: str | None = None) -> Optional[ReleaseInfo]:
+def check_for_updates(current_version: str | None = None) -> ReleaseInfo | None:
     """Check GitHub Releases for a newer version.
 
     Returns ReleaseInfo if an update is available, None otherwise.
@@ -142,8 +139,8 @@ def check_for_updates(current_version: str | None = None) -> Optional[ReleaseInf
                     if target_asset["name"] in line:
                         checksum_sha256 = line.split()[0].strip().lower()
                         break
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Checksum fetch failed: %s", exc)
 
     release_notes_url = data.get("html_url", "")
 
@@ -155,7 +152,7 @@ def check_for_updates(current_version: str | None = None) -> Optional[ReleaseInf
     )
 
 
-def download_update(release: ReleaseInfo) -> Optional[str]:
+def download_update(release: ReleaseInfo) -> str | None:
     """Download the update ZIP to staging directory.
 
     Returns the path to the downloaded ZIP, or None on failure.

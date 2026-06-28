@@ -8,15 +8,15 @@ Assistant: new unified orchestrator with context, insights, recommendations, cha
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
+from core_engines.ai.advisor import answer_query
 from core_engines.ai.context_builder import build_full_context
 from core_engines.ai.insights import generate_insights, get_top_insight
-from core_engines.ai.recommendations import generate_recommendations, get_best_recommendation
-from core_engines.ai.advisor import answer_query
-from core_engines.ai.summary import daily_summary, system_status
-from core_engines.ai.memory import get_memory, save_interaction, get_recent_interactions
+from core_engines.ai.memory import get_memory, get_recent_interactions, save_interaction
 from core_engines.ai.provider import get_provider
+from core_engines.ai.recommendations import generate_recommendations, get_best_recommendation
+from core_engines.ai.summary import daily_summary, system_status
 from core_engines.evidence.graph import EvidenceGraph
 from core_engines.reporting.report_engine import FinalReport, ReportEngine
 from core_engines.reporting.severity import confidence_to_label, risk_to_severity
@@ -27,14 +27,14 @@ logger = logging.getLogger("rastro.ai.assistant")
 class ScanAssistant:
     def __init__(
         self,
-        evidence_graph: Optional[EvidenceGraph] = None,
-        report_engine: Optional[ReportEngine] = None,
+        evidence_graph: EvidenceGraph | None = None,
+        report_engine: ReportEngine | None = None,
         scorer=None,
     ):
         self._evidence_graph = evidence_graph or EvidenceGraph()
         self._report_engine = report_engine or ReportEngine()
 
-    def summarize_scan(self, scan_id: str, endpoint_count: int = 0, verdicts: Optional[List[Dict[str, Any]]] = None, reports: Optional[List[FinalReport]] = None) -> str:
+    def summarize_scan(self, scan_id: str, endpoint_count: int = 0, verdicts: list[dict[str, Any]] | None = None, reports: list[FinalReport] | None = None) -> str:
         verdicts = verdicts or self._evidence_graph.get_verdicts()
         reports = reports or []
 
@@ -42,14 +42,14 @@ class ScanAssistant:
         rejected = [v for v in verdicts if v.get("status") == "rejected"]
         inconclusive = [v for v in verdicts if v.get("status") == "inconclusive"]
 
-        lines: List[str] = []
+        lines: list[str] = []
         lines.append(f"## Scan Summary: {scan_id}")
-        lines.append(f"")
+        lines.append("")
         lines.append(f"**Endpoints analyzed:** {endpoint_count}")
         lines.append(f"**Verdicts:** {len(verdicts)} total "
                       f"({len(confirmed)} confirmed, {len(inconclusive)} inconclusive, {len(rejected)} rejected)")
         lines.append(f"**Reports generated:** {len(reports)}")
-        lines.append(f"")
+        lines.append("")
 
         if confirmed:
             lines.append("### Confirmed Findings")
@@ -71,10 +71,10 @@ class ScanAssistant:
 
         return "\n".join(lines)
 
-    def explain_finding(self, finding_id: str, verdict: Optional[Dict[str, Any]] = None, report: Optional[FinalReport] = None, evidence_graph: Optional[EvidenceGraph] = None) -> str:
+    def explain_finding(self, finding_id: str, verdict: dict[str, Any] | None = None, report: FinalReport | None = None, evidence_graph: EvidenceGraph | None = None) -> str:
         graph = evidence_graph or self._evidence_graph
 
-        lines: List[str] = []
+        lines: list[str] = []
         lines.append(f"## Finding Analysis: {finding_id}")
         lines.append("")
 
@@ -113,7 +113,7 @@ class ScanAssistant:
 
         if report:
             lines.append("")
-            lines.append(f"### Report Summary")
+            lines.append("### Report Summary")
             lines.append(f"**Title:** {report.title}")
             lines.append(f"**Severity:** {report.severity.upper()} (CVSS: {report.cvss})")
             lines.append(f"**Endpoint:** {report.affected_endpoint}")
@@ -122,14 +122,14 @@ class ScanAssistant:
 
         return "\n".join(lines)
 
-    def suggest_next_targets(self, investigation_graph: Dict[str, Any], top_n: int = 5) -> List[Dict[str, Any]]:
+    def suggest_next_targets(self, investigation_graph: dict[str, Any], top_n: int = 5) -> list[dict[str, Any]]:
         nodes = investigation_graph.get("nodes", [])
         edges = investigation_graph.get("edges", [])
 
         endpoint_nodes = [n for n in nodes if n.get("type") == "endpoint"]
-        entity_nodes = [n for n in nodes if n.get("type") == "entity"]
+        [n for n in nodes if n.get("type") == "entity"]
 
-        scored: List[Dict[str, Any]] = []
+        scored: list[dict[str, Any]] = []
         for ep in endpoint_nodes:
             meta = ep.get("metadata", {})
             risk = float(meta.get("risk_score", 0))
@@ -152,7 +152,7 @@ class ScanAssistant:
         scored.sort(key=lambda x: x["priority_score"], reverse=True)
         return scored[:top_n]
 
-    def risk_narrative(self, target_name: str, endpoints: List[Dict[str, Any]], verdicts: Optional[List[Dict[str, Any]]] = None) -> str:
+    def risk_narrative(self, target_name: str, endpoints: list[dict[str, Any]], verdicts: list[dict[str, Any]] | None = None) -> str:
         verdicts = verdicts or []
 
         total = len(endpoints)
@@ -165,7 +165,7 @@ class ScanAssistant:
 
         severity = risk_to_severity(avg_risk)
 
-        lines: List[str] = []
+        lines: list[str] = []
         lines.append(f"## Risk Narrative: {target_name}")
         lines.append("")
         lines.append(f"**Overall risk posture:** {severity.upper()} (avg score {avg_risk:.0f}/100)")
@@ -204,8 +204,8 @@ class ScanAssistant:
 
         return "\n".join(lines)
 
-    def correlate_cross_target_patterns(self, target_data: Dict[str, List[Dict[str, Any]]]) -> str:
-        all_patterns: Dict[str, List[str]] = {}
+    def correlate_cross_target_patterns(self, target_data: dict[str, list[dict[str, Any]]]) -> str:
+        all_patterns: dict[str, list[str]] = {}
 
         for target_name, endpoints in target_data.items():
             for ep in endpoints:
@@ -217,7 +217,7 @@ class ScanAssistant:
                     all_patterns[key] = []
                 all_patterns[key].append(target_name)
 
-        lines: List[str] = []
+        lines: list[str] = []
         lines.append("## Cross-Target Pattern Correlation")
         lines.append("")
 
@@ -247,13 +247,13 @@ class ScanAssistant:
         if not isinstance(differential_bundle, DifferentialBundle):
             return "## Differential Intelligence\n\nInvalid differential data."
 
-        lines: List[str] = []
+        lines: list[str] = []
         lines.append("## Differential Intelligence Summary")
         lines.append("")
         lines.append(differential_bundle.summary)
         lines.append("")
 
-        all_findings: List[Any] = []
+        all_findings: list[Any] = []
         for field_name in (
             "target_differences", "endpoint_differences", "historical_changes",
             "cross_target_patterns", "web3_differences", "interesting_anomalies",
@@ -265,13 +265,13 @@ class ScanAssistant:
             return "\n".join(lines)
 
         # Group by category
-        by_cat: Dict[str, List[Any]] = {}
+        by_cat: dict[str, list[Any]] = {}
         for f in all_findings:
             cat = getattr(f, "category", "general")
             by_cat.setdefault(cat, []).append(f)
 
         for cat, items in sorted(by_cat.items()):
-            high_risk = [f for f in items if getattr(f, "risk_level", "low") in ("high", "critical")]
+            [f for f in items if getattr(f, "risk_level", "low") in ("high", "critical")]
             lines.append(f"### {cat.title()} ({len(items)} observation{'' if len(items) == 1 else 's'})")
             for item in items[:5]:
                 title = getattr(item, "title", "Unknown")
@@ -336,7 +336,7 @@ class Assistant:
         self.memory = get_memory()
         self.provider = get_provider()
 
-    def chat(self, message: str) -> Dict[str, Any]:
+    def chat(self, message: str) -> dict[str, Any]:
         self.memory.add("user", message)
         save_interaction("user", message)
 
@@ -354,7 +354,7 @@ class Assistant:
             "suggestions": self._generate_suggestions(answer),
         }
 
-    def _generate_suggestions(self, last_answer: str) -> List[str]:
+    def _generate_suggestions(self, last_answer: str) -> list[str]:
         suggestions = [
             "¿Qué target tiene mejor ROI?",
             "¿Qué cambió hoy?",
@@ -369,27 +369,27 @@ class Assistant:
             suggestions.insert(0, "¿Qué scan terminó?")
         return suggestions[:4]
 
-    def get_context(self) -> Dict[str, Any]:
+    def get_context(self) -> dict[str, Any]:
         ctx = build_full_context()
         ctx["provider"] = self.provider.name
         return ctx
 
-    def get_insights(self) -> List[Dict[str, Any]]:
+    def get_insights(self) -> list[dict[str, Any]]:
         return generate_insights()
 
-    def get_recommendations(self) -> List[Dict[str, Any]]:
+    def get_recommendations(self) -> list[dict[str, Any]]:
         return generate_recommendations()
 
-    def get_top_insight(self) -> Dict[str, Any]:
+    def get_top_insight(self) -> dict[str, Any]:
         return get_top_insight()
 
-    def get_best_recommendation(self) -> Dict[str, Any]:
+    def get_best_recommendation(self) -> dict[str, Any]:
         return get_best_recommendation()
 
-    def get_summary(self) -> Dict[str, Any]:
+    def get_summary(self) -> dict[str, Any]:
         return daily_summary()
 
-    def get_status(self) -> Dict[str, Any]:
+    def get_status(self) -> dict[str, Any]:
         return {
             "provider": self.provider.name,
             "available": self.provider.is_available(),
@@ -398,14 +398,14 @@ class Assistant:
             "system": system_status(),
         }
 
-    def get_history(self, limit: int = 10) -> List[Dict[str, Any]]:
+    def get_history(self, limit: int = 10) -> list[dict[str, Any]]:
         return get_recent_interactions(limit)
 
     def clear_memory(self) -> None:
         self.memory.clear()
 
 
-_assistant_instance: Optional[Assistant] = None
+_assistant_instance: Assistant | None = None
 
 
 def get_assistant() -> Assistant:

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -14,11 +13,11 @@ class IDORScanRequest(BaseModel):
     endpoint_id: int
     url: str
     method: str = "GET"
-    headers: Optional[Dict[str, str]] = None
-    params: Optional[Dict[str, str]] = None
-    body: Optional[str] = None
+    headers: dict[str, str] | None = None
+    params: dict[str, str] | None = None
+    body: str | None = None
     identity_baseline_id: int
-    identity_probe_id: Optional[int] = None
+    identity_probe_id: int | None = None
 
 
 class IDORResultItem(BaseModel):
@@ -28,26 +27,26 @@ class IDORResultItem(BaseModel):
     baseline_status: int
     probe_status: int
     body_diff_ratio: float
-    sensitive_fields_leaked: List[str]
+    sensitive_fields_leaked: list[str]
     verdict: str
     reason: str
 
 
 class IDORScanResponse(BaseModel):
     total_tests: int
-    vulnerable: List[IDORResultItem]
-    blocked: List[IDORResultItem]
-    inconclusive: List[IDORResultItem]
+    vulnerable: list[IDORResultItem]
+    blocked: list[IDORResultItem]
+    inconclusive: list[IDORResultItem]
     elapsed_ms: int
     summary: str
 
 
 @router.post("/idor", response_model=IDORScanResponse)
 def idor_scan(request: IDORScanRequest):
-    from database import db, models
-    from core_engines.target_auth.session_resolver import get_session_resolver
     from core_engines.target_auth.idor_tester import IDORTester
+    from core_engines.target_auth.session_resolver import get_session_resolver
     from core_engines.validation.replayer import AuthContext
+    from database import db, models
 
     logger = logging.getLogger("rastro.api.idor")
     session = db.SessionLocal()
@@ -163,6 +162,6 @@ def idor_scan(request: IDORScanRequest):
         raise
     except Exception as e:
         logger.error(f"IDOR scan failed: {e}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"IDOR scan failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"IDOR scan failed: {str(e)}") from e
     finally:
         session.close()

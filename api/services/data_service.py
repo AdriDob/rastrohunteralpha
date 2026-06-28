@@ -1,11 +1,11 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
-from database import db, models
-from core_engines.targets.models import TargetIntel
 from core_engines.engine.unified_scoring import score as unified_score
 from core_engines.engine.unified_scoring import score_target as unified_score_target
+from core_engines.targets.models import TargetIntel
+from database import db, models
 
 SEVERITY_PAYOUT = {
     "critical": 25000,
@@ -36,7 +36,7 @@ def _apply_sorting(q, model_cls, sort_by: str, sort_order: str, allowed: set) ->
     return q
 
 
-def _apply_search(q, model_cls, search: str, fields: List[str]) -> Any:
+def _apply_search(q, model_cls, search: str, fields: list[str]) -> Any:
     if not search:
         return q
     from sqlalchemy import or_
@@ -50,7 +50,7 @@ def _apply_search(q, model_cls, search: str, fields: List[str]) -> Any:
     return q
 
 
-def list_targets(skip: int = 0, limit: int = 100, sort_by: str = "name", sort_order: str = "asc", search: str = "") -> Tuple[List[Dict[str, Any]], int]:
+def list_targets(skip: int = 0, limit: int = 100, sort_by: str = "name", sort_order: str = "asc", search: str = "") -> tuple[list[dict[str, Any]], int]:
     session = _get_session()
     try:
         query = session.query(models.Target)
@@ -119,7 +119,7 @@ def list_targets(skip: int = 0, limit: int = 100, sort_by: str = "name", sort_or
         session.close()
 
 
-def get_target(target_id: int) -> Optional[Dict[str, Any]]:
+def get_target(target_id: int) -> dict[str, Any] | None:
     session = _get_session()
     try:
         t = session.query(models.Target).filter(models.Target.id == target_id).first()
@@ -177,7 +177,7 @@ def get_target(target_id: int) -> Optional[Dict[str, Any]]:
         session.close()
 
 
-def list_endpoints(target_id: Optional[int] = None, skip: int = 0, limit: int = 100, sort_by: str = "path", sort_order: str = "asc", search: str = "") -> Tuple[List[Dict[str, Any]], int]:
+def list_endpoints(target_id: int | None = None, skip: int = 0, limit: int = 100, sort_by: str = "path", sort_order: str = "asc", search: str = "") -> tuple[list[dict[str, Any]], int]:
     session = _get_session()
     try:
         q = session.query(models.Endpoint)
@@ -208,7 +208,7 @@ def list_endpoints(target_id: Optional[int] = None, skip: int = 0, limit: int = 
         session.close()
 
 
-def get_endpoint(endpoint_id: int) -> Optional[Dict[str, Any]]:
+def get_endpoint(endpoint_id: int) -> dict[str, Any] | None:
     session = _get_session()
     try:
         ep = session.query(models.Endpoint).filter(models.Endpoint.id == endpoint_id).first()
@@ -232,7 +232,7 @@ def get_endpoint(endpoint_id: int) -> Optional[Dict[str, Any]]:
         session.close()
 
 
-def list_findings(target_id: Optional[int] = None, endpoint_id: Optional[int] = None, skip: int = 0, limit: int = 100, sort_by: str = "severity", sort_order: str = "desc", search: str = "") -> Tuple[List[Dict[str, Any]], int]:
+def list_findings(target_id: int | None = None, endpoint_id: int | None = None, skip: int = 0, limit: int = 100, sort_by: str = "severity", sort_order: str = "desc", search: str = "") -> tuple[list[dict[str, Any]], int]:
     session = _get_session()
     try:
         q = session.query(models.Finding)
@@ -287,7 +287,7 @@ def list_findings(target_id: Optional[int] = None, endpoint_id: Optional[int] = 
         session.close()
 
 
-def list_evidence(verdict_id: Optional[int] = None, skip: int = 0, limit: int = 100, sort_by: str = "id", sort_order: str = "desc", search: str = "") -> Tuple[List[Dict[str, Any]], int]:
+def list_evidence(verdict_id: int | None = None, skip: int = 0, limit: int = 100, sort_by: str = "id", sort_order: str = "desc", search: str = "") -> tuple[list[dict[str, Any]], int]:
     session = _get_session()
     try:
         q = session.query(models.Evidence)
@@ -321,7 +321,7 @@ def list_evidence(verdict_id: Optional[int] = None, skip: int = 0, limit: int = 
         session.close()
 
 
-def list_opportunities(skip: int = 0, limit: int = 200, sort_by: str = "roi", sort_order: str = "desc", search: str = "") -> Tuple[List[Dict[str, Any]], int]:
+def list_opportunities(skip: int = 0, limit: int = 200, sort_by: str = "roi", sort_order: str = "desc", search: str = "") -> tuple[list[dict[str, Any]], int]:
     session = _get_session()
     try:
         targets = session.query(models.Target).all()
@@ -390,12 +390,12 @@ def list_opportunities(skip: int = 0, limit: int = 200, sort_by: str = "roi", so
         session.close()
 
 
-def get_attack_surfaces() -> Dict[str, List[Dict[str, Any]]]:
+def get_attack_surfaces() -> dict[str, list[dict[str, Any]]]:
     session = _get_session()
     try:
         endpoints = session.query(models.Endpoint).all()
         groups = {}
-        _score_cache: Dict[Tuple[str, str], Dict[str, Any]] = {}
+        _score_cache: dict[tuple[str, str], dict[str, Any]] = {}
         for ep in endpoints:
             cache_key = (ep.path or "/", ep.method or "GET")
             if cache_key not in _score_cache:
@@ -425,7 +425,7 @@ def get_attack_surfaces() -> Dict[str, List[Dict[str, Any]]]:
         session.close()
 
 
-def get_pipeline_stages() -> Dict[str, List[Dict[str, Any]]]:
+def get_pipeline_stages() -> dict[str, list[dict[str, Any]]]:
     session = _get_session()
     try:
         stages = {"detected": [], "validated": [], "confirmed": [], "reported": []}
@@ -487,7 +487,7 @@ def get_pipeline_stages() -> Dict[str, List[Dict[str, Any]]]:
         session.close()
 
 
-def generate_report() -> Dict[str, Any]:
+def generate_report() -> dict[str, Any]:
     session = _get_session()
     try:
         findings = session.query(models.Finding).all()
@@ -564,7 +564,7 @@ def generate_report() -> Dict[str, Any]:
 
 # ── Create operations ───────────────────────────────
 
-def create_target(name: str, domain: Optional[str] = None) -> Dict[str, Any]:
+def create_target(name: str, domain: str | None = None) -> dict[str, Any]:
     session = _get_session()
     try:
         db_target = models.Target(name=name, domain=domain)
@@ -580,7 +580,7 @@ def create_target(name: str, domain: Optional[str] = None) -> Dict[str, Any]:
         session.close()
 
 
-def create_endpoint(target_id: int, path: str, method: str = "GET", params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+def create_endpoint(target_id: int, path: str, method: str = "GET", params: dict[str, Any] | None = None) -> dict[str, Any]:
     session = _get_session()
     try:
         target = session.query(models.Target).filter(models.Target.id == target_id).first()
@@ -605,7 +605,7 @@ def create_endpoint(target_id: int, path: str, method: str = "GET", params: Opti
         session.close()
 
 
-def create_finding(target_id: int, title: str, severity: str = "medium", description: Optional[str] = None, endpoint_id: Optional[int] = None) -> Dict[str, Any]:
+def create_finding(target_id: int, title: str, severity: str = "medium", description: str | None = None, endpoint_id: int | None = None) -> dict[str, Any]:
     session = _get_session()
     try:
         target = session.query(models.Target).filter(models.Target.id == target_id).first()
@@ -636,7 +636,7 @@ def create_finding(target_id: int, title: str, severity: str = "medium", descrip
 
 # ── Scan / Digest ──────────────────────────────────
 
-def list_scan_runs(target_id: Optional[int] = None, limit: int = 50) -> List[Dict[str, Any]]:
+def list_scan_runs(target_id: int | None = None, limit: int = 50) -> list[dict[str, Any]]:
     session = _get_session()
     try:
         q = session.query(models.ScanRun)
@@ -659,7 +659,7 @@ def list_scan_runs(target_id: Optional[int] = None, limit: int = 50) -> List[Dic
         session.close()
 
 
-def get_scan_run(scan_id: int) -> Optional[Dict[str, Any]]:
+def get_scan_run(scan_id: int) -> dict[str, Any] | None:
     session = _get_session()
     try:
         r = session.query(models.ScanRun).filter(models.ScanRun.id == scan_id).first()
@@ -679,12 +679,12 @@ def get_scan_run(scan_id: int) -> Optional[Dict[str, Any]]:
         session.close()
 
 
-def get_digest() -> Dict[str, Any]:
+def get_digest() -> dict[str, Any]:
     session = _get_session()
     try:
         entries = []
         endpoints = session.query(models.Endpoint).all()
-        _score_cache: Dict[str, Dict[str, Any]] = {}
+        _score_cache: dict[str, dict[str, Any]] = {}
         for ep in endpoints:
             safe_path = str(ep.path or "/")
             safe_method = str(ep.method or "GET")
@@ -705,7 +705,7 @@ def get_digest() -> Dict[str, Any]:
         high_signal = [e for e in entries if e["risk_score"] >= 0.5]
         total_endpoints = len(endpoints)
         pending_review = session.query(models.Verdict).filter(models.Verdict.status == "pending").count()
-        new_opportunities = session.query(models.Opportunity).count()
+        new_opportunities = 0
         summary_lines = []
         if high_signal:
             summary_lines.append(f"{len(high_signal)} endpoints with high risk score")
@@ -729,10 +729,10 @@ def get_digest() -> Dict[str, Any]:
 
 # ── Verdicts ───────────────────────────────────────
 
-def list_verdicts(status: Optional[str] = None, confidence_min: float = 0.0, target_id: Optional[int] = None, limit: int = 100) -> List[Dict[str, Any]]:
+def list_verdicts(status: str | None = None, confidence_min: float = 0.0, target_id: int | None = None, limit: int = 100) -> list[dict[str, Any]]:
     session = _get_session()
     try:
-        from sqlalchemy import cast, Float
+        from sqlalchemy import Float, cast
         q = session.query(models.Verdict)
         if status:
             q = q.filter(models.Verdict.status == status)
@@ -780,7 +780,7 @@ def _parse_confidence(raw) -> float:
     return 0.0
 
 
-def get_verdict(verdict_id: int) -> Optional[Dict[str, Any]]:
+def get_verdict(verdict_id: int) -> dict[str, Any] | None:
     session = _get_session()
     try:
         v = session.query(models.Verdict).filter(models.Verdict.id == verdict_id).first()
@@ -802,7 +802,7 @@ def get_verdict(verdict_id: int) -> Optional[Dict[str, Any]]:
         session.close()
 
 
-def get_evidence_for_verdict(verdict_id: int) -> Dict[str, Any]:
+def get_evidence_for_verdict(verdict_id: int) -> dict[str, Any]:
     session = _get_session()
     try:
         evidence_records = session.query(models.Evidence).filter(

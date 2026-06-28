@@ -7,14 +7,14 @@ when the primary system is unavailable.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger("rastro.fallback")
 
-_CACHED_BRIEFING: Optional[Dict[str, Any]] = None
+_CACHED_BRIEFING: dict[str, Any] | None = None
 
 
-def fallback_briefing() -> Dict[str, Any]:
+def fallback_briefing() -> dict[str, Any]:
     """Return a safe default briefing when the intelligence engine fails."""
     global _CACHED_BRIEFING
     if _CACHED_BRIEFING:
@@ -39,12 +39,12 @@ def fallback_briefing() -> Dict[str, Any]:
     }
 
 
-def cache_briefing(data: Dict[str, Any]) -> None:
+def cache_briefing(data: dict[str, Any]) -> None:
     global _CACHED_BRIEFING
     _CACHED_BRIEFING = data
 
 
-def fallback_priority_actions() -> List[Dict[str, Any]]:
+def fallback_priority_actions() -> list[dict[str, Any]]:
     return [
         {
             "id": "fallback-review",
@@ -62,7 +62,7 @@ def fallback_priority_actions() -> List[Dict[str, Any]]:
     ]
 
 
-def fallback_scorecard() -> Dict[str, Any]:
+def fallback_scorecard() -> dict[str, Any]:
     return {
         "total_actions": 0,
         "success_rate": 0.5,
@@ -75,7 +75,7 @@ def fallback_scorecard() -> Dict[str, Any]:
     }
 
 
-def fallback_system_state() -> Dict[str, Any]:
+def fallback_system_state() -> dict[str, Any]:
     return {
         "system_state": "DEGRADED",
         "services_healthy": 0,

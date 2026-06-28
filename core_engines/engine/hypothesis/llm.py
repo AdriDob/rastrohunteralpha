@@ -16,9 +16,9 @@ from __future__ import annotations
 
 import json
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from core_engines.engine.hypothesis.models import Hypothesis, VulnerabilityType, HypothesisSource
+from core_engines.engine.hypothesis.models import Hypothesis
 
 LOG = logging.getLogger("rastro.hypothesis.llm")
 
@@ -82,7 +82,7 @@ Output ONLY valid JSON, no markdown, no explanation.
 """
 
 
-def _build_ollama_payload(model: str, prompt: str, max_tokens: int = 512) -> Dict[str, Any]:
+def _build_ollama_payload(model: str, prompt: str, max_tokens: int = 512) -> dict[str, Any]:
     return {
         "model": model,
         "prompt": prompt,
@@ -95,9 +95,9 @@ def _build_ollama_payload(model: str, prompt: str, max_tokens: int = 512) -> Dic
     }
 
 
-def _call_ollama(prompt: str, host: str = "http://localhost:11434", model: str = "qwen2.5-coder") -> Optional[str]:
-    import urllib.request
+def _call_ollama(prompt: str, host: str = "http://localhost:11434", model: str = "qwen2.5-coder") -> str | None:
     import urllib.error
+    import urllib.request
 
     payload = _build_ollama_payload(model, prompt)
     try:
@@ -116,7 +116,7 @@ def _call_ollama(prompt: str, host: str = "http://localhost:11434", model: str =
         return None
 
 
-def _parse_json_response(text: Optional[str]) -> Optional[Any]:
+def _parse_json_response(text: str | None) -> Any | None:
     if not text:
         return None
     text = text.strip()
@@ -127,22 +127,22 @@ def _parse_json_response(text: Optional[str]) -> Optional[Any]:
     try:
         return json.loads(text)
     except json.JSONDecodeError:
-        pass
+        LOG.warning("Failed to decode JSON response from LLM", exc_info=True)
     import re
     match = re.search(r"(\[.*?\]|\{.*\})", text, re.DOTALL)
     if match:
         try:
             return json.loads(match.group(0))
         except json.JSONDecodeError:
-            pass
+            LOG.warning("Failed to extract JSON from LLM response via regex", exc_info=True)
     return None
 
 
 def enrich_reasoning(
-    hypotheses: List[Hypothesis],
+    hypotheses: list[Hypothesis],
     ollama_host: str = "http://localhost:11434",
     model: str = "qwen2.5-coder",
-) -> List[Hypothesis]:
+) -> list[Hypothesis]:
     if not hypotheses:
         return hypotheses
 
@@ -218,11 +218,11 @@ def enrich_reasoning(
 
 
 def detect_gaps(
-    all_endpoints: List[Dict[str, Any]],
-    hypotheses: List[Hypothesis],
+    all_endpoints: list[dict[str, Any]],
+    hypotheses: list[Hypothesis],
     ollama_host: str = "http://localhost:11434",
     model: str = "qwen2.5-coder",
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     hypothesis_endpoint_ids = {h.endpoint.get("id") for h in hypotheses if h.endpoint.get("id")}
     missed = [ep for ep in all_endpoints if ep.get("id") not in hypothesis_endpoint_ids]
 
@@ -251,10 +251,10 @@ def detect_gaps(
 
 
 def refine_priority(
-    hypotheses: List[Hypothesis],
+    hypotheses: list[Hypothesis],
     ollama_host: str = "http://localhost:11434",
     model: str = "qwen2.5-coder",
-) -> Optional[List[str]]:
+) -> list[str] | None:
     if len(hypotheses) < 3:
         return None
 

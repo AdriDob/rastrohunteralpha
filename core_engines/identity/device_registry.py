@@ -9,7 +9,7 @@ import json
 import logging
 import os
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger("rastro.identity.device")
 
@@ -26,7 +26,7 @@ class DeviceRegistry:
     """Tracks devices linked to a user identity."""
 
     def __init__(self) -> None:
-        self._devices: Dict[str, Dict[str, Any]] = {}
+        self._devices: dict[str, dict[str, Any]] = {}
         os.makedirs(DATA_DIR, exist_ok=True)
         self._load()
 
@@ -46,7 +46,7 @@ class DeviceRegistry:
             }
         self._save()
 
-    def update_device_info(self, device_id: str, info: Dict[str, Any]) -> None:
+    def update_device_info(self, device_id: str, info: dict[str, Any]) -> None:
         if device_id in self._devices:
             self._devices[device_id]["info"].update(info)
             self._devices[device_id]["last_seen"] = time.time()
@@ -56,16 +56,15 @@ class DeviceRegistry:
         self._devices.pop(device_id, None)
         self._save()
 
-    def get_devices(self, user_id: str) -> List[Dict[str, Any]]:
+    def get_devices(self, user_id: str) -> list[dict[str, Any]]:
         now = time.time()
         active = []
         for d in self._devices.values():
-            if d.get("user_id") == user_id:
-                if now - d.get("last_seen", 0) < DEVICE_TTL:
-                    active.append(d)
+            if d.get("user_id") == user_id and now - d.get("last_seen", 0) < DEVICE_TTL:
+                active.append(d)
         return active
 
-    def get_device(self, device_id: str) -> Optional[Dict[str, Any]]:
+    def get_device(self, device_id: str) -> dict[str, Any] | None:
         return self._devices.get(device_id)
 
     def get_device_count(self, user_id: str) -> int:
@@ -92,7 +91,7 @@ class DeviceRegistry:
             return "apk"
         return "unknown"
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "devices": list(self._devices.values()),
             "total": len(self._devices),
@@ -108,7 +107,7 @@ class DeviceRegistry:
                     data = json.load(f)
                     self._devices = {d["device_id"]: d for d in data.get("devices", [])}
         except (json.JSONDecodeError, OSError):
-            pass
+            logger.warning("Failed to load device registry from disk", exc_info=True)
 
     def _save(self) -> None:
         try:

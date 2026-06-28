@@ -13,14 +13,22 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from core_engines.engine.extraction import (
     extract_endpoints,
+)
+from core_engines.engine.extraction import (
     extract_hot_paths as _extract_hot_paths_shared,
-    extract_verdict_map as _extract_verdict_map_shared,
-    extract_surface as _extract_surface_shared,
+)
+from core_engines.engine.extraction import (
     extract_quick_wins as _extract_quick_wins_shared,
+)
+from core_engines.engine.extraction import (
+    extract_surface as _extract_surface_shared,
+)
+from core_engines.engine.extraction import (
+    extract_verdict_map as _extract_verdict_map_shared,
 )
 
 LOG = logging.getLogger("rastro.differential_intelligence")
@@ -31,7 +39,7 @@ VALID_CATEGORIES = frozenset({
     "historical", "general",
 })
 
-ENTITY_KEYWORDS: Dict[str, List[str]] = {
+ENTITY_KEYWORDS: dict[str, list[str]] = {
     "user": ["user", "profile", "member"],
     "account": ["account"],
     "organization": ["org", "organization", "company"],
@@ -55,9 +63,9 @@ class DifferentialFinding:
     title: str
     category: str
     description: str
-    affected_objects: List[str] = field(default_factory=list)
+    affected_objects: list[str] = field(default_factory=list)
     confidence: float = 0.0
-    supporting_signals: List[str] = field(default_factory=list)
+    supporting_signals: list[str] = field(default_factory=list)
     risk_level: str = "low"
     requires_validation: bool = True
     novelty_score: float = 0.0
@@ -72,12 +80,12 @@ class DifferentialFinding:
 
 @dataclass
 class DifferentialBundle:
-    target_differences: List[DifferentialFinding] = field(default_factory=list)
-    endpoint_differences: List[DifferentialFinding] = field(default_factory=list)
-    historical_changes: List[DifferentialFinding] = field(default_factory=list)
-    cross_target_patterns: List[DifferentialFinding] = field(default_factory=list)
-    web3_differences: List[DifferentialFinding] = field(default_factory=list)
-    interesting_anomalies: List[DifferentialFinding] = field(default_factory=list)
+    target_differences: list[DifferentialFinding] = field(default_factory=list)
+    endpoint_differences: list[DifferentialFinding] = field(default_factory=list)
+    historical_changes: list[DifferentialFinding] = field(default_factory=list)
+    cross_target_patterns: list[DifferentialFinding] = field(default_factory=list)
+    web3_differences: list[DifferentialFinding] = field(default_factory=list)
+    interesting_anomalies: list[DifferentialFinding] = field(default_factory=list)
     confidence: float = 0.0
     summary: str = ""
 
@@ -106,16 +114,16 @@ class DifferentialIntelligenceEngine:
         hypothesis_output=None,
         quick_wins=None,
         screenshot_bundle=None,
-        verdicts: Optional[List] = None,
-        evidence_list: Optional[List] = None,
-        historical_snapshots: Optional[List] = None,
+        verdicts: list | None = None,
+        evidence_list: list | None = None,
+        historical_snapshots: list | None = None,
         memory_pattern_library=None,
         target_name: str = "",
     ) -> DifferentialBundle:
         LOG.info("Running Differential Intelligence Engine")
 
         endpoints = extract_endpoints(snapshot)
-        hp_list = _extract_hot_paths_shared(snapshot, investigation_graph=investigation_graph)
+        _extract_hot_paths_shared(snapshot, investigation_graph=investigation_graph)
         vd_map = _extract_verdict_map_shared(snapshot, verdicts, evidence_graph)
         surface_data = _extract_surface_shared(attack_surface, snapshot)
         qw_data = _extract_quick_wins_shared(quick_wins)
@@ -123,12 +131,12 @@ class DifferentialIntelligenceEngine:
         sb_specs = self._extract_screenshot_specs(screenshot_bundle)
         roi_by_path = self._extract_roi(roi_engine_output, endpoints)
 
-        target_diffs: List[DifferentialFinding] = []
-        endpoint_diffs: List[DifferentialFinding] = []
-        historical_diffs: List[DifferentialFinding] = []
-        cross_target: List[DifferentialFinding] = []
-        web3_diffs: List[DifferentialFinding] = []
-        anomalies: List[DifferentialFinding] = []
+        target_diffs: list[DifferentialFinding] = []
+        endpoint_diffs: list[DifferentialFinding] = []
+        historical_diffs: list[DifferentialFinding] = []
+        cross_target: list[DifferentialFinding] = []
+        web3_diffs: list[DifferentialFinding] = []
+        anomalies: list[DifferentialFinding] = []
 
         # 1. Target differential — comparing paths with shared entity types
         if endpoints:
@@ -187,15 +195,15 @@ class DifferentialIntelligenceEngine:
 
     @staticmethod
     def _analyze_target_differences(
-        endpoints: List[Dict[str, Any]],
-        surface_data: Dict[str, List[Dict[str, Any]]],
-        qw_data: Dict[str, Any],
-    ) -> List[DifferentialFinding]:
-        findings: List[DifferentialFinding] = []
+        endpoints: list[dict[str, Any]],
+        surface_data: dict[str, list[dict[str, Any]]],
+        qw_data: dict[str, Any],
+    ) -> list[DifferentialFinding]:
+        findings: list[DifferentialFinding] = []
         seen: set = set()
 
         # Group endpoints by entity type
-        by_entity: Dict[str, List[Dict[str, Any]]] = {}
+        by_entity: dict[str, list[dict[str, Any]]] = {}
         for ep in endpoints:
             path = ep.get("path", "/")
             entity = DifferentialIntelligenceEngine._detect_entity(path)
@@ -312,16 +320,16 @@ class DifferentialIntelligenceEngine:
 
     @staticmethod
     def _analyze_endpoint_differences(
-        endpoints: List[Dict[str, Any]],
-        verdict_map: Dict[str, Dict[str, Any]],
-        surface_data: Dict[str, List[Dict[str, Any]]],
-        roi_by_path: Dict[str, float],
-    ) -> List[DifferentialFinding]:
-        findings: List[DifferentialFinding] = []
+        endpoints: list[dict[str, Any]],
+        verdict_map: dict[str, dict[str, Any]],
+        surface_data: dict[str, list[dict[str, Any]]],
+        roi_by_path: dict[str, float],
+    ) -> list[DifferentialFinding]:
+        findings: list[DifferentialFinding] = []
         seen: set = set()
 
         # Group by entity
-        by_entity: Dict[str, List[Dict[str, Any]]] = {}
+        by_entity: dict[str, list[dict[str, Any]]] = {}
         for ep in endpoints:
             path = ep.get("path", "/")
             entity = DifferentialIntelligenceEngine._detect_entity(path)
@@ -446,9 +454,9 @@ class DifferentialIntelligenceEngine:
     @staticmethod
     def _analyze_historical_changes(
         current_snapshot,
-        historical_snapshots: List[Any],
-    ) -> List[DifferentialFinding]:
-        findings: List[DifferentialFinding] = []
+        historical_snapshots: list[Any],
+    ) -> list[DifferentialFinding]:
+        findings: list[DifferentialFinding] = []
         seen: set = set()
 
         current_eps = {
@@ -515,7 +523,7 @@ class DifferentialIntelligenceEngine:
                 ))
 
         # Risk score changes
-        risk_changes: List[str] = []
+        risk_changes: list[str] = []
         for key in set(current_eps.keys()) & set(prev_eps.keys()):
             cur_score = getattr(current_eps[key], "risk_score", 0)
             prev_score = getattr(prev_eps[key], "risk_score", 0)
@@ -546,7 +554,7 @@ class DifferentialIntelligenceEngine:
         # Additional historical snapshots for trend detection
         if len(historical_snapshots) >= 3:
             all_snapshots = list(historical_snapshots) + ([current_snapshot] if current_snapshot else [])
-            endpoint_lifespan: Dict[str, int] = {}
+            endpoint_lifespan: dict[str, int] = {}
             for snap in all_snapshots:
                 for ep in getattr(snap, "endpoints", []):
                     key = f"{getattr(ep, 'method', 'GET')}:{getattr(ep, 'path', '/')}"
@@ -583,11 +591,11 @@ class DifferentialIntelligenceEngine:
 
     @staticmethod
     def _analyze_cross_target_patterns(
-        endpoints: List[Dict[str, Any]],
+        endpoints: list[dict[str, Any]],
         memory_pattern_library,
         current_target: str,
-    ) -> List[DifferentialFinding]:
-        findings: List[DifferentialFinding] = []
+    ) -> list[DifferentialFinding]:
+        findings: list[DifferentialFinding] = []
         seen_categories: set = set()
 
         if not hasattr(memory_pattern_library, "find_similar_endpoints"):
@@ -643,17 +651,17 @@ class DifferentialIntelligenceEngine:
 
     @staticmethod
     def _analyze_web3_differences(
-        endpoints: List[Dict[str, Any]],
+        endpoints: list[dict[str, Any]],
         evidence_graph,
         snapshot,
-    ) -> List[DifferentialFinding]:
-        findings: List[DifferentialFinding] = []
+    ) -> list[DifferentialFinding]:
+        findings: list[DifferentialFinding] = []
         seen: set = set()
 
         web3_endpoints = [
             ep for ep in endpoints
             if "web3" in ep.get("signals", [])
-            or any("web3" in str(l) for l in ep.get("labels", []))
+            or any("web3" in str(lab) for lab in ep.get("labels", []))
             or "web3" in ep.get("path", "").lower()
         ]
 
@@ -767,11 +775,11 @@ class DifferentialIntelligenceEngine:
 
     @staticmethod
     def _synthesize_anomalies(
-        all_findings: List[DifferentialFinding],
-        hypotheses: List[Dict[str, Any]],
-        screenshot_specs: List[Any],
-    ) -> List[DifferentialFinding]:
-        anomalies: List[DifferentialFinding] = []
+        all_findings: list[DifferentialFinding],
+        hypotheses: list[dict[str, Any]],
+        screenshot_specs: list[Any],
+    ) -> list[DifferentialFinding]:
+        anomalies: list[DifferentialFinding] = []
         seen_titles: set = set()
 
         # High-novelty findings that haven't been validated
@@ -840,7 +848,7 @@ class DifferentialIntelligenceEngine:
     # ── Data Extraction Helpers ─────────────────────────────────────
 
     @staticmethod
-    def _extract_endpoints(snapshot) -> List[Dict[str, Any]]:
+    def _extract_endpoints(snapshot) -> list[dict[str, Any]]:
         if snapshot is None:
             return []
         out = []
@@ -860,7 +868,7 @@ class DifferentialIntelligenceEngine:
         return out
 
     @staticmethod
-    def _extract_hot_paths(snapshot, investigation_graph) -> List[Dict[str, Any]]:
+    def _extract_hot_paths(snapshot, investigation_graph) -> list[dict[str, Any]]:
         out = []
         if investigation_graph is not None:
             for hp in getattr(investigation_graph, "hot_paths", []):
@@ -882,8 +890,8 @@ class DifferentialIntelligenceEngine:
         return out
 
     @staticmethod
-    def _extract_verdict_map(snapshot, verdicts, evidence_graph) -> Dict[str, Dict[str, Any]]:
-        vd_map: Dict[str, Dict[str, Any]] = {}
+    def _extract_verdict_map(snapshot, verdicts, evidence_graph) -> dict[str, dict[str, Any]]:
+        vd_map: dict[str, dict[str, Any]] = {}
         if verdicts:
             for v in verdicts:
                 hpid = getattr(v, "hot_path_id", "")
@@ -910,8 +918,8 @@ class DifferentialIntelligenceEngine:
         return vd_map
 
     @staticmethod
-    def _extract_surface(attack_surface, snapshot) -> Dict[str, List[Dict[str, Any]]]:
-        out: Dict[str, List[Dict[str, Any]]] = {
+    def _extract_surface(attack_surface, snapshot) -> dict[str, list[dict[str, Any]]]:
+        out: dict[str, list[dict[str, Any]]] = {
             "idor_clusters": [], "auth_boundaries": [],
             "multi_tenant_zones": [], "graphql_surfaces": [],
         }
@@ -928,7 +936,7 @@ class DifferentialIntelligenceEngine:
         return out
 
     @staticmethod
-    def _extract_quick_wins(quick_wins) -> Dict[str, Any]:
+    def _extract_quick_wins(quick_wins) -> dict[str, Any]:
         if quick_wins is None:
             return {}
         out = {
@@ -945,7 +953,7 @@ class DifferentialIntelligenceEngine:
         return out
 
     @staticmethod
-    def _extract_hypotheses(hypothesis_output) -> List[Dict[str, Any]]:
+    def _extract_hypotheses(hypothesis_output) -> list[dict[str, Any]]:
         if hypothesis_output is None:
             return []
         queue = getattr(hypothesis_output, "attack_queue", None)
@@ -963,26 +971,25 @@ class DifferentialIntelligenceEngine:
         return out
 
     @staticmethod
-    def _extract_screenshot_specs(screenshot_bundle) -> List[Any]:
+    def _extract_screenshot_specs(screenshot_bundle) -> list[Any]:
         if screenshot_bundle is None:
             return []
         return list(getattr(screenshot_bundle, "specs", []))
 
     @staticmethod
-    def _extract_roi(roi_engine_output, endpoints) -> Dict[str, float]:
-        roi_by_path: Dict[str, float] = {}
+    def _extract_roi(roi_engine_output, endpoints) -> dict[str, float]:
+        roi_by_path: dict[str, float] = {}
         for ep in endpoints:
             path = ep.get("path", "/")
             roi_by_path[path] = float(ep.get("risk_score", 0)) / 10.0
-        if roi_engine_output is not None:
-            if hasattr(roi_engine_output, "overall"):
-                pass
+        if roi_engine_output is not None and hasattr(roi_engine_output, "overall"):
+            LOG.warning("ROI engine output has overall attribute but it is not being used")
         return roi_by_path
 
     # ── General Helpers ─────────────────────────────────────────────
 
     @staticmethod
-    def _detect_entity(path: str) -> Optional[str]:
+    def _detect_entity(path: str) -> str | None:
         lower = path.lower()
         for entity, keywords in ENTITY_KEYWORDS.items():
             for kw in keywords:
@@ -991,7 +998,7 @@ class DifferentialIntelligenceEngine:
         return None
 
     @staticmethod
-    def _compute_overall_confidence(findings: List[DifferentialFinding]) -> float:
+    def _compute_overall_confidence(findings: list[DifferentialFinding]) -> float:
         if not findings:
             return 0.0
         return round(
@@ -1000,16 +1007,16 @@ class DifferentialIntelligenceEngine:
 
     @staticmethod
     def _build_summary(
-        findings: List[DifferentialFinding],
-        anomalies: List[DifferentialFinding],
+        findings: list[DifferentialFinding],
+        anomalies: list[DifferentialFinding],
         target_name: str,
-        endpoints: List[Dict[str, Any]],
+        endpoints: list[dict[str, Any]],
     ) -> str:
         if not findings and not anomalies:
             return "No differences detected"
 
         total = len(findings) + len(anomalies)
-        by_cat: Dict[str, int] = {}
+        by_cat: dict[str, int] = {}
         for f in findings + anomalies:
             by_cat[f.category] = by_cat.get(f.category, 0) + 1
         top_cats = sorted(by_cat, key=by_cat.get, reverse=True)[:3]

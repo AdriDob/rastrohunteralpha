@@ -8,7 +8,7 @@ Dependencies: PipelineArtifact, EvidenceGraphArtifact, ScreenshotArtifact
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from core_engines.contracts import Bundle
 
@@ -20,7 +20,7 @@ class DifferentialArtifact(Bundle):
     anomaly_count: int = 0
     confidence: float = 0.0
     summary: str = ""
-    categories: Dict[str, int] = field(default_factory=dict)
+    categories: dict[str, int] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         super().__post_init__()
@@ -37,7 +37,7 @@ class DifferentialArtifact(Bundle):
                 items = getattr(self.bundle, field_name, [])
                 all_findings.extend(items)
             self.finding_count = len(all_findings)
-            cat: Dict[str, int] = {}
+            cat: dict[str, int] = {}
             for f in all_findings:
                 c = getattr(f, "category", "general")
                 cat[c] = cat.get(c, 0) + 1
@@ -47,5 +47,5 @@ class DifferentialArtifact(Bundle):
         return self.bundle
 
     @classmethod
-    def from_bundle(cls, bundle) -> "DifferentialArtifact":
+    def from_bundle(cls, bundle) -> DifferentialArtifact:
         return cls(bundle=bundle)

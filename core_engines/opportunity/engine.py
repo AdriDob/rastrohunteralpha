@@ -7,54 +7,48 @@ Read-only. Never modifies pipeline data.
 from __future__ import annotations
 
 import logging
-import time
-import uuid
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
+from core_engines.observability import record, timer
+from core_engines.opportunity.history import get_history_manager
 from core_engines.opportunity.models import (
-    EVHCalculation,
     EVHRating,
+    IdentityVaultEntry,
     Opportunity,
     OpportunityProviderInfo,
     OpportunityRecommendations,
     OpportunitySnapshot,
-    OpportunityScore,
-    ScoreBreakdown,
-    IdentityVaultEntry,
 )
-from core_engines.opportunity.providers import BaseProvider, get_providers
+from core_engines.opportunity.providers import get_providers
+from core_engines.opportunity.recommendations import generate_recommendations
 from core_engines.opportunity.scoring import score_opportunity as score_legacy
 from core_engines.opportunity.scoring2 import (
-    compute_layered_score,
     _score_to_priority,
-    compute_evh,
+    compute_layered_score,
 )
-from core_engines.opportunity.recommendations import generate_recommendations
-from core_engines.opportunity.history import get_history_manager
-from core_engines.observability import timer, record
 
 logger = logging.getLogger("rastro.opportunity.engine")
 
-_GLOBAL_ENGINE: Optional["OpportunityEngine"] = None
+_GLOBAL_ENGINE: OpportunityEngine | None = None
 
 
 class OpportunityEngine:
     """Coordinates the full opportunity intelligence pipeline."""
 
     def __init__(self) -> None:
-        self._opportunities: Dict[str, Opportunity] = {}
-        self._provider_info: Dict[str, OpportunityProviderInfo] = {}
-        self._last_refresh: Optional[str] = None
+        self._opportunities: dict[str, Opportunity] = {}
+        self._provider_info: dict[str, OpportunityProviderInfo] = {}
+        self._last_refresh: str | None = None
         self._history = get_history_manager()
-        self._recommendations: Optional[OpportunityRecommendations] = None
-        self._identity_vault: Dict[str, IdentityVaultEntry] = {}
+        self._recommendations: OpportunityRecommendations | None = None
+        self._identity_vault: dict[str, IdentityVaultEntry] = {}
 
     # ── Discovery ───────────────────────────────────────────────────
 
-    def discover_all(self, use_layered_scoring: bool = True) -> List[Opportunity]:
+    def discover_all(self, use_layered_scoring: bool = True) -> list[Opportunity]:
         """Run discovery on all registered providers and score results."""
-        all_opps: List[Opportunity] = []
+        all_opps: list[Opportunity] = []
         for provider in get_providers():
             with timer(f"opportunity.provider.{provider.name}.discover"):
                 try:
@@ -90,9 +84,9 @@ class OpportunityEngine:
 
         return scored
 
-    def refresh(self, use_layered_scoring: bool = True) -> List[Opportunity]:
+    def refresh(self, use_layered_scoring: bool = True) -> list[Opportunity]:
         """Incremental refresh — checks for updates from providers."""
-        updated: List[Opportunity] = []
+        updated: list[Opportunity] = []
         for provider in get_providers():
             with timer(f"opportunity.provider.{provider.name}.refresh"):
                 try:
@@ -132,8 +126,8 @@ class OpportunityEngine:
         self._last_refresh = datetime.now(timezone.utc).isoformat()
         return updated
 
-    def _score_all(self, opps: List[Opportunity], use_layered: bool) -> List[Opportunity]:
-        scored: List[Opportunity] = []
+    def _score_all(self, opps: list[Opportunity], use_layered: bool) -> list[Opportunity]:
+        scored: list[Opportunity] = []
         for opp in opps:
             with timer("opportunity.score"):
                 try:
@@ -157,7 +151,7 @@ class OpportunityEngine:
 
     # ── EVH ─────────────────────────────────────────────────────────
 
-    def get_evh_rankings(self, limit: int = 20) -> List[Opportunity]:
+    def get_evh_rankings(self, limit: int = 20) -> list[Opportunity]:
         """Return opportunities ranked by EVH descending."""
         sorted_opps = sorted(
             [o for o in self._opportunities.values() if o.score and o.score.evh],
@@ -166,7 +160,7 @@ class OpportunityEngine:
         )
         return sorted_opps[:limit]
 
-    def get_evh_summary(self) -> Dict[str, Any]:
+    def get_evh_summary(self) -> dict[str, Any]:
         """Return EVH distribution summary."""
         evh_list = [o.score.evh for o in self._opportunities.values() if o.score and o.score.evh]
         if not evh_list:
@@ -181,7 +175,7 @@ class OpportunityEngine:
 
     # ── Identity Vault ──────────────────────────────────────────────
 
-    def get_identity_vault(self) -> Dict[str, IdentityVaultEntry]:
+    def get_identity_vault(self) -> dict[str, IdentityVaultEntry]:
         return dict(self._identity_vault)
 
     def set_identity_entry(self, entry: IdentityVaultEntry) -> None:
@@ -192,23 +186,23 @@ class OpportunityEngine:
 
     # ── Accessors ───────────────────────────────────────────────────
 
-    def get_all(self) -> List[Opportunity]:
+    def get_all(self) -> list[Opportunity]:
         return sorted(
             self._opportunities.values(),
             key=lambda o: o.score.overall if o.score else 0,
             reverse=True,
         )
 
-    def get_by_category(self, category: str) -> List[Opportunity]:
+    def get_by_category(self, category: str) -> list[Opportunity]:
         return [o for o in self.get_all() if o.category == category]
 
-    def get_by_priority(self, priority: str) -> List[Opportunity]:
+    def get_by_priority(self, priority: str) -> list[Opportunity]:
         return [o for o in self.get_all() if o.priority == priority]
 
-    def get_by_id(self, opp_id: str) -> Optional[Opportunity]:
+    def get_by_id(self, opp_id: str) -> Opportunity | None:
         return self._opportunities.get(opp_id)
 
-    def get_providers_info(self) -> List[OpportunityProviderInfo]:
+    def get_providers_info(self) -> list[OpportunityProviderInfo]:
         return list(self._provider_info.values())
 
     def get_recommendations(self, force: bool = False) -> OpportunityRecommendations:
@@ -229,7 +223,7 @@ class OpportunityEngine:
             )
         return self._recommendations
 
-    def get_metrics(self) -> Dict[str, Any]:
+    def get_metrics(self) -> dict[str, Any]:
         all_opps = self.get_all()
         scored = [o for o in all_opps if o.score is not None]
         avg_score = sum(s.score.overall for s in scored) / max(len(scored), 1) if scored else 0.0
@@ -272,7 +266,7 @@ class OpportunityEngine:
         snapshot = self._history.store_snapshot(all_opps, period, metrics)
         return snapshot
 
-    def get_history(self, period: Optional[str] = None, limit: int = 30) -> List[OpportunitySnapshot]:
+    def get_history(self, period: str | None = None, limit: int = 30) -> list[OpportunitySnapshot]:
         return self._history.get_snapshots(period, limit)
 
 

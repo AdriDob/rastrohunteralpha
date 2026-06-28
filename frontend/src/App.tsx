@@ -45,6 +45,11 @@ const ReportHistory = lazy(() => import('./pages/ReportHistory'));
 const ReportDetail = lazy(() => import('./pages/ReportDetail'));
 const Settings = lazy(() => import('./pages/Settings'));
 const ProgramCatalog = lazy(() => import('./pages/ProgramCatalog'));
+const AgentCenter = lazy(() => import('./pages/AgentCenter'));
+const ExecutiveDashboard = lazy(() => import('./pages/ExecutiveDashboard'));
+const PipelineMonitor = lazy(() => import('./pages/PipelineMonitor'));
+const PipelineDetail = lazy(() => import('./pages/PipelineDetail'));
+const IdentityCenter = lazy(() => import('./pages/IdentityCenter'));
 
 const queryClient = new QueryClient({
   defaultOptions: { queries: { refetchOnWindowFocus: false, staleTime: 30_000, gcTime: 10 * 60 * 1000 } },
@@ -226,6 +231,7 @@ export default function App() {
   }), [theme, setTheme]);
 
   console.log(`[App] render bootComplete=${bootComplete} showOnboarding=${showOnboarding} showTour=${showTour} url=${window.location.href}`);
+  console.log(`[App] sessionStorage rastro-token:`, sessionStorage.getItem('rastro-token') ? 'present' : 'null');
 
   if (!bootComplete) {
     const bootErr = licenseValid === false
@@ -337,6 +343,13 @@ export default function App() {
                     <Route path="/investigations" element={<Suspense fallback={fallback}><InvestigationCenter /></Suspense>} />
                     <Route path="/investigation/:id" element={<Suspense fallback={fallback}><InvestigationDetail /></Suspense>} />
                     <Route path="/settings" element={<Suspense fallback={fallback}><Settings /></Suspense>} />
+                    <Route path="/identity-center" element={<Suspense fallback={fallback}><IdentityCenter /></Suspense>} />
+
+                    {/* AI Agents */}
+                    <Route path="/agents" element={<Suspense fallback={fallback}><AgentCenter /></Suspense>} />
+                    <Route path="/executive-dashboard" element={<Suspense fallback={fallback}><ExecutiveDashboard /></Suspense>} />
+                    <Route path="/pipeline-monitor" element={<Suspense fallback={fallback}><PipelineMonitor /></Suspense>} />
+                    <Route path="/pipeline/:id" element={<Suspense fallback={fallback}><PipelineDetail /></Suspense>} />
 
                     {/* 404 */}
                     <Route path="*" element={<NotFound />} />

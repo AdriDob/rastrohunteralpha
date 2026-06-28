@@ -7,15 +7,16 @@ Optional LLM enhancement falls back gracefully.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+import logging
+from typing import Any
+
+logger = logging.getLogger("rastro.ai.advisor")
 
 from core_engines.ai.context_builder import build_full_context
-from core_engines.ai.insights import generate_insights
-from core_engines.ai.recommendations import generate_recommendations
 from core_engines.ai.provider import get_provider
 
 
-def answer_query(query: str) -> Dict[str, Any]:
+def answer_query(query: str) -> dict[str, Any]:
     query_lower = query.lower().strip()
     ctx = build_full_context()
     provider = get_provider()
@@ -36,7 +37,7 @@ def answer_query(query: str) -> Dict[str, Any]:
                     "context_summary": _summarize_context(ctx),
                 }
         except Exception:
-            pass
+            logger.warning("Failed to get LLM response", exc_info=True)
 
     # Fallback to rule-based answers
     return {
@@ -46,7 +47,7 @@ def answer_query(query: str) -> Dict[str, Any]:
     }
 
 
-def _build_system_prompt(ctx: Dict[str, Any]) -> str:
+def _build_system_prompt(ctx: dict[str, Any]) -> str:
     e = ctx.get("endpoints", {})
     t = ctx.get("targets", {})
     f = ctx.get("findings", {})
@@ -82,7 +83,7 @@ Reglas:
 """
 
 
-def _rule_based_answer(query: str, ctx: Dict[str, Any]) -> str:
+def _rule_based_answer(query: str, ctx: dict[str, Any]) -> str:
     # ROI question
     if any(w in query for w in ["roi", "mejor target", "mejor oportunidad", "qué target", "best target", "what to attack"]):
         opps = ctx.get("opportunities", {}).get("top", [])
@@ -162,7 +163,7 @@ def _rule_based_answer(query: str, ctx: Dict[str, Any]) -> str:
     )
 
 
-def _summarize_context(ctx: Dict[str, Any]) -> Dict[str, Any]:
+def _summarize_context(ctx: dict[str, Any]) -> dict[str, Any]:
     return {
         "targets": ctx.get("targets", {}).get("total", 0),
         "endpoints": ctx.get("endpoints", {}).get("total", 0),

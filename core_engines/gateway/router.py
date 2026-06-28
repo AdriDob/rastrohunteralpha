@@ -5,11 +5,11 @@ All API routers should use these helpers to ensure consistent response format.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter as FastAPIRouter
 
-from .schemas import APIEnvelope, PaginatedEnvelope, ok, error, paginated
+from .schemas import APIEnvelope, PaginatedEnvelope, error, ok, paginated
 
 
 class APIRouter(FastAPIRouter):

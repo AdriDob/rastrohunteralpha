@@ -11,8 +11,8 @@ import json
 import logging
 import os
 from abc import ABC, abstractmethod
+from collections.abc import Generator
 from dataclasses import dataclass, field
-from typing import Any, Dict, Generator, List, Optional
 
 logger = logging.getLogger("rastro.ai.provider")
 
@@ -62,10 +62,10 @@ PROVIDER_CATALOG: list[ProviderSpec] = [
 
 class AIProvider(ABC):
     @abstractmethod
-    def chat(self, messages: List[Dict[str, str]], max_tokens: int = 512) -> str:
+    def chat(self, messages: list[dict[str, str]], max_tokens: int = 512) -> str:
         ...
 
-    def chat_stream(self, messages: List[Dict[str, str]], max_tokens: int = 512) -> Generator[str, None, None]:
+    def chat_stream(self, messages: list[dict[str, str]], max_tokens: int = 512) -> Generator[str, None, None]:
         """Override for SSE streaming. Default yields the full response."""
         yield self.chat(messages, max_tokens=max_tokens)
 
@@ -83,10 +83,10 @@ class AIProvider(ABC):
 
 
 class OllamaProvider(AIProvider):
-    def __init__(self, host: Optional[str] = None, model: Optional[str] = None):
+    def __init__(self, host: str | None = None, model: str | None = None):
         self.host = host or os.environ.get("OLLAMA_HOST", "http://localhost:11434")
         self.model = model or os.environ.get("OLLAMA_MODEL", "qwen2.5-coder:7b")
-        self._available: Optional[bool] = None
+        self._available: bool | None = None
 
     def _check(self) -> bool:
         try:
@@ -106,7 +106,7 @@ class OllamaProvider(AIProvider):
     def name(self) -> str:
         return f"ollama/{self.model}"
 
-    def chat(self, messages: List[Dict[str, str]], max_tokens: int = 512) -> str:
+    def chat(self, messages: list[dict[str, str]], max_tokens: int = 512) -> str:
         prompt = self._format_prompt(messages)
         try:
             import urllib.request
@@ -130,7 +130,7 @@ class OllamaProvider(AIProvider):
             self._available = False
             return ""
 
-    def _format_prompt(self, messages: List[Dict[str, str]]) -> str:
+    def _format_prompt(self, messages: list[dict[str, str]]) -> str:
         parts = []
         for msg in messages:
             role = msg.get("role", "user")
@@ -144,7 +144,7 @@ class OllamaProvider(AIProvider):
         parts.append("Assistant: ")
         return "\n".join(parts)
 
-    def chat_stream(self, messages: List[Dict[str, str]], max_tokens: int = 512) -> Generator[str, None, None]:
+    def chat_stream(self, messages: list[dict[str, str]], max_tokens: int = 512) -> Generator[str, None, None]:
         try:
             import urllib.request
             prompt = self._format_prompt(messages)
@@ -176,11 +176,11 @@ class OllamaProvider(AIProvider):
 
 
 class OpenAICompatibleProvider(AIProvider):
-    def __init__(self, api_key: Optional[str] = None, base_url: Optional[str] = None, model: Optional[str] = None):
+    def __init__(self, api_key: str | None = None, base_url: str | None = None, model: str | None = None):
         self.api_key = api_key or os.environ.get("OPENAI_API_KEY", "")
         self.base_url = (base_url or os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1")).rstrip("/")
         self.model = model or os.environ.get("LLM_MODEL", "gpt-4o-mini")
-        self._available: Optional[bool] = None
+        self._available: bool | None = None
 
     def is_available(self) -> bool:
         if self._available is None:
@@ -191,7 +191,7 @@ class OpenAICompatibleProvider(AIProvider):
     def name(self) -> str:
         return f"openai/{self.model}"
 
-    def chat(self, messages: List[Dict[str, str]], max_tokens: int = 512) -> str:
+    def chat(self, messages: list[dict[str, str]], max_tokens: int = 512) -> str:
         if not self.api_key:
             return ""
         try:
@@ -218,7 +218,7 @@ class OpenAICompatibleProvider(AIProvider):
             logger.warning(f"OpenAI-compatible call failed: {e}")
             return ""
 
-    def chat_stream(self, messages: List[Dict[str, str]], max_tokens: int = 512) -> Generator[str, None, None]:
+    def chat_stream(self, messages: list[dict[str, str]], max_tokens: int = 512) -> Generator[str, None, None]:
         if not self.api_key:
             return
         try:
@@ -272,7 +272,7 @@ class LocalFallbackProvider(AIProvider):
     def is_available(self) -> bool:
         return True
 
-    def chat(self, messages: List[Dict[str, str]], max_tokens: int = 512) -> str:
+    def chat(self, messages: list[dict[str, str]], max_tokens: int = 512) -> str:
         last = messages[-1]["content"] if messages else ""
         last_lower = last.lower()
 
@@ -298,7 +298,7 @@ class ProviderRegistry:
     """Manages provider lifecycle with DB-persisted config and env fallback."""
 
     def __init__(self):
-        self._current: Optional[AIProvider] = None
+        self._current: AIProvider | None = None
         self._loaded = False
 
     def _load_config(self) -> dict:
@@ -313,8 +313,8 @@ class ProviderRegistry:
                     config[row.key] = row.value
             finally:
                 session.close()
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Failed to load AI provider config from DB: %s", exc)
         config.setdefault("provider_type", os.environ.get("AI_PROVIDER", "ollama"))
         config.setdefault("host", os.environ.get("OLLAMA_HOST", "http://localhost:11434"))
         config.setdefault("model", os.environ.get("OLLAMA_MODEL", "qwen2.5-coder:7b"))
@@ -353,7 +353,7 @@ class ProviderRegistry:
             if p.is_available():
                 return p
             logger.info("OpenAI provider unavailable, trying Ollama")
-        if ptype == "ollama" or True:
+        if True:
             p = OllamaProvider(
                 host=cfg.get("host", "http://localhost:11434"),
                 model=cfg.get("model", "qwen2.5-coder:7b"),
@@ -415,7 +415,7 @@ class ProviderRegistry:
         return result
 
 
-_registry: Optional[ProviderRegistry] = None
+_registry: ProviderRegistry | None = None
 
 
 def get_registry() -> ProviderRegistry:

@@ -20,14 +20,14 @@ def _get_machine_id() -> str:
             with open(etc) as f:
                 raw.append(f.read().strip())
         except Exception:
-            pass
+            logger.warning("Failed to read /etc/machine-id", exc_info=True)
     dbus = "/var/lib/dbus/machine-id"
     if os.path.exists(dbus):
         try:
             with open(dbus) as f:
                 raw.append(f.read().strip())
         except Exception:
-            pass
+            logger.warning("Failed to read /var/lib/dbus/machine-id", exc_info=True)
     if not raw:
         raw.append(os.environ.get("HOSTNAME", "rastro-default"))
 

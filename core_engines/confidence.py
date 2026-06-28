@@ -1,7 +1,8 @@
+import contextlib
 import logging
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 LOG = logging.getLogger("rastro.confidence")
 
@@ -19,7 +20,7 @@ class ConfidenceFactor:
     def contribution(self) -> float:
         return round(self.value * self.weight, 4)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "name": self.name,
             "value": round(self.value, 4),
@@ -35,14 +36,14 @@ class ConfidenceAudit:
     item_type: str
     item_label: str
     overall_score: float
-    factors: List[ConfidenceFactor] = field(default_factory=list)
+    factors: list[ConfidenceFactor] = field(default_factory=list)
     historical_influence: float = 0.0
     evidence_influence: float = 0.0
     roi_influence: float = 0.0
     reasoning_summary: str = ""
     audited_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "item_id": self.item_id,
             "item_type": self.item_type,
@@ -59,12 +60,12 @@ class ConfidenceAudit:
 
 @dataclass
 class ConfidenceReport:
-    audits: List[ConfidenceAudit] = field(default_factory=list)
+    audits: list[ConfidenceAudit] = field(default_factory=list)
     average_confidence: float = 0.0
     total_audited: int = 0
     generated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "audits": [a.to_dict() for a in self.audits],
             "average_confidence": round(self.average_confidence, 4),
@@ -152,7 +153,7 @@ def _compute_verdict_confidence(v: Any) -> ConfidenceAudit:
     )
 
 
-def _compute_finding_confidence(f: Any, verdicts: List[Any]) -> ConfidenceAudit:
+def _compute_finding_confidence(f: Any, verdicts: list[Any]) -> ConfidenceAudit:
     factors = []
 
     severity_val = SEVERITY_WEIGHTS.get(f.severity if hasattr(f, "severity") else "medium", 0.5)
@@ -169,10 +170,8 @@ def _compute_finding_confidence(f: Any, verdicts: List[Any]) -> ConfidenceAudit:
     if related:
         confs = []
         for v in related:
-            try:
+            with contextlib.suppress(ValueError, TypeError):
                 confs.append(float(v.confidence) if v.confidence else 0.0)
-            except (ValueError, TypeError):
-                pass
         verdict_confidence = sum(confs) / len(confs) if confs else 0.0
 
     factors.append(ConfidenceFactor(
@@ -242,7 +241,7 @@ def audit_findings(limit: int = 50) -> ConfidenceReport:
         session.close()
 
 
-def audit_single(item_type: str, item_id: int) -> Optional[ConfidenceAudit]:
+def audit_single(item_type: str, item_id: int) -> ConfidenceAudit | None:
     from database.db import SessionLocal
     session = SessionLocal()
     try:

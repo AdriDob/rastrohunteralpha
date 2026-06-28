@@ -7,14 +7,14 @@ No mock data. No placeholders.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List
+from typing import Any
 
 from core_engines.ai.context_builder import build_full_context
 
 
-def generate_insights() -> List[Dict[str, Any]]:
+def generate_insights() -> list[dict[str, Any]]:
     ctx = build_full_context()
-    insights: List[Dict[str, Any]] = []
+    insights: list[dict[str, Any]] = []
 
     # ── 1. New critical endpoints ──
     hs = ctx.get("endpoints", {}).get("top_high_signal", [])
@@ -99,7 +99,7 @@ def generate_insights() -> List[Dict[str, Any]]:
             "type": "quick_wins",
             "severity": "high",
             "title": f"{len(quick_wins)} quick wins disponibles",
-            "detail": f"Endpoints accionables con riesgo ≥ 25 listos para ser validados",
+            "detail": "Endpoints accionables con riesgo ≥ 25 listos para ser validados",
             "score": len(quick_wins) * 15,
             "action": "Revisar la lista de endpoints accionables y comenzar validación",
         })
@@ -164,7 +164,7 @@ def generate_insights() -> List[Dict[str, Any]]:
     return insights
 
 
-def get_top_insight() -> Dict[str, Any]:
+def get_top_insight() -> dict[str, Any]:
     insights = generate_insights()
     if insights:
         return insights[0]

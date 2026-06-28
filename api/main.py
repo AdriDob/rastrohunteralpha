@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import os
+import time
 from contextlib import asynccontextmanager
 from pathlib import Path
 
@@ -8,58 +9,64 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
 
-from database import db
-from core_engines.observability import get_metrics, reset_metrics
-from core_engines.intelligence.adaptive_memory import get_memory
+from api.middleware.auth_middleware import AuthMiddleware
+from api.middleware.rate_limit_middleware import RateLimitMiddleware
 from api.routers import (
-    targets,
-    endpoints,
-    findings,
-    evidence,
-    opportunities,
-    attack_surface,
-    pipeline,
-    quick_wins,
-    reports,
-    hypotheses,
-    roi,
-    scans,
-    digest,
-    verdicts,
-    attack,
-    validation,
-    overview,
+    agents_router,
     assistant,
-    differential_intelligence,
-    canonical,
-    intelligence,
-    system,
-    screenshots,
-    operations,
-    opportunity_intelligence,
+    attack,
+    attack_surface,
     auth,
     auth_users,
-    sync,
-    notifications,
-    mobile,
+    canonical,
     contracts,
-    system_state,
     daily,
-    orchestrator,
-    identity,
-    execution,
-    license,
-    project_dashboard,
-    ws,
-    target_identity,
-    idor,
-    investigations,
-    settings_ai,
+    differential_intelligence,
+    digest,
     discovery,
+    endpoints,
+    evidence,
+    execution,
+    findings,
+    hypotheses,
+    identity,
+    identity_center,
+    idor,
+    intelligence,
+    investigations,
+    license,
+    mobile,
+    notifications,
+    operations,
+    opportunities,
+    opportunity_intelligence,
+    orchestrator,
+    overview,
+    pipeline,
+    project_dashboard,
+    quick_wins,
+    reports,
+    roi,
+    scans,
+    screenshots,
+    settings_ai,
+    settings_runtime,
+    sync,
+    system,
+    system_state,
+    target_identity,
+    targets,
+    validation,
+    verdicts,
+    webhooks,
+    ws,
 )
+from core_engines.intelligence.adaptive_memory import get_memory
 from core_engines.learning.router import router as learning_router
-
 from core_engines.log_config import setup_logging
+from core_engines.observability import get_metrics
+from database import db
+
 setup_logging()
 
 logger = logging.getLogger("rastro.api")
@@ -102,11 +109,11 @@ async def lifespan(app: FastAPI):
 
     # Initialize execution layer
     from core_engines.actions.execution_tracker import get_execution_tracker
-    tracker = get_execution_tracker()
+    get_execution_tracker()
     logger.info("Execution tracker initialized")
 
     from core_engines.accountability.outcome_tracker import get_outcome_tracker
-    outcome = get_outcome_tracker()
+    get_outcome_tracker()
     logger.info("Outcome tracker initialized")
 
     from core_engines.accountability.system_scorecard import get_system_scorecard
@@ -115,23 +122,23 @@ async def lifespan(app: FastAPI):
     logger.info("System scorecard initialized")
 
     from core_engines.explainability.explanation_engine import get_explanation_engine
-    engine = get_explanation_engine()
+    get_explanation_engine()
     logger.info("Explanation engine initialized")
 
     from core_engines.explainability.decision_trace import get_decision_trace
-    trace = get_decision_trace()
+    get_decision_trace()
     logger.info("Decision trace collector initialized")
 
     from core_engines.memory.memory_store import get_memory_store
-    store = get_memory_store()
+    get_memory_store()
     logger.info("Memory store initialized")
 
     from core_engines.memory.decision_memory import get_decision_memory
-    dm = get_decision_memory()
+    get_decision_memory()
     logger.info("Decision memory initialized")
 
     from core_engines.memory.insight_archive import get_insight_archive
-    archive = get_insight_archive()
+    get_insight_archive()
     logger.info("Insight archive initialized")
 
     # Consume memory into priority engine
@@ -156,7 +163,7 @@ async def lifespan(app: FastAPI):
     try:
         from api.scheduler import ScanScheduler
         scheduler = ScanScheduler(interval_minutes=int(os.environ.get("RASTRO_SCAN_INTERVAL", "30")))
-        scheduler._task = asyncio.create_task(scheduler.start())
+        asyncio.create_task(scheduler.start())
         logger.info("Scan scheduler started")
     except Exception as exc:
         logger.warning("Scan scheduler failed to start (non-fatal): %s", exc)
@@ -183,8 +190,8 @@ async def lifespan(app: FastAPI):
             register_db_bridge,
             register_desktop_channel,
             register_email_channel,
-            register_fcm_channel,
             register_event_bridge,
+            register_fcm_channel,
             register_ws_forwarder,
         )
         register_db_bridge()
@@ -203,7 +210,97 @@ async def lifespan(app: FastAPI):
     except Exception as exc:
         logger.warning("Event -> notification bridge failed (non-fatal): %s", exc)
 
+    # Start Multi-Agent system
+    try:
+        from core_engines.agents import start_all_agents
+        agents = start_all_agents()
+        logger.info("[BOOT] %d agents started", len(agents))
+    except Exception as exc:
+        logger.warning("Multi-Agent system failed to start (non-fatal): %s", exc)
+
+    # Start Recovery Engine and Health Monitor
+    try:
+        from core_engines.recovery import get_recovery_engine, get_health_monitor
+        recovery = get_recovery_engine()
+        recovery.start()
+        monitor = get_health_monitor()
+        monitor.start()
+        logger.info("[BOOT] Recovery engine and health monitor started")
+    except Exception as exc:
+        logger.warning("Recovery engine failed to start (non-fatal): %s", exc)
+
+    # Start RC7 Autonomous Intelligence Layer
+    try:
+        from core_engines.health import get_system_health_engine
+        health_engine = get_system_health_engine()
+        health_engine.start()
+        logger.info("[BOOT] System health engine started")
+    except Exception as exc:
+        logger.warning("System health engine failed to start (non-fatal): %s", exc)
+
+    try:
+        from core_engines.optimization import get_optimization_engine
+        opt_engine = get_optimization_engine()
+        opt_engine.start()
+        logger.info("[BOOT] Auto-optimization engine started")
+    except Exception as exc:
+        logger.warning("Auto-optimization engine failed to start (non-fatal): %s", exc)
+
+    try:
+        from core_engines.autonomous import get_autonomous_engine
+        auto_engine = get_autonomous_engine()
+        auto_engine.start()
+        auto_engine.enable()
+        logger.info("[BOOT] AUTONOMOUS+ mode engine started and enabled")
+    except Exception as exc:
+        logger.warning("AUTONOMOUS+ engine failed to start (non-fatal): %s", exc)
+
     yield
+
+    # Stop RC7 Autonomous Intelligence Layer
+    try:
+        from core_engines.autonomous import get_autonomous_engine
+        auto_engine = get_autonomous_engine()
+        auto_engine.disable()
+        auto_engine.stop()
+        logger.info("[BOOT] AUTONOMOUS+ engine stopped")
+    except Exception as exc:
+        logger.warning("AUTONOMOUS+ engine stop error: %s", exc)
+
+    try:
+        from core_engines.health import get_system_health_engine
+        health_engine = get_system_health_engine()
+        health_engine.stop()
+        logger.info("[BOOT] System health engine stopped")
+    except Exception as exc:
+        logger.warning("System health engine stop error: %s", exc)
+
+    try:
+        from core_engines.optimization import get_optimization_engine
+        opt_engine = get_optimization_engine()
+        opt_engine.stop()
+        logger.info("[BOOT] Auto-optimization engine stopped")
+    except Exception as exc:
+        logger.warning("Auto-optimization engine stop error: %s", exc)
+
+    # Stop Recovery Engine and Health Monitor
+    try:
+        from core_engines.recovery import get_health_monitor, get_recovery_engine
+        monitor = get_health_monitor()
+        monitor.stop()
+        engine = get_recovery_engine()
+        engine.stop()
+        logger.info("[BOOT] Recovery engine and health monitor stopped")
+    except Exception as exc:
+        logger.warning("Recovery engine stop error: %s", exc)
+
+    # Stop Multi-Agent system
+    try:
+        from core_engines.agents import stop_all_agents
+        stop_all_agents()
+        logger.info("[BOOT] All agents stopped")
+    except Exception as exc:
+        logger.warning("Multi-Agent system stop error: %s", exc)
 
     # Graceful shutdown of background tasks
     if scheduler is not None:
@@ -234,12 +331,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Rate limiting — counts all requests (incl. failed auth) to prevent brute-force
-from api.middleware.rate_limit_middleware import RateLimitMiddleware
 app.add_middleware(RateLimitMiddleware)
-
-# Auth enforcement — rejects unauthenticated requests on protected paths
-from api.middleware.auth_middleware import AuthMiddleware
 app.add_middleware(AuthMiddleware)
 
 app.include_router(targets.router)
@@ -277,6 +369,7 @@ app.include_router(system_state.router)
 app.include_router(daily.router)
 app.include_router(orchestrator.router)
 app.include_router(identity.router)
+app.include_router(identity_center.router)
 app.include_router(target_identity.router)
 app.include_router(execution.router)
 app.include_router(license.router)
@@ -286,7 +379,10 @@ app.include_router(ws.router)
 app.include_router(idor.router)
 app.include_router(investigations.router)
 app.include_router(settings_ai.router)
+app.include_router(settings_runtime.router)
+app.include_router(webhooks.router)
 app.include_router(discovery.router)
+app.include_router(agents_router.router)
 
 
 APP_VERSION = _APP_VERSION
@@ -305,6 +401,58 @@ async def global_exception_handler(request, exc):
 @app.get("/api/health")
 async def health():
     return {"status": "ok", "app": "Rastro API", "version": APP_VERSION}
+
+
+@app.get("/api/system/status")
+async def system_status():
+    """Enhanced system health dashboard — includes watchdog, pipeline, agents."""
+    import psutil
+
+    from core_engines.system_health import collect_health
+    from core_engines.system_state import get_system_state
+    from desktop.watchdog import get_watchdog
+
+    state = get_system_state()
+    health_data = collect_health()
+    watchdog = get_watchdog()
+
+    pid = os.getpid()
+    proc = psutil.Process(pid)
+    mem = proc.memory_info()
+    summary = state.get_summary() if hasattr(state, "get_summary") else None
+    boot_time_val = getattr(state, "boot_time", None) or 0.0
+
+    return {
+        "status": summary.state if summary else "unknown",
+        "version": APP_VERSION,
+        "pid": pid,
+        "uptime_seconds": time.time() - boot_time_val,
+        "watchdog": watchdog.get_status() if watchdog and watchdog.is_running else {"running": False},
+        "system": {
+            "memory_percent": proc.memory_percent(),
+            "memory_rss_mb": mem.rss / 1024 / 1024,
+            "cpu_percent": proc.cpu_percent(interval=0.3),
+            "num_threads": proc.num_threads(),
+        },
+        "pipeline": {
+            "total_pipelines": len(health_data.get("pipelines", [])) if health_data else 0,
+        },
+        "agents": state.get_agent_status() if hasattr(state, "get_agent_status") else {},
+        "database": {
+            "file_size_mb": _get_db_size_mb(),
+        },
+    }
+
+
+def _get_db_size_mb() -> float:
+    try:
+        from core_engines.platform.system import get_db_path
+        p = get_db_path()
+        if p.exists():
+            return p.stat().st_size / 1024 / 1024
+    except Exception:
+        pass
+    return 0.0
 
 
 @app.get("/api/version")
@@ -357,10 +505,10 @@ async def metrics():
     lines.append(f'rastro_intelligence{{stat="snapshots_created"}} {state.get("total_snapshots_created", 0)}')
     lines.append(f'rastro_intelligence{{stat="analysis_time_ms"}} {state.get("total_analysis_time_ms", 0.0)}')
 
-    from core_engines.timeline import build_timeline
-    from core_engines.replay import list_replay_targets
     from core_engines.confidence import audit_verdicts
+    from core_engines.replay import list_replay_targets
     from core_engines.review_queue import build_review_queue
+    from core_engines.timeline import build_timeline
     try:
         tl = build_timeline(limit=1)
         timeline_count = tl.to_dict().get("total_events", 0)

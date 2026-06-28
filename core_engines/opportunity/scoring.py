@@ -7,15 +7,13 @@ Never invents values. Unknown information remains unknown.
 from __future__ import annotations
 
 import logging
-import re
-from typing import List, Optional, Set
 
 from core_engines.opportunity.models import Opportunity, OpportunityScore
 
 logger = logging.getLogger("rastro.opportunity.scoring")
 
 # Known high-value technology keywords
-_HIGH_VALUE_TAGS: Set[str] = {
+_HIGH_VALUE_TAGS: set[str] = {
     "cloud", "aws", "gcp", "azure", "kubernetes", "docker",
     "api", "graphql", "rest", "oauth", "saml", "jwt",
     "mobile", "ios", "android", "react-native", "flutter",
@@ -24,7 +22,7 @@ _HIGH_VALUE_TAGS: Set[str] = {
 }
 
 # Keywords that suggest larger scope
-_SCOPE_KEYWORDS: Set[str] = {
+_SCOPE_KEYWORDS: set[str] = {
     "all", "full", "wide", "entire", "comprehensive",
     "thousands", "hundreds", "multiple", "extensive",
     "global", "enterprise", "platform",
@@ -36,7 +34,7 @@ _SOURCE_CONFIDENCE_WEIGHT = 0.1
 
 def score_opportunity(
     opp: Opportunity,
-    operator_tags: Optional[List[str]] = None,
+    operator_tags: list[str] | None = None,
     pattern_overlap: float = 0.0,
 ) -> OpportunityScore:
     """Compute a multi-factor OpportunityScore for a single opportunity.
@@ -50,7 +48,7 @@ def score_opportunity(
 
     Returns an OpportunityScore with overall 0.0-1.0 and reasoning.
     """
-    reasoning: List[str] = []
+    reasoning: list[str] = []
 
     # ── Reward potential (0.0-1.0) ──────────────────────────────────
     reward = _score_reward(opp)
@@ -158,7 +156,7 @@ def _score_scope(opp: Opportunity) -> float:
     return max(0.0, min(1.0, score))
 
 
-def _score_technology(opp: Opportunity, operator_tags: List[str]) -> float:
+def _score_technology(opp: Opportunity, operator_tags: list[str]) -> float:
     """Measure technology overlap with operator preferences."""
     opp_tags = set(t.lower() for t in opp.technology_tags)
     op_tags = set(t.lower() for t in operator_tags)

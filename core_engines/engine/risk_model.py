@@ -1,8 +1,6 @@
 import re
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Set, Tuple
-
-from core_engines.engine.unified_scoring import score, score_target
+from typing import Any
 
 UUID_PATTERN = re.compile(
     r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
@@ -10,7 +8,7 @@ UUID_PATTERN = re.compile(
 HEX_PATTERN = re.compile(r"^[0-9a-fA-F]{24}$")
 TOKEN_PATTERN = re.compile(r"^[A-Za-z0-9_-]{32,}$")
 
-STATIC_EXTENSIONS: Set[str] = {
+STATIC_EXTENSIONS: set[str] = {
     ".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp",
     ".woff", ".woff2", ".ttf", ".eot",
     ".css", ".js", ".map",
@@ -19,21 +17,21 @@ STATIC_EXTENSIONS: Set[str] = {
     ".zip", ".tar", ".gz",
 }
 
-LOW_VALUE_FRAGMENTS: Set[str] = {
+LOW_VALUE_FRAGMENTS: set[str] = {
     "/health", "/status", "/metrics", "/favicon.ico",
     "/robots.txt", "/sitemap.xml", "/ping", "/version",
     "/swagger-resources", "/v2/api-docs", "/webjars",
     "/actuator", "/heartbeat", "/ready", "/live",
 }
 
-SIGNAL_LABELS: Set[str] = {
+SIGNAL_LABELS: set[str] = {
     "graphql", "admin", "export", "auth", "multi_tenant",
     "billing", "identity", "internal", "file_operation",
     "import", "id_parameter", "uuid_identifier",
     "numeric_identifier", "mutation", "sensitive",
 }
 
-SIGNAL_KEYWORDS: Set[str] = {
+SIGNAL_KEYWORDS: set[str] = {
     "graphql", "admin", "export", "auth", "multi_tenant",
     "billing", "identity", "internal", "file_operation",
     "import", "uuid", "auth_smell", "idor_params",
@@ -41,33 +39,33 @@ SIGNAL_KEYWORDS: Set[str] = {
     "object_reference_param", "api_path", "mutating_method",
 }
 
-BOLA_INDICATORS: Set[str] = {
+BOLA_INDICATORS: set[str] = {
     "idor_candidate", "ownership_boundary", "tenant_boundary",
     "data_exfiltration",
 }
 
-IDOR_CONFIRMATION_SIGNALS: Set[str] = {
+IDOR_CONFIRMATION_SIGNALS: set[str] = {
     "uuid", "numeric_id", "idor_params", "auth_smell",
     "ownership_risk", "object_reference_param",
 }
 
-AUTH_BOUNDARY_INDICATORS: Set[str] = {
+AUTH_BOUNDARY_INDICATORS: set[str] = {
     "authentication_surface", "admin_surface", "internal_surface",
 }
 
-MULTI_TENANT_ZONE_INDICATORS: Set[str] = {
+MULTI_TENANT_ZONE_INDICATORS: set[str] = {
     "multi_tenant", "tenant_boundary",
 }
 
 
 @dataclass
 class NoiseReport:
-    discarded: List[Dict[str, Any]]
-    merged: List[Dict[str, Any]]
-    duplicates_removed: List[Dict[str, Any]]
-    clean: List[Dict[str, Any]]
+    discarded: list[dict[str, Any]]
+    merged: list[dict[str, Any]]
+    duplicates_removed: list[dict[str, Any]]
+    clean: list[dict[str, Any]]
     noise_ratio: float
-    reasoning: Dict[str, List[str]]
+    reasoning: dict[str, list[str]]
 
 
 @dataclass
@@ -77,17 +75,17 @@ class RiskVerdict:
     is_noise: bool
     idor_confidence: float
     reason: str
-    cluster_type: Optional[str] = None
+    cluster_type: str | None = None
 
 
 @dataclass
 class AttackSurfaceMap:
-    idor_clusters: List[Dict[str, Any]]
-    auth_boundaries: List[Dict[str, Any]]
-    multi_tenant_zones: List[Dict[str, Any]]
-    graphql_surfaces: List[Dict[str, Any]]
-    technologies: List[Dict[str, Any]] = field(default_factory=list)
-    discovered_paths: List[str] = field(default_factory=list)
+    idor_clusters: list[dict[str, Any]]
+    auth_boundaries: list[dict[str, Any]]
+    multi_tenant_zones: list[dict[str, Any]]
+    graphql_surfaces: list[dict[str, Any]]
+    technologies: list[dict[str, Any]] = field(default_factory=list)
+    discovered_paths: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -119,19 +117,19 @@ class NoiseReductionLayer:
     gets shown to the user.
     """
 
-    def __init__(self, config: Optional[RiskModelConfig] = None):
+    def __init__(self, config: RiskModelConfig | None = None):
         self.config = config or RiskModelConfig()
 
-    def reduce(self, endpoints: List[Dict[str, Any]]) -> NoiseReport:
+    def reduce(self, endpoints: list[dict[str, Any]]) -> NoiseReport:
         if not endpoints:
             return NoiseReport(
                 discarded=[], merged=[], duplicates_removed=[],
                 clean=[], noise_ratio=0.0, reasoning={},
             )
 
-        working: List[Dict[str, Any]] = list(endpoints)
-        discarded: List[Dict[str, Any]] = []
-        reasoning: Dict[str, List[str]] = {}
+        working: list[dict[str, Any]] = list(endpoints)
+        discarded: list[dict[str, Any]] = []
+        reasoning: dict[str, list[str]] = {}
 
         if self.config.remove_static_assets:
             working, removed, reasons = self._filter_static_assets(working)
@@ -172,11 +170,11 @@ class NoiseReductionLayer:
         )
 
     def _filter_static_assets(
-        self, endpoints: List[Dict[str, Any]]
-    ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[str]]:
-        clean: List[Dict[str, Any]] = []
-        removed: List[Dict[str, Any]] = []
-        reasons: List[str] = []
+        self, endpoints: list[dict[str, Any]]
+    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
+        clean: list[dict[str, Any]] = []
+        removed: list[dict[str, Any]] = []
+        reasons: list[str] = []
 
         for ep in endpoints:
             path = str(ep.get("path", ""))
@@ -198,11 +196,11 @@ class NoiseReductionLayer:
         return clean, removed, reasons
 
     def _filter_low_value(
-        self, endpoints: List[Dict[str, Any]]
-    ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[str]]:
-        clean: List[Dict[str, Any]] = []
-        removed: List[Dict[str, Any]] = []
-        reasons: List[str] = []
+        self, endpoints: list[dict[str, Any]]
+    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
+        clean: list[dict[str, Any]] = []
+        removed: list[dict[str, Any]] = []
+        reasons: list[str] = []
 
         for ep in endpoints:
             path = str(ep.get("path", ""))
@@ -223,7 +221,7 @@ class NoiseReductionLayer:
         lower = path.lower().split("?", 1)[0]
         lower = re.sub(r"/+", "/", lower)
         parts = [s for s in lower.split("/") if s]
-        normalized: List[str] = []
+        normalized: list[str] = []
         for segment in parts:
             if UUID_PATTERN.search(segment):
                 normalized.append("{uuid}")
@@ -238,12 +236,12 @@ class NoiseReductionLayer:
         return "/" + "/".join(normalized) if normalized else "/"
 
     def _filter_duplicates(
-        self, endpoints: List[Dict[str, Any]]
-    ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[str]]:
+        self, endpoints: list[dict[str, Any]]
+    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
         if len(endpoints) < 2:
             return endpoints, [], []
 
-        groups: Dict[str, List[Dict[str, Any]]] = {}
+        groups: dict[str, list[dict[str, Any]]] = {}
         for ep in endpoints:
             pattern = self._normalize_for_dedup(str(ep.get("path", "")))
             if self.config.keep_all_methods_on_dedup:
@@ -252,11 +250,11 @@ class NoiseReductionLayer:
                 key = pattern
             groups.setdefault(key, []).append(ep)
 
-        clean: List[Dict[str, Any]] = []
-        removed: List[Dict[str, Any]] = []
-        reasons: List[str] = []
+        clean: list[dict[str, Any]] = []
+        removed: list[dict[str, Any]] = []
+        reasons: list[str] = []
 
-        for key, group in groups.items():
+        for _, group in groups.items():
             if len(group) == 1:
                 clean.extend(group)
                 continue
@@ -280,12 +278,12 @@ class NoiseReductionLayer:
         return clean, removed, reasons
 
     def _filter_below_threshold(
-        self, endpoints: List[Dict[str, Any]]
-    ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[str]]:
+        self, endpoints: list[dict[str, Any]]
+    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
         threshold = self.config.min_risk_score
-        clean: List[Dict[str, Any]] = []
-        removed: List[Dict[str, Any]] = []
-        reasons: List[str] = []
+        clean: list[dict[str, Any]] = []
+        removed: list[dict[str, Any]] = []
+        reasons: list[str] = []
 
         for ep in endpoints:
             rs = float(ep.get("risk_score", 0))
@@ -301,11 +299,11 @@ class NoiseReductionLayer:
         return clean, removed, reasons
 
     def _filter_no_signal(
-        self, endpoints: List[Dict[str, Any]]
-    ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[str]]:
-        clean: List[Dict[str, Any]] = []
-        removed: List[Dict[str, Any]] = []
-        reasons: List[str] = []
+        self, endpoints: list[dict[str, Any]]
+    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
+        clean: list[dict[str, Any]] = []
+        removed: list[dict[str, Any]] = []
+        reasons: list[str] = []
 
         for ep in endpoints:
             labels = ep.get("labels", [])
@@ -341,10 +339,10 @@ class RiskClassifier:
       - What is "noise"
     """
 
-    def __init__(self, config: Optional[RiskModelConfig] = None):
+    def __init__(self, config: RiskModelConfig | None = None):
         self.config = config or RiskModelConfig()
 
-    def classify(self, endpoint: Dict[str, Any]) -> RiskVerdict:
+    def classify(self, endpoint: dict[str, Any]) -> RiskVerdict:
         path = str(endpoint.get("path", ""))
         signals = endpoint.get("signals", [])
         attack_surface = endpoint.get("attack_surface", [])
@@ -389,7 +387,7 @@ class RiskClassifier:
             cluster_type=cluster_type,
         )
 
-    def _is_noise(self, endpoint: Dict[str, Any]) -> bool:
+    def _is_noise(self, endpoint: dict[str, Any]) -> bool:
         risk_score = float(endpoint.get("risk_score", 0))
         signals = endpoint.get("signals", [])
         labels = endpoint.get("labels", [])
@@ -408,9 +406,9 @@ class RiskClassifier:
     def _compute_idor_confidence(
         self,
         path: str,
-        signals: List[str],
-        attack_surface: List[str],
-        labels: List[str],
+        signals: list[str],
+        attack_surface: list[str],
+        labels: list[str],
         risk_score: float,
         potential_idor: bool,
     ) -> float:
@@ -449,8 +447,8 @@ class RiskClassifier:
         return round(confidence, 2)
 
     def _detect_cluster_type(
-        self, attack_surface: List[str], labels: List[str],
-    ) -> Optional[str]:
+        self, attack_surface: list[str], labels: list[str],
+    ) -> str | None:
         if any(s in BOLA_INDICATORS for s in attack_surface):
             return "IDOR"
         if any(s in AUTH_BOUNDARY_INDICATORS for s in attack_surface):
@@ -474,19 +472,19 @@ class AttackSurfaceMapper:
 
     def map(
         self,
-        endpoints: List[Dict[str, Any]],
-        technologies: Optional[List[Dict[str, Any]]] = None,
-        discovered_paths: Optional[List[str]] = None,
+        endpoints: list[dict[str, Any]],
+        technologies: list[dict[str, Any]] | None = None,
+        discovered_paths: list[str] | None = None,
     ) -> AttackSurfaceMap:
-        idor_clusters: List[Dict[str, Any]] = []
-        auth_boundaries: List[Dict[str, Any]] = []
-        multi_tenant_zones: List[Dict[str, Any]] = []
-        graphql_surfaces: List[Dict[str, Any]] = []
+        idor_clusters: list[dict[str, Any]] = []
+        auth_boundaries: list[dict[str, Any]] = []
+        multi_tenant_zones: list[dict[str, Any]] = []
+        graphql_surfaces: list[dict[str, Any]] = []
 
         for ep in endpoints:
             attack_surface = ep.get("attack_surface", [])
             labels = ep.get("labels", [])
-            signals = ep.get("signals", [])
+            ep.get("signals", [])
 
             has_idor = any(s in BOLA_INDICATORS for s in attack_surface)
             has_auth = any(s in AUTH_BOUNDARY_INDICATORS for s in attack_surface)
@@ -532,7 +530,7 @@ class ROIEstimator:
         "Business logic": 0.5,
     }
 
-    def estimate(self, endpoint: Dict[str, Any]) -> ROIScore:
+    def estimate(self, endpoint: dict[str, Any]) -> ROIScore:
         risk_score = float(endpoint.get("risk_score", 0))
         vector = endpoint.get("vector", "Business logic")
         signals = endpoint.get("signals", [])
@@ -581,9 +579,9 @@ class ROIEstimator:
 
 
 def analyze(
-    endpoint_data: List[Dict[str, Any]],
-    config: Optional[RiskModelConfig] = None,
-) -> Dict[str, Any]:
+    endpoint_data: list[dict[str, Any]],
+    config: RiskModelConfig | None = None,
+) -> dict[str, Any]:
     """
     Full risk analysis pipeline.
 

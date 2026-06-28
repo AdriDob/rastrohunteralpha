@@ -1,4 +1,4 @@
-.PHONY: help install-windows build-android build-desktop clean
+.PHONY: help install-windows build-android build-desktop clean lint typecheck test prebuild
 
 help: ## Show this help
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | \
@@ -30,3 +30,15 @@ clean: ## Remove build artifacts
 	rm -rf desktop/build/build/
 	rm -rf desktop/build/dist/
 	rm -rf desktop/build/*.spec
+
+lint: ## Run ruff linter
+	python -m ruff check .
+
+typecheck: ## Run mypy type checker
+	python -m mypy core_engines/ api/ database/ desktop/
+
+test: ## Run test suite with coverage
+	python -m pytest tests/ -v --tb=short --cov=core_engines --cov-report=term-missing:skip-covered
+
+prebuild: ## Run pre-build validation
+	python scripts/prebuild.py

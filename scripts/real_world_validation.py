@@ -13,11 +13,13 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import logging
+
 logging.disable(logging.CRITICAL)
 
-from fastapi.testclient import TestClient
-from api.main import app
-from core_engines.license.validator import generate_license
+from fastapi.testclient import TestClient  # noqa: E402
+
+from api.main import app  # noqa: E402
+from core_engines.license.validator import generate_license  # noqa: E402
 
 client = TestClient(app)
 lic = generate_license(expiry_days=365)

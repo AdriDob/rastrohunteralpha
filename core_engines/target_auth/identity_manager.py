@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-import json
 import logging
 from typing import Any
 
-from database import db, models
 from core_engines.target_auth.vault import get_credential_vault
+from database import db, models
 
 logger = logging.getLogger("rastro.target_auth.identity")
 
@@ -68,7 +67,7 @@ class TargetIdentityManager:
                 session.query(models.TargetIdentity)
                 .filter(
                     models.TargetIdentity.target_id == target_id,
-                    models.TargetIdentity.is_active == True,
+                    models.TargetIdentity.is_active,
                 )
                 .order_by(models.TargetIdentity.id)
                 .all()
@@ -152,7 +151,7 @@ class TargetIdentityManager:
         try:
             identity = session.query(models.TargetIdentity).filter(
                 models.TargetIdentity.id == identity_id,
-                models.TargetIdentity.is_active == True,
+                models.TargetIdentity.is_active,
             ).first()
             if not identity or not identity.credentials_encrypted:
                 return {}

@@ -1,18 +1,18 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException
 
-from api.schemas.models import HypothesisEngineOutputOut, HypothesisOut
+from api.schemas.models import HypothesisEngineOutputOut
 from api.services.data_service import _get_session, _score_endpoint
-from database import models
 from core_engines.engine.hypothesis import HypothesisEngine
+from database import models
 
 router = APIRouter(prefix="/api/hypotheses", tags=["hypotheses"])
 
 
-def _hypothesis_to_out(h: Any) -> Dict[str, Any]:
+def _hypothesis_to_out(h: Any) -> dict[str, Any]:
     return {
         "id": h.id,
         "vulnerability_type": h.vulnerability_type.value,

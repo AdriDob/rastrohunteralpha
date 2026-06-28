@@ -30,7 +30,12 @@ export default function Activation() {
     checkLicense().then((s) => {
       if (s.valid) {
         setActivated(true);
-        setTimeout(() => { window.location.href = '/'; }, 1500);
+        console.log('[Activation] license valid — will redirect to / without token');
+        setTimeout(() => {
+          console.log('[Activation] redirecting to / (no token in URL)');
+          console.log('[Activation] current rastro-token:', sessionStorage.getItem('rastro-token'));
+          window.location.href = '/';
+        }, 1500);
       }
       setChecking(false);
     }).catch(() => {
@@ -48,6 +53,8 @@ export default function Activation() {
       setLoading(false);
       if (result.ok) {
         setActivated(true);
+        console.log('[Activation] activation success — will redirect to / without token');
+        console.log('[Activation] current rastro-token:', sessionStorage.getItem('rastro-token'));
         window.location.href = '/';
       } else {
         setError(result.error || 'Activation failed');

@@ -12,12 +12,13 @@ from __future__ import annotations
 
 import logging
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger("rastro.intelligence.loop")
 
-SignalHandler = Callable[[Dict[str, Any]], None]
+SignalHandler = Callable[[dict[str, Any]], None]
 
 
 @dataclass
@@ -27,17 +28,17 @@ class FeedbackEvent:
     outcome: str  # clicked | ignored | dismissed | completed
     latency: float = 0.0
     timestamp: float = field(default_factory=time.time)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class LearningLoop:
     """Closed-loop intelligence: signal → process → act → feedback → learn."""
 
     def __init__(self) -> None:
-        self._signal_handlers: Dict[str, List[SignalHandler]] = {}
-        self._feedback_history: List[FeedbackEvent] = []
-        self._success_rate: Dict[str, float] = {}
-        self._weight_adjustments: Dict[str, float] = {}
+        self._signal_handlers: dict[str, list[SignalHandler]] = {}
+        self._feedback_history: list[FeedbackEvent] = []
+        self._success_rate: dict[str, float] = {}
+        self._weight_adjustments: dict[str, float] = {}
         self._loop_count: int = 0
 
     # ── SIGNAL phase ──────────────────────────────────────────────────
@@ -47,7 +48,7 @@ class LearningLoop:
             self._signal_handlers[signal_type] = []
         self._signal_handlers[signal_type].append(handler)
 
-    def emit_signal(self, signal_type: str, payload: Dict[str, Any]) -> None:
+    def emit_signal(self, signal_type: str, payload: dict[str, Any]) -> None:
         handlers = self._signal_handlers.get(signal_type, [])
         for handler in handlers:
             try:
@@ -58,7 +59,7 @@ class LearningLoop:
 
     # ── PROCESS phase ─────────────────────────────────────────────────
 
-    def process_through_priority(self, payload: Dict[str, Any]) -> List[Dict[str, Any]]:
+    def process_through_priority(self, payload: dict[str, Any]) -> list[dict[str, Any]]:
         from core_engines.intelligence.priority_engine import get_priority_engine
         engine = get_priority_engine()
 
@@ -92,7 +93,7 @@ class LearningLoop:
     def get_success_rate(self, action_type: str) -> float:
         return self._success_rate.get(action_type, 0.5)
 
-    def get_feedback_stats(self) -> Dict[str, Any]:
+    def get_feedback_stats(self) -> dict[str, Any]:
         types = set(e.action_type for e in self._feedback_history)
         return {
             "total_events": len(self._feedback_history),
@@ -110,9 +111,8 @@ class LearningLoop:
         if event.outcome in ("clicked", "completed"):
             if rate > 0.6:
                 adjustment = 0.02
-        elif event.outcome == "ignored":
-            if rate < 0.3:
-                adjustment = -0.01
+        elif event.outcome == "ignored" and rate < 0.3:
+            adjustment = -0.01
 
         if adjustment != 0:
             current = self._weight_adjustments.get(key, 0.0)
@@ -125,7 +125,7 @@ class LearningLoop:
     def get_weight_adjustment(self, action_type: str) -> float:
         return self._weight_adjustments.get(action_type, 0.0)
 
-    def get_learning_summary(self) -> Dict[str, Any]:
+    def get_learning_summary(self) -> dict[str, Any]:
         return {
             "success_rates": dict(self._success_rate),
             "weight_adjustments": dict(self._weight_adjustments),
@@ -137,7 +137,7 @@ class LearningLoop:
         self._weight_adjustments.clear()
 
 
-_LEARNING_LOOP: Optional[LearningLoop] = None
+_LEARNING_LOOP: LearningLoop | None = None
 
 
 def get_learning_loop() -> LearningLoop:

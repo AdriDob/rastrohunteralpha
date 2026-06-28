@@ -8,12 +8,10 @@ Reads from:
 
 from __future__ import annotations
 
-import json
-import os
 import re
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter
 
@@ -25,7 +23,7 @@ PM_DIR = PROJECT_ROOT / "project_management"
 
 # ─── Helpers ─────────────────────────────────────────────────────────────
 
-def _run(cmd: List[str]) -> str:
+def _run(cmd: list[str]) -> str:
     try:
         r = subprocess.run(cmd, capture_output=True, text=True, cwd=PROJECT_ROOT, timeout=10)
         return r.stdout.strip()
@@ -40,7 +38,7 @@ def _read_md(path: Path) -> str:
         return ""
 
 
-def _count_tests() -> Dict[str, Any]:
+def _count_tests() -> dict[str, Any]:
     try:
         r = subprocess.run(
             ["python", "-m", "pytest", "tests/", "-q", "--tb=no", "--no-header"],
@@ -59,7 +57,7 @@ def _count_tests() -> Dict[str, Any]:
 # ─── Endpoints ───────────────────────────────────────────────────────────
 
 @router.get("/summary")
-def get_summary() -> Dict[str, Any]:
+def get_summary() -> dict[str, Any]:
     """Quick overview: version, git, tests, overall progress."""
     version = _read_md(PROJECT_ROOT / "VERSION").strip() or "0.0.0"
 
@@ -100,9 +98,9 @@ def get_summary() -> Dict[str, Any]:
 
 
 @router.get("/git")
-def get_git_log() -> Dict[str, Any]:
+def get_git_log() -> dict[str, Any]:
     log = _run(["git", "log", "--oneline", "-10"])
-    lines = [l.strip() for l in log.split("\n") if l.strip()] if log else []
+    lines = [line.strip() for line in log.split("\n") if line.strip()] if log else []
     return {
         "commit": _run(["git", "log", "--oneline", "-1"]),
         "tag": _run(["git", "describe", "--tags", "--always"]),
@@ -112,12 +110,12 @@ def get_git_log() -> Dict[str, Any]:
 
 
 @router.get("/tests")
-def get_test_status() -> Dict[str, Any]:
+def get_test_status() -> dict[str, Any]:
     return _count_tests()
 
 
 @router.get("/feature-matrix")
-def get_feature_matrix() -> List[Dict[str, str]]:
+def get_feature_matrix() -> list[dict[str, str]]:
     raw = _read_md(PM_DIR / "FEATURE_MATRIX.md")
     rows = []
     current_section = ""
@@ -140,7 +138,7 @@ def get_feature_matrix() -> List[Dict[str, str]]:
 
 
 @router.get("/tech-debt")
-def get_tech_debt() -> Dict[str, Any]:
+def get_tech_debt() -> dict[str, Any]:
     items = {"high": [], "medium": [], "low": []}
     raw = _read_md(PM_DIR / "TECH_DEBT.md")
     current_priority = "medium"
@@ -166,7 +164,7 @@ def get_tech_debt() -> Dict[str, Any]:
 
 
 @router.get("/timeline")
-def get_timeline() -> List[Dict[str, str]]:
+def get_timeline() -> list[dict[str, str]]:
     raw = _read_md(PM_DIR / "TIMELINE.md")
     versions = []
     current_version = ""
@@ -186,9 +184,7 @@ def get_timeline() -> List[Dict[str, str]]:
         sm = re.match(r"^\*\*Estado:\*\* (.+)", line)
         if sm:
             state_raw = sm.group(1).strip().lower()
-            if "archived" in state_raw:
-                current_state = "done"
-            elif "released" in state_raw:
+            if "archived" in state_raw or "released" in state_raw:
                 current_state = "done"
             elif "in progress" in state_raw:
                 current_state = "in_progress"
@@ -207,7 +203,7 @@ def get_timeline() -> List[Dict[str, str]]:
 
 
 @router.get("/architecture-tree")
-def get_architecture_tree() -> Dict[str, Any]:
+def get_architecture_tree() -> dict[str, Any]:
     """Return summarized project tree for developer mode."""
     return {
         "root": PROJECT_ROOT.name,

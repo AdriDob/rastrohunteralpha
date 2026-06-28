@@ -8,21 +8,22 @@ No mock data, no placeholders.
 from __future__ import annotations
 
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from database import db, models
 from core_engines.engine.snapshot import EndpointSnapshot, PipelineSnapshot, TargetSnapshot
-from core_engines.engine.unified_scoring import score as unified_score, score_target as unified_score_target
+from core_engines.engine.unified_scoring import score as unified_score
+from core_engines.engine.unified_scoring import score_target as unified_score_target
 from core_engines.evidence.graph import EvidenceGraph
 from core_engines.quick_wins.quick_wins_engine import QuickWinsEngine
 from core_engines.targets.models import TargetIntel
+from database import db, models
 
 
-def build_full_context() -> Dict[str, Any]:
+def build_full_context() -> dict[str, Any]:
     session = db.SessionLocal()
     try:
         now = datetime.utcnow()
-        context: Dict[str, Any] = {
+        context: dict[str, Any] = {
             "timestamp": now.isoformat(),
             "generated_ago": "just now",
         }
@@ -45,10 +46,10 @@ def build_full_context() -> Dict[str, Any]:
         # ── Endpoints ──
         endpoints = session.query(models.Endpoint).all()
         total_risk = 0.0
-        high_signal: List[Dict] = []
-        actionable: List[Dict] = []
-        by_vector: Dict[str, int] = {}
-        by_surface: Dict[str, int] = {}
+        high_signal: list[dict] = []
+        actionable: list[dict] = []
+        by_vector: dict[str, int] = {}
+        by_surface: dict[str, int] = {}
         recent_eps = 0
         cutoff_24h = now - timedelta(hours=24)
 
@@ -99,7 +100,7 @@ def build_full_context() -> Dict[str, Any]:
 
         # ── Findings ──
         findings = session.query(models.Finding).all()
-        sev_counts: Dict[str, int] = {}
+        sev_counts: dict[str, int] = {}
         recent_findings = 0
         for f in findings:
             sev = (f.severity or "info").lower()
@@ -114,7 +115,7 @@ def build_full_context() -> Dict[str, Any]:
 
         # ── Verdicts ──
         verdicts = session.query(models.Verdict).all()
-        v_status: Dict[str, int] = {}
+        v_status: dict[str, int] = {}
         for v in verdicts:
             v_status[v.status] = v_status.get(v.status, 0) + 1
         context["verdicts"] = {
@@ -176,7 +177,7 @@ def build_full_context() -> Dict[str, Any]:
         }
 
         # ── Pipeline ──
-        endpoint_verdicts: Dict[int, List] = {}
+        endpoint_verdicts: dict[int, list] = {}
         for v in verdicts:
             if v.endpoint_id:
                 endpoint_verdicts.setdefault(v.endpoint_id, []).append(v)
@@ -195,7 +196,7 @@ def build_full_context() -> Dict[str, Any]:
 
         # ── Program Intelligence ──
         intel_records = session.query(TargetIntel).all()
-        platform_dist: Dict[str, int] = {}
+        platform_dist: dict[str, int] = {}
         for rec in intel_records:
             src = rec.source or "Unknown"
             platform_dist[src] = platform_dist.get(src, 0) + 1
@@ -205,7 +206,7 @@ def build_full_context() -> Dict[str, Any]:
         }
 
         # ── Recent Activity Summary ──
-        recent_activity: List[Dict] = []
+        recent_activity: list[dict] = []
         for f in findings:
             if f.created_at and f.created_at >= cutoff_24h:
                 recent_activity.append({

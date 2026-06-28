@@ -1,7 +1,6 @@
 import re
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Set, Tuple
-
+from dataclasses import dataclass
+from typing import Any
 
 UUID_PATTERN = re.compile(
     r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
@@ -11,7 +10,7 @@ HEX_PATTERN = re.compile(r"^[0-9a-fA-F]{24}$")
 
 TOKEN_PATTERN = re.compile(r"^[A-Za-z0-9_-]{32,}$")
 
-STATIC_EXTENSIONS: Set[str] = {
+STATIC_EXTENSIONS: set[str] = {
     ".png", ".jpg", ".jpeg", ".gif", ".svg", ".webp",
     ".woff", ".woff2", ".ttf", ".eot",
     ".css", ".js", ".map",
@@ -20,21 +19,21 @@ STATIC_EXTENSIONS: Set[str] = {
     ".zip", ".tar", ".gz",
 }
 
-LOW_VALUE_FRAGMENTS: Set[str] = {
+LOW_VALUE_FRAGMENTS: set[str] = {
     "/health", "/status", "/metrics", "/favicon.ico",
     "/robots.txt", "/sitemap.xml", "/ping", "/version",
     "/swagger-resources", "/v2/api-docs", "/webjars",
     "/actuator", "/heartbeat", "/ready", "/live",
 }
 
-SIGNAL_LABELS: Set[str] = {
+SIGNAL_LABELS: set[str] = {
     "graphql", "admin", "export", "auth", "multi_tenant",
     "billing", "identity", "internal", "file_operation",
     "import", "id_parameter", "uuid_identifier",
     "numeric_identifier", "mutation", "sensitive",
 }
 
-SIGNAL_KEYWORDS: Set[str] = {
+SIGNAL_KEYWORDS: set[str] = {
     "graphql", "admin", "export", "auth", "multi_tenant",
     "billing", "identity", "internal", "file_operation",
     "import", "uuid", "auth_smell", "idor_params",
@@ -55,11 +54,11 @@ class NoiseConfig:
 
 @dataclass
 class NoiseReport:
-    clean_endpoints: List[Dict[str, Any]]
-    noise_endpoints: List[Dict[str, Any]]
+    clean_endpoints: list[dict[str, Any]]
+    noise_endpoints: list[dict[str, Any]]
     noise_ratio: float
     total_input: int
-    reasoning: Dict[str, List[str]]
+    reasoning: dict[str, list[str]]
 
 
 class NoiseReductionEngine:
@@ -72,10 +71,10 @@ class NoiseReductionEngine:
     Designed as a pre-processor for Hypothesis Engine.
     """
 
-    def __init__(self, config: Optional[NoiseConfig] = None):
+    def __init__(self, config: NoiseConfig | None = None):
         self.config = config or NoiseConfig()
 
-    def analyze(self, scored_endpoints: List[Dict[str, Any]]) -> NoiseReport:
+    def analyze(self, scored_endpoints: list[dict[str, Any]]) -> NoiseReport:
         if not scored_endpoints:
             return NoiseReport(
                 clean_endpoints=[],
@@ -85,9 +84,9 @@ class NoiseReductionEngine:
                 reasoning={},
             )
 
-        working: List[Dict[str, Any]] = list(scored_endpoints)
-        noise: List[Dict[str, Any]] = []
-        reasoning: Dict[str, List[str]] = {}
+        working: list[dict[str, Any]] = list(scored_endpoints)
+        noise: list[dict[str, Any]] = []
+        reasoning: dict[str, list[str]] = {}
 
         if self.config.remove_static_assets:
             working, removed, reasons = self._filter_static_assets(working)
@@ -127,11 +126,11 @@ class NoiseReductionEngine:
     # ── Filter: static assets (extensions) ──────────────────────────────
 
     def _filter_static_assets(
-        self, endpoints: List[Dict[str, Any]]
-    ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[str]]:
-        clean: List[Dict[str, Any]] = []
-        removed: List[Dict[str, Any]] = []
-        reasons: List[str] = []
+        self, endpoints: list[dict[str, Any]]
+    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
+        clean: list[dict[str, Any]] = []
+        removed: list[dict[str, Any]] = []
+        reasons: list[str] = []
 
         for ep in endpoints:
             path = str(ep.get("path", ""))
@@ -155,11 +154,11 @@ class NoiseReductionEngine:
     # ── Filter: low-value paths (health, status, etc.) ──────────────────
 
     def _filter_low_value(
-        self, endpoints: List[Dict[str, Any]]
-    ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[str]]:
-        clean: List[Dict[str, Any]] = []
-        removed: List[Dict[str, Any]] = []
-        reasons: List[str] = []
+        self, endpoints: list[dict[str, Any]]
+    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
+        clean: list[dict[str, Any]] = []
+        removed: list[dict[str, Any]] = []
+        reasons: list[str] = []
 
         for ep in endpoints:
             path = str(ep.get("path", ""))
@@ -188,7 +187,7 @@ class NoiseReductionEngine:
         lower = path.lower().split("?", 1)[0]
         lower = re.sub(r"/+", "/", lower)
         parts = [s for s in lower.split("/") if s]
-        normalized: List[str] = []
+        normalized: list[str] = []
         for segment in parts:
             if UUID_PATTERN.search(segment):
                 normalized.append("{uuid}")
@@ -203,13 +202,13 @@ class NoiseReductionEngine:
         return "/" + "/".join(normalized) if normalized else "/"
 
     def _filter_duplicates(
-        self, endpoints: List[Dict[str, Any]]
-    ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[str]]:
+        self, endpoints: list[dict[str, Any]]
+    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
         if len(endpoints) < 2:
             return endpoints, [], []
 
         # Group by (normalized_pattern, method) or just pattern
-        groups: Dict[str, List[Dict[str, Any]]] = {}
+        groups: dict[str, list[dict[str, Any]]] = {}
         for ep in endpoints:
             pattern = self._normalize_for_dedup(str(ep.get("path", "")))
             if self.config.keep_all_methods_on_dedup:
@@ -219,11 +218,11 @@ class NoiseReductionEngine:
                 key = pattern
             groups.setdefault(key, []).append(ep)
 
-        clean: List[Dict[str, Any]] = []
-        removed: List[Dict[str, Any]] = []
-        reasons: List[str] = []
+        clean: list[dict[str, Any]] = []
+        removed: list[dict[str, Any]] = []
+        reasons: list[str] = []
 
-        for key, group in groups.items():
+        for _, group in groups.items():
             if len(group) == 1:
                 clean.extend(group)
                 continue
@@ -247,12 +246,12 @@ class NoiseReductionEngine:
     # ── Filter: below risk score threshold ──────────────────────────────
 
     def _filter_below_threshold(
-        self, endpoints: List[Dict[str, Any]]
-    ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[str]]:
+        self, endpoints: list[dict[str, Any]]
+    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
         threshold = self.config.min_risk_score
-        clean: List[Dict[str, Any]] = []
-        removed: List[Dict[str, Any]] = []
-        reasons: List[str] = []
+        clean: list[dict[str, Any]] = []
+        removed: list[dict[str, Any]] = []
+        reasons: list[str] = []
 
         for ep in endpoints:
             score = float(ep.get("risk_score", 0))
@@ -270,11 +269,11 @@ class NoiseReductionEngine:
     # ── Filter: no security-relevant signals ────────────────────────────
 
     def _filter_no_signal(
-        self, endpoints: List[Dict[str, Any]]
-    ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]], List[str]]:
-        clean: List[Dict[str, Any]] = []
-        removed: List[Dict[str, Any]] = []
-        reasons: List[str] = []
+        self, endpoints: list[dict[str, Any]]
+    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]], list[str]]:
+        clean: list[dict[str, Any]] = []
+        removed: list[dict[str, Any]] = []
+        reasons: list[str] = []
 
         for ep in endpoints:
             labels = ep.get("labels", [])
@@ -299,8 +298,8 @@ class NoiseReductionEngine:
     # ── Utility: run a single filter (for composability) ────────────────
 
     def filter_only(
-        self, scored_endpoints: List[Dict[str, Any]], filter_name: str
-    ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+        self, scored_endpoints: list[dict[str, Any]], filter_name: str
+    ) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
         registry = {
             "static_assets": self._filter_static_assets,
             "low_value": self._filter_low_value,

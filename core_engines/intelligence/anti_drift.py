@@ -11,13 +11,13 @@ Prevents architectural drift by enforcing ownership rules:
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 LOG = logging.getLogger("rastro.intelligence.anti_drift")
 
 # Canonical ownership matrix
 # Each artifact is owned by exactly one engine
-ARTIFACT_OWNERSHIP: Dict[str, str] = {
+ARTIFACT_OWNERSHIP: dict[str, str] = {
     "PipelineArtifact": "Pipeline",
     "AttackSurfaceArtifact": "AttackSurfaceMapper",
     "ROIArtifact": "ROI Engine",
@@ -31,14 +31,14 @@ ARTIFACT_OWNERSHIP: Dict[str, str] = {
 }
 
 # Engines that are pure consumers (read-only, no write access to artifacts)
-PURE_CONSUMERS: List[str] = [
+PURE_CONSUMERS: list[str] = [
     "AI Assistant",
     "Dashboard",
     "Report Engine",
 ]
 
 # Read permissions: which engines can read which artifacts
-READ_PERMISSIONS: Dict[str, List[str]] = {
+READ_PERMISSIONS: dict[str, list[str]] = {
     "Pipeline": ["PipelineArtifact"],
     "AttackSurfaceMapper": ["PipelineArtifact", "AttackSurfaceArtifact"],
     "ROI Engine": ["PipelineArtifact", "AttackSurfaceArtifact", "ROIArtifact"],
@@ -88,7 +88,7 @@ class AntiDriftEnforcer:
     """
 
     def __init__(self) -> None:
-        self._violations: List[Dict[str, Any]] = []
+        self._violations: list[dict[str, Any]] = []
 
     def check_write(
         self, engine_name: str, artifact_type: str, details: str = ""
@@ -153,14 +153,14 @@ class AntiDriftEnforcer:
             return False
         return True
 
-    def get_violations(self) -> List[Dict[str, Any]]:
+    def get_violations(self) -> list[dict[str, Any]]:
         return list(self._violations)
 
     def clear(self) -> None:
         self._violations.clear()
 
-    def report(self) -> Dict[str, Any]:
-        by_type: Dict[str, int] = {}
+    def report(self) -> dict[str, Any]:
+        by_type: dict[str, int] = {}
         for v in self._violations:
             by_type[v["type"]] = by_type.get(v["type"], 0) + 1
         return {
@@ -170,7 +170,7 @@ class AntiDriftEnforcer:
         }
 
 
-_global_enforcer: Optional[AntiDriftEnforcer] = None
+_global_enforcer: AntiDriftEnforcer | None = None
 
 
 def get_enforcer() -> AntiDriftEnforcer:

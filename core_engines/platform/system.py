@@ -12,11 +12,13 @@ Usage:
 
 from __future__ import annotations
 
+import logging
 import os
 import platform
 import sys
 from pathlib import Path
-from typing import Optional
+
+logger = logging.getLogger("rastro.platform.system")
 
 
 class Platform:
@@ -67,7 +69,7 @@ class PlatformInfo:
         self.arch: str = platform.machine()
         self.hostname: str = platform.node()
         self.executable: str = sys.executable
-        self.meipass: Optional[str] = getattr(sys, "_MEIPASS", None)
+        self.meipass: str | None = getattr(sys, "_MEIPASS", None)
 
     @property
     def is_windows(self) -> bool:
@@ -118,8 +120,6 @@ def get_data_dir() -> Path:
     - Frozen:  next to the executable (Linux only, Windows prioritizes APPDATA)
     - Default: ~/.rastro
     """
-    import logging
-    _log = logging.getLogger("rastro.platform.system")
     _diag_path = os.path.join(
         os.environ.get("APPDATA", os.path.expanduser("~")),
         "Rastro", "license_diagnostic.log",
@@ -128,25 +128,25 @@ def get_data_dir() -> Path:
     if is_windows():
         base = os.environ.get("APPDATA", "")
         result = Path(base) / "Rastro" if base else Path.home() / ".rastro"
-        _log.info("PLATFORM_DIAG: is_windows=True APPDATA=%s data_dir=%s", base, result)
+        logger.info("PLATFORM_DIAG: is_windows=True APPDATA=%s data_dir=%s", base, result)
         _append_diag(_diag_path, f"[PATH-DIAG] Windows: APPDATA={base} → data_dir={result}")
         return result
 
     if is_macos():
         base = Path.home() / "Library" / "Application Support"
         result = base / "Rastro"
-        _log.info("PLATFORM_DIAG: is_macos=True data_dir=%s", result)
+        logger.info("PLATFORM_DIAG: is_macos=True data_dir=%s", result)
         _append_diag(_diag_path, f"[PATH-DIAG] macOS: data_dir={result}")
         return result
 
     if is_frozen():
         result = get_executable_dir() / "data"
-        _log.info("PLATFORM_DIAG: is_frozen=True executable_dir=%s data_dir=%s", get_executable_dir(), result)
+        logger.info("PLATFORM_DIAG: is_frozen=True executable_dir=%s data_dir=%s", get_executable_dir(), result)
         _append_diag(_diag_path, f"[PATH-DIAG] Frozen: executable_dir={get_executable_dir()} → data_dir={result}")
         return result
 
     result = Path.home() / ".rastro"
-    _log.info("PLATFORM_DIAG: default data_dir=%s", result)
+    logger.info("PLATFORM_DIAG: default data_dir=%s", result)
     _append_diag(_diag_path, f"[PATH-DIAG] Default (Linux dev): data_dir={result}")
     return result
 
@@ -157,7 +157,7 @@ def _append_diag(path: str, msg: str) -> None:
         with open(path, "a", encoding="utf-8") as f:
             f.write(f"{msg}\n")
     except Exception:
-        pass
+        logger.warning("Failed to write diagnostic log", exc_info=True)
 
 
 def get_config_dir() -> Path:
@@ -211,7 +211,7 @@ def get_frontend_dist_dir() -> Path:
 
 # ─── Singleton ────────────────────────────────────────────────────────
 
-_INFO: Optional[PlatformInfo] = None
+_INFO: PlatformInfo | None = None
 
 
 def get_platform_info() -> PlatformInfo:

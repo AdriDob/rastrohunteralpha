@@ -1,7 +1,7 @@
 import logging
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from database.db import SessionLocal
 
@@ -20,7 +20,7 @@ class TrendSignal:
     sample_size: int
     detected_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         d = asdict(self)
         d["change_pct"] = round(d["change_pct"], 1)
         d["current_value"] = round(d["current_value"], 2)
@@ -31,14 +31,14 @@ class TrendSignal:
 
 @dataclass
 class TrendReport:
-    rising_surfaces: List[TrendSignal] = field(default_factory=list)
-    emerging_vulnerability_classes: List[TrendSignal] = field(default_factory=list)
-    growing_target_categories: List[TrendSignal] = field(default_factory=list)
-    repeated_endpoint_patterns: List[TrendSignal] = field(default_factory=list)
-    declining_trends: List[TrendSignal] = field(default_factory=list)
+    rising_surfaces: list[TrendSignal] = field(default_factory=list)
+    emerging_vulnerability_classes: list[TrendSignal] = field(default_factory=list)
+    growing_target_categories: list[TrendSignal] = field(default_factory=list)
+    repeated_endpoint_patterns: list[TrendSignal] = field(default_factory=list)
+    declining_trends: list[TrendSignal] = field(default_factory=list)
     generated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "rising_surfaces": [s.to_dict() for s in self.rising_surfaces],
             "emerging_vulnerability_classes": [s.to_dict() for s in self.emerging_vulnerability_classes],
@@ -55,14 +55,14 @@ def detect_trends(
 ) -> TrendReport:
     session = SessionLocal()
     try:
-        from database.models import Finding, Verdict, Endpoint, Target
-        from sqlalchemy import func
+
+        from database.models import Endpoint, Finding, Target
 
         report = TrendReport()
 
         # Rising attack surfaces: group endpoints by labels/attack_surface
         endpoints = session.query(Endpoint).all()
-        surface_counts: Dict[str, int] = {}
+        surface_counts: dict[str, int] = {}
         for ep in endpoints:
             params = ep.parsed_params if hasattr(ep, 'parsed_params') else {}
             surfaces = params.get("attack_surface", []) if isinstance(params, dict) else []
@@ -87,7 +87,7 @@ def detect_trends(
 
         # Emerging vulnerability classes from finding titles
         findings = session.query(Finding).all()
-        vuln_counter: Dict[str, int] = {}
+        vuln_counter: dict[str, int] = {}
         for f in findings:
             vtype = f.title.split(":")[0] if ":" in f.title else f.title.split()[0] if f.title else "unknown"
             vuln_counter[vtype] = vuln_counter.get(vtype, 0) + 1
@@ -109,7 +109,7 @@ def detect_trends(
             ))
 
         # Repeated endpoint patterns: analyze path patterns
-        path_patterns: Dict[str, int] = {}
+        path_patterns: dict[str, int] = {}
         import re
         for ep in endpoints:
             path = ep.path or "/"
@@ -134,7 +134,7 @@ def detect_trends(
 
         # Growing target categories from target domains
         targets = session.query(Target).all()
-        domain_tlds: Dict[str, int] = {}
+        domain_tlds: dict[str, int] = {}
         for t in targets:
             if t.domain and "." in t.domain:
                 tld = t.domain.rsplit(".", 1)[-1]

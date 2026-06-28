@@ -4,17 +4,15 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from core_engines.auth.auth import (
-    create_session_token,
-    create_refresh_token,
-    verify_token,
-    verify_session,
     TOKEN_TTL,
+    verify_session,
+    verify_token,
 )
-from core_engines.auth.session import get_session_store, SessionStore
-from core_engines.auth.token_service import get_token_service, TokenService
+from core_engines.auth.session import SessionStore, get_session_store
+from core_engines.auth.token_service import TokenService, get_token_service
 
 logger = logging.getLogger("rastro.auth.manager")
 
@@ -26,7 +24,7 @@ class AuthManager:
         self._store: SessionStore = get_session_store()
         self._token_service: TokenService = get_token_service()
 
-    def authenticate(self, device_id: str, device_info: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def authenticate(self, device_id: str, device_info: dict[str, Any] | None = None) -> dict[str, Any]:
         existing = self._store.get_session(device_id)
         if existing:
             token = existing.get("token", "")
@@ -49,10 +47,10 @@ class AuthManager:
         result["existing"] = False
         return result
 
-    def validate(self, token: str) -> Tuple[bool, Optional[Dict[str, Any]]]:
+    def validate(self, token: str) -> tuple[bool, dict[str, Any] | None]:
         return verify_session(token)
 
-    def refresh(self, device_id: str, refresh_token: str) -> Optional[Dict[str, str]]:
+    def refresh(self, device_id: str, refresh_token: str) -> dict[str, str] | None:
         return self._store.refresh_session(device_id, refresh_token)
 
     def logout(self, device_id: str) -> bool:
@@ -65,19 +63,19 @@ class AuthManager:
             return False
         return data.get("sub") == device_id
 
-    def get_session(self, device_id: str) -> Optional[Dict[str, Any]]:
+    def get_session(self, device_id: str) -> dict[str, Any] | None:
         return self._store.get_session(device_id)
 
-    def list_devices(self) -> List[Dict[str, Any]]:
+    def list_devices(self) -> list[dict[str, Any]]:
         return self._store.list_devices()
 
     def get_device_count(self) -> int:
         return self._store.get_device_count()
 
-    def list_sessions(self) -> List[Dict[str, Any]]:
+    def list_sessions(self) -> list[dict[str, Any]]:
         return self._store.list_sessions()
 
-    def get_secure_token(self, device_id: str) -> Optional[str]:
+    def get_secure_token(self, device_id: str) -> str | None:
         return self._token_service.get_token(device_id)
 
     def store_secure_token(self, device_id: str, token: str, ttl: int = TOKEN_TTL) -> None:
@@ -89,7 +87,7 @@ class AuthManager:
     def cleanup_expired_tokens(self) -> int:
         return self._token_service.cleanup_expired()
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         return {
             "sessions": len(self._store.list_sessions()),
             "devices": self._store.get_device_count(),
@@ -97,7 +95,7 @@ class AuthManager:
         }
 
 
-_MANAGER: Optional[AuthManager] = None
+_MANAGER: AuthManager | None = None
 
 
 def get_auth_manager() -> AuthManager:

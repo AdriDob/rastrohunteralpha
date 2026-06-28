@@ -13,18 +13,17 @@ from __future__ import annotations
 import json
 import logging
 from datetime import datetime, timedelta, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from database import db, models
-from core_engines.engine.unified_scoring import score as unified_score, score_target as unified_score_target
-from core_engines.evidence.graph import EvidenceGraph
+from core_engines.engine.unified_scoring import score as unified_score
+from core_engines.engine.unified_scoring import score_target as unified_score_target
 from core_engines.evidence.store import EvidenceStore
-from core_engines.reporting.report_engine import ReportEngine, FinalReport, ProgramData
-from core_engines.reporting.severity import risk_to_severity, severity_score, confidence_to_label
-from core_engines.validation.gate import Verdict
-from core_engines.validation.rules import ValidationReport, RuleResult
+from core_engines.reporting.report_engine import FinalReport, ProgramData, ReportEngine
+from core_engines.reporting.severity import risk_to_severity
 from core_engines.validation.confidence import ConfidenceScore
-from core_engines.opportunity.engine import get_engine as get_opportunity_engine
+from core_engines.validation.gate import Verdict
+from core_engines.validation.rules import ValidationReport
+from database import db, models
 
 logger = logging.getLogger("rastro.assistant.narrator")
 
@@ -58,7 +57,7 @@ class InvestigationNarrator:
                 return default
         return default
 
-    def explain_investigation_state(self, target_id: int) -> Dict[str, Any]:
+    def explain_investigation_state(self, target_id: int) -> dict[str, Any]:
         """Interpret the current investigation state for a target.
 
         Combines graph topology, evidence, verdicts, and findings into
@@ -100,7 +99,7 @@ class InvestigationNarrator:
                 v.endpoint_id == ep.id for v in confirmed_verdicts
             )]
 
-            findings_by_severity: Dict[str, int] = {}
+            findings_by_severity: dict[str, int] = {}
             for f in findings:
                 sev = f.severity or "info"
                 findings_by_severity[sev] = findings_by_severity.get(sev, 0) + 1
@@ -135,7 +134,7 @@ class InvestigationNarrator:
         finally:
             session.close()
 
-    def generate_report_narrative(self, target_id: int) -> Dict[str, Any]:
+    def generate_report_narrative(self, target_id: int) -> dict[str, Any]:
         """Generate a HackerOne/Immunefi-style report narrative from real findings.
 
         Uses existing confirmed verdicts and evidence to produce
@@ -231,7 +230,7 @@ class InvestigationNarrator:
         finally:
             session.close()
 
-    def explain_attack_path(self, hot_path_id: str) -> Dict[str, Any]:
+    def explain_attack_path(self, hot_path_id: str) -> dict[str, Any]:
         """Explain why a specific hot path exists and what it means.
 
         Analyzes the hot path's cluster composition, endpoint risk scores,
@@ -250,7 +249,7 @@ class InvestigationNarrator:
                 models.Verdict.hot_path_id.like(f"%{path_value}%")
             ).all() if path_value else []
             endpoints = session.query(models.Endpoint).all()
-            findings = session.query(models.Finding).all()
+            session.query(models.Finding).all()
 
             scored_endpoints = []
             for ep in endpoints:
@@ -277,7 +276,7 @@ class InvestigationNarrator:
             target_map = {t.id: t.name for t in targets}
 
             confirmed_verdicts = [v for v in verdicts if v.status == "confirmed"]
-            surfaces: Dict[str, int] = {}
+            surfaces: dict[str, int] = {}
             for e in scored_endpoints:
                 for s in e.get("attack_surface", []):
                     surfaces[s] = surfaces.get(s, 0) + 1
@@ -317,7 +316,7 @@ class InvestigationNarrator:
         finally:
             session.close()
 
-    def unified_reasoning(self, target_id: int) -> Dict[str, Any]:
+    def unified_reasoning(self, target_id: int) -> dict[str, Any]:
         """Merge Web2 (endpoints) and Web3 (contracts) analysis into a single narrative.
 
         Shows how web3 surfaces connect to traditional API endpoints
@@ -403,7 +402,7 @@ class InvestigationNarrator:
         finally:
             session.close()
 
-    def explain_bounty_potential(self, target_id: int) -> Dict[str, Any]:
+    def explain_bounty_potential(self, target_id: int) -> dict[str, Any]:
         """Explain potential bounty payout based on real system signals.
 
         Uses opportunity scoring, confirmed findings, endpoint complexity,
@@ -455,7 +454,7 @@ class InvestigationNarrator:
             payout_best = len(confirmed) * 25000 + len(critical_eps) * 15000 + len(idor_candidates) * 8000
 
             signal_quality = "high" if roi.get("quality", 0) >= 60 else ("medium" if roi.get("quality", 0) >= 30 else "low")
-            findings_by_severity: Dict[str, int] = {}
+            findings_by_severity: dict[str, int] = {}
             for f in findings:
                 sev = f.severity or "info"
                 findings_by_severity[sev] = findings_by_severity.get(sev, 0) + 1
@@ -508,7 +507,7 @@ class InvestigationNarrator:
         finally:
             session.close()
 
-    def generate_daily_briefing(self) -> Dict[str, Any]:
+    def generate_daily_briefing(self) -> dict[str, Any]:
         """Generate a complete daily investigation briefing from real system data."""
         session = db.SessionLocal()
         try:
@@ -532,7 +531,7 @@ class InvestigationNarrator:
             high_signal = [s for s in all_scored if s.get("risk_score", 0) >= 50]
             actionable_eps = [s for s in all_scored if s.get("actionable")]
 
-            surfaces: Dict[str, int] = {}
+            surfaces: dict[str, int] = {}
             for s in all_scored:
                 for surf in s.get("attack_surface", []):
                     surfaces[surf] = surfaces.get(surf, 0) + 1
@@ -598,7 +597,7 @@ class InvestigationNarrator:
         finally:
             session.close()
 
-    def generate_system_intelligence_report(self) -> Dict[str, Any]:
+    def generate_system_intelligence_report(self) -> dict[str, Any]:
         """Generate a comprehensive system intelligence report.
 
         Aggregates all targets, their investigation state, verdicts,
@@ -612,17 +611,17 @@ class InvestigationNarrator:
             verdicts = session.query(models.Verdict).all()
             findings = session.query(models.Finding).all()
 
-            ep_map: Dict[int, List[models.Endpoint]] = {}
+            ep_map: dict[int, list[models.Endpoint]] = {}
             for ep in endpoints:
                 tid = ep.target_id or 0
                 ep_map.setdefault(tid, []).append(ep)
 
-            f_map: Dict[int, List[models.Finding]] = {}
+            f_map: dict[int, list[models.Finding]] = {}
             for f in findings:
                 tid = f.target_id or 0
                 f_map.setdefault(tid, []).append(f)
 
-            v_map: Dict[int, List[models.Verdict]] = {}
+            v_map: dict[int, list[models.Verdict]] = {}
             for v in verdicts:
                 eid = v.endpoint_id
                 if eid:
@@ -656,7 +655,7 @@ class InvestigationNarrator:
                 total_confirmed += confirmed
 
                 if t_eps:
-                    surfaces: Dict[str, int] = {}
+                    surfaces: dict[str, int] = {}
                     for s in scored:
                         for surf in s.get("attack_surface", []):
                             surfaces[surf] = surfaces.get(surf, 0) + 1
@@ -721,10 +720,10 @@ class InvestigationNarrator:
     def _interpret_state(
         self,
         target: models.Target,
-        scored_endpoints: List[Dict[str, Any]],
-        verdicts: List[models.Verdict],
-        findings: List[models.Finding],
-    ) -> Dict[str, Any]:
+        scored_endpoints: list[dict[str, Any]],
+        verdicts: list[models.Verdict],
+        findings: list[models.Finding],
+    ) -> dict[str, Any]:
         confirmed = [v for v in verdicts if v.status == "confirmed"]
         high_risk = [e for e in scored_endpoints if e["risk_score"] >= 50]
         actionable = [e for e in scored_endpoints if e.get("actionable")]
@@ -761,7 +760,7 @@ class InvestigationNarrator:
             ),
         }
 
-    def _format_narrative_output(self, report: FinalReport, target_name: str) -> Dict[str, Any]:
+    def _format_narrative_output(self, report: FinalReport, target_name: str) -> dict[str, Any]:
         return {
             "hot_path_id": report.verdict_id,
             "status": "ready",
@@ -780,7 +779,7 @@ class InvestigationNarrator:
             "target_name": target_name,
         }
 
-    def _estimate_bounty_range(self, verdicts: List[models.Verdict]) -> str:
+    def _estimate_bounty_range(self, verdicts: list[models.Verdict]) -> str:
         max_confidence = max((self._parse_conf(v.confidence) for v in verdicts), default=0.0)
         if max_confidence >= 0.9:
             return "$2,000 - $25,000"
@@ -806,7 +805,7 @@ class InvestigationNarrator:
         path_value: str,
         high_risk_count: int,
         confirmed_count: int,
-        surfaces: Dict[str, int],
+        surfaces: dict[str, int],
     ) -> str:
         parts = [
             f"Attack path '{path_value}' (type: {path_type}) includes {high_risk_count} high-risk "
@@ -826,7 +825,7 @@ class InvestigationNarrator:
         confirmed_count: int,
         high_risk_count: int,
         actionable_count: int,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         if confirmed_count > 0:
             return {
                 "action": "Generate reports for confirmed findings and continue probing actionable endpoints",
@@ -845,8 +844,8 @@ class InvestigationNarrator:
             "estimated_effort": "Depends on target scope",
         }
 
-    def _top_vectors(self, endpoints: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        counts: Dict[str, int] = {}
+    def _top_vectors(self, endpoints: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        counts: dict[str, int] = {}
         for e in endpoints:
             vec = e.get("vector", "unknown")
             counts[vec] = counts.get(vec, 0) + 1
@@ -855,8 +854,8 @@ class InvestigationNarrator:
             for k, v in sorted(counts.items(), key=lambda x: -x[1])
         ]
 
-    def _top_signals(self, endpoints: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        counts: Dict[str, int] = {}
+    def _top_signals(self, endpoints: list[dict[str, Any]]) -> list[dict[str, Any]]:
+        counts: dict[str, int] = {}
         for e in endpoints:
             for sig in e.get("signals", []):
                 counts[sig] = counts.get(sig, 0) + 1
@@ -898,8 +897,8 @@ class InvestigationNarrator:
 
         return " ".join(parts)
 
-    def _merge_surfaces(self, web2: List[Dict], web3: List[Dict]) -> List[Dict[str, Any]]:
-        merged: Dict[str, int] = {}
+    def _merge_surfaces(self, web2: list[dict], web3: list[dict]) -> list[dict[str, Any]]:
+        merged: dict[str, int] = {}
         for e in web2 + web3:
             for s in e.get("surfaces", []):
                 merged[s] = merged.get(s, 0) + 1
@@ -955,8 +954,8 @@ class InvestigationNarrator:
 
     def _maturity_level(
         self,
-        confirmed: List[models.Verdict],
-        scored_endpoints: List[Dict[str, Any]],
+        confirmed: list[models.Verdict],
+        scored_endpoints: list[dict[str, Any]],
     ) -> str:
         if len(confirmed) >= 5:
             return "mature"
@@ -1005,7 +1004,7 @@ class InvestigationNarrator:
         parts.append(f"Total findings across all targets: {total_findings}.")
         return " ".join(parts)
 
-    def _recommend_system_priority(self, top_targets: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def _recommend_system_priority(self, top_targets: list[dict[str, Any]]) -> dict[str, Any]:
         if not top_targets:
             return {"focus": "expansion", "reason": "No targets with coverage. Add targets and run scans."}
 
@@ -1032,7 +1031,7 @@ class InvestigationNarrator:
         }
 
 
-_narrator_instance: Optional[InvestigationNarrator] = None
+_narrator_instance: InvestigationNarrator | None = None
 
 
 def get_narrator() -> InvestigationNarrator:

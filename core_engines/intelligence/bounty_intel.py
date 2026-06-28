@@ -8,10 +8,10 @@ import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from database.db import SessionLocal
 from core_engines.targets.models import TargetIntel
+from database.db import SessionLocal
 
 LOG = logging.getLogger("rastro.intelligence.bounty")
 
@@ -23,18 +23,18 @@ class ProgramMetrics:
     active_programs: int = 0
     avg_quality: float = 0.0
     avg_roi: float = 0.0
-    technology_breakdown: Dict[str, int] = field(default_factory=dict)
-    top_technologies: List[str] = field(default_factory=list)
+    technology_breakdown: dict[str, int] = field(default_factory=dict)
+    top_technologies: list[str] = field(default_factory=list)
 
 
 @dataclass
 class BountyIntelReport:
     generated_at: str = ""
-    platform_metrics: Dict[str, ProgramMetrics] = field(default_factory=dict)
+    platform_metrics: dict[str, ProgramMetrics] = field(default_factory=dict)
     total_programs: int = 0
     total_active: int = 0
-    top_programs_by_quality: List[Dict[str, Any]] = field(default_factory=list)
-    top_programs_by_roi: List[Dict[str, Any]] = field(default_factory=list)
+    top_programs_by_quality: list[dict[str, Any]] = field(default_factory=list)
+    top_programs_by_roi: list[dict[str, Any]] = field(default_factory=list)
     summary: str = ""
 
 
@@ -42,7 +42,7 @@ class BountyIntelligence:
     """Analyzes aggregated bug bounty program data for intelligence insights."""
 
     def __init__(self):
-        pass
+        LOG.debug("BountyIntelligence initialized")
 
     def generate_report(self) -> BountyIntelReport:
         """Generate a comprehensive bug bounty intelligence report."""
@@ -58,7 +58,7 @@ class BountyIntelligence:
             LOG.info("No programs loaded for bounty intelligence report")
             return report
 
-        platforms: Dict[str, List[TargetIntel]] = defaultdict(list)
+        platforms: dict[str, list[TargetIntel]] = defaultdict(list)
         for p in programs:
             platforms[p.source or "unknown"].append(p)
 
@@ -69,7 +69,7 @@ class BountyIntelligence:
             qualities = [p.quality_score or 0 for p in platform_programs]
             rois = [p.roi_score or 0 for p in platform_programs]
 
-            tech_tags: Dict[str, int] = defaultdict(int)
+            tech_tags: dict[str, int] = defaultdict(int)
             for p in platform_programs:
                 raw_tags = (p.technology_tags or "").split(",") if p.technology_tags else []
                 for tag in raw_tags:
@@ -146,7 +146,7 @@ class BountyIntelligence:
             ]
             if high_quality:
                 parts.append(
-                    f"High-quality platforms: "
+                    "High-quality platforms: "
                     + ", ".join(m.platform for m in high_quality)
                 )
 

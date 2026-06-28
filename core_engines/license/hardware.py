@@ -17,7 +17,7 @@ def _get_mac() -> str:
         if mac and (mac >> 40) & 1 == 0:
             return ":".join(f"{(mac >> (8 * i)) & 0xff:02x}" for i in range(6))
     except Exception:
-        pass
+        logger.warning("Failed to get MAC address", exc_info=True)
     return "unknown-mac"
 
 
@@ -29,17 +29,21 @@ def _get_raw_machine_ids() -> list[str]:
     if os.path.exists(etc):
         try:
             with open(etc) as f:
-                raw.append(f.read().strip())
+                val = f.read().strip()
+                logger.info("[HW] _get_raw_machine_ids: /etc/machine-id = %s", val)
+                raw.append(val)
         except Exception:
-            pass
+            logger.info("[HW] _get_raw_machine_ids: /etc/machine-id exists but unreadable")
 
     dbus = "/var/lib/dbus/machine-id"
     if os.path.exists(dbus):
         try:
             with open(dbus) as f:
-                raw.append(f.read().strip())
+                val = f.read().strip()
+                logger.info("[HW] _get_raw_machine_ids: /var/lib/dbus/machine-id = %s", val)
+                raw.append(val)
         except Exception:
-            pass
+            logger.info("[HW] _get_raw_machine_ids: /var/lib/dbus/machine-id exists but unreadable")
 
     if os.name == "nt":
         try:
@@ -52,14 +56,18 @@ def _get_raw_machine_ids() -> list[str]:
             ) as key:
                 guid, _ = winreg.QueryValueEx(key, "MachineGuid")
                 if guid:
-                    raw.append(guid.strip().lower())
-        except Exception:
-            pass
+                    cleaned = guid.strip().lower()
+                    logger.info("[HW] _get_raw_machine_ids: Windows MachineGuid = %s", cleaned)
+                    raw.append(cleaned)
+        except Exception as e:
+            logger.info("[HW] _get_raw_machine_ids: Windows MachineGuid error: %s", e)
 
     if not raw:
         fallback = os.environ.get("HOSTNAME") or os.environ.get("COMPUTERNAME", "unknown")
+        logger.info("[HW] _get_raw_machine_ids: No machine-ids found, fallback = %s", fallback)
         raw.append(fallback)
 
+    logger.info("[HW] _get_raw_machine_ids: raw list = %s", raw)
     return raw
 
 
@@ -75,7 +83,10 @@ def _get_machine_id() -> str:
             deduped.append(v)
             seen.add(v)
 
-    return "|".join(deduped)
+    result = "|".join(deduped)
+    logger.info("[HW] _get_machine_id: deduped = %s", deduped)
+    logger.info("[HW] _get_machine_id: result = %s", result)
+    return result
 
 
 def get_hardware_id() -> str:
@@ -85,6 +96,14 @@ def get_hardware_id() -> str:
 
     parts = [hostname, mac, machine_id]
     raw = "|".join(parts)
+    raw_sha = hashlib.sha256(raw.encode("utf-8")).hexdigest()
+    hwid = raw_sha[:32]
 
-    hwid = hashlib.sha256(raw.encode("utf-8")).hexdigest()[:32]
+    logger.info("[HW] get_hardware_id: hostname = %s", hostname)
+    logger.info("[HW] get_hardware_id: mac = %s", mac)
+    logger.info("[HW] get_hardware_id: machine_id = %s", machine_id)
+    logger.info("[HW] get_hardware_id: raw_parts = %s", parts)
+    logger.info("[HW] get_hardware_id: full_sha256 = %s", raw_sha)
+    logger.info("[HW] get_hardware_id: hwid = %s", hwid)
+    logger.info("[HW] get_hardware_id: hwid[:7] = %s", hwid[:7])
     return hwid

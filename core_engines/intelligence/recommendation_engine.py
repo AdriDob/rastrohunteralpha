@@ -1,7 +1,7 @@
 import logging
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from database.db import SessionLocal
 
@@ -19,9 +19,9 @@ class TargetRecommendation:
     finding_count: int = 0
     estimated_payout: float = 0.0
     historical_acceptance_rate: float = 0.0
-    attack_surfaces: List[str] = field(default_factory=list)
+    attack_surfaces: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -34,7 +34,7 @@ class SurfaceRecommendation:
     estimated_opportunity: float = 0.0
     trend_confidence: float = 0.0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -50,7 +50,7 @@ class QuickWinRecommendation:
     reason: str
     historical_similar_success_rate: float = 0.0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -65,19 +65,19 @@ class ReportRecommendation:
     estimated_payout: float = 0.0
     similar_accepted_count: int = 0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
 @dataclass
 class RecommendationBundle:
-    targets: List[TargetRecommendation] = field(default_factory=list)
-    surfaces: List[SurfaceRecommendation] = field(default_factory=list)
-    quick_wins: List[QuickWinRecommendation] = field(default_factory=list)
-    reports: List[ReportRecommendation] = field(default_factory=list)
+    targets: list[TargetRecommendation] = field(default_factory=list)
+    surfaces: list[SurfaceRecommendation] = field(default_factory=list)
+    quick_wins: list[QuickWinRecommendation] = field(default_factory=list)
+    reports: list[ReportRecommendation] = field(default_factory=list)
     generated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "targets": [t.to_dict() for t in self.targets],
             "surfaces": [s.to_dict() for s in self.surfaces],
@@ -94,7 +94,7 @@ def generate_recommendations(
 ) -> RecommendationBundle:
     session = SessionLocal()
     try:
-        from database.models import Target, Finding, Verdict, Endpoint
+        from database.models import Endpoint, Finding, Target, Verdict
 
         bundle = RecommendationBundle()
 
@@ -103,8 +103,8 @@ def generate_recommendations(
         verdicts = session.query(Verdict).all()
         findings = session.query(Finding).all()
 
-        confirmed_verdict_ids = {v.id for v in verdicts if v.status == "confirmed"}
-        finding_severity_map: Dict[int, List[Finding]] = {}
+        {v.id for v in verdicts if v.status == "confirmed"}
+        finding_severity_map: dict[int, list[Finding]] = {}
         for f in findings:
             finding_severity_map.setdefault(f.target_id, []).append(f)
 
@@ -133,7 +133,7 @@ def generate_recommendations(
 
         # Surface recommendations from endpoint labels
         endpoints = session.query(Endpoint).all()
-        surface_map: Dict[str, Dict[str, Any]] = {}
+        surface_map: dict[str, dict[str, Any]] = {}
         for ep in endpoints:
             params = ep.parsed_params if hasattr(ep, 'parsed_params') else {}
             surfaces = params.get("attack_surface", []) if isinstance(params, dict) else []
@@ -193,22 +193,22 @@ def generate_recommendations(
 
 
 def _severity_payout(severity: str) -> float:
-    SEVERITY_PAYOUT = {
+    severity_payout = {
         "critical": 5000.0,
         "high": 2000.0,
         "medium": 500.0,
         "low": 100.0,
         "info": 0.0,
     }
-    return SEVERITY_PAYOUT.get(severity, 0.0)
+    return severity_payout.get(severity, 0.0)
 
 
 def _estimate_acceptance(severity: str) -> float:
-    SEVERITY_ACCEPTANCE = {
+    severity_acceptance = {
         "critical": 0.85,
         "high": 0.70,
         "medium": 0.40,
         "low": 0.15,
         "info": 0.05,
     }
-    return SEVERITY_ACCEPTANCE.get(severity, 0.1)
+    return severity_acceptance.get(severity, 0.1)

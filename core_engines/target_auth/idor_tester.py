@@ -3,11 +3,10 @@ from __future__ import annotations
 import logging
 import re
 import time
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
-from urllib.parse import urlparse, parse_qs, urlencode, urlunparse
+from dataclasses import dataclass
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
-from core_engines.validation.replayer import AuthContext, RequestReplayer, RequestSpec, ResponseRecord
+from core_engines.validation.replayer import AuthContext, RequestReplayer, RequestSpec
 
 logger = logging.getLogger("rastro.idor_tester")
 
@@ -17,7 +16,7 @@ IDOR_PARAM_PATTERNS = [
     re.compile(r"/api/(?:v\d+/)?(?:users|accounts|customers|profiles|orders|invoices|documents|files|tickets|messages|posts|articles|products)/([a-f0-9-]{36})"),
 ]
 
-SENSITIVE_PATTERNS: Dict[str, re.Pattern] = {
+SENSITIVE_PATTERNS: dict[str, re.Pattern] = {
     "email": re.compile(r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"),
     "ssn": re.compile(r"\b\d{3}-\d{2}-\d{4}\b"),
     "phone": re.compile(r"\b\d{3}[-.]?\d{3}[-.]?\d{4}\b"),
@@ -34,7 +33,7 @@ class IDORTestResult:
     baseline_status: int
     probe_status: int
     body_diff_ratio: float
-    sensitive_fields_leaked: List[str]
+    sensitive_fields_leaked: list[str]
     verdict: str  # vulnerable, blocked, inconclusive
     reason: str
 
@@ -46,19 +45,19 @@ class IDORScanReport:
     identity_baseline_id: int
     identity_probe_id: int
     total_tests: int
-    vulnerable: List[IDORTestResult]
-    blocked: List[IDORTestResult]
-    inconclusive: List[IDORTestResult]
+    vulnerable: list[IDORTestResult]
+    blocked: list[IDORTestResult]
+    inconclusive: list[IDORTestResult]
     elapsed_ms: int
 
 
 class IDORTester:
-    def __init__(self, replayer: Optional[RequestReplayer] = None):
+    def __init__(self, replayer: RequestReplayer | None = None):
         self._replayer = replayer or RequestReplayer()
 
-    def _extract_idor_candidates(self, url: str, method: str) -> List[Dict[str, str]]:
+    def _extract_idor_candidates(self, url: str, method: str) -> list[dict[str, str]]:
         parsed = urlparse(url)
-        candidates: List[Dict[str, str]] = []
+        candidates: list[dict[str, str]] = []
 
         for pattern in IDOR_PARAM_PATTERNS[1:]:
             match = pattern.search(url)
@@ -103,7 +102,7 @@ class IDORTester:
             return ''.join(parts)
         return f"{stripped}_other"
 
-    def _build_probe_spec(self, spec: RequestSpec, candidate: Dict[str, str], probe_val: str) -> RequestSpec:
+    def _build_probe_spec(self, spec: RequestSpec, candidate: dict[str, str], probe_val: str) -> RequestSpec:
         url = spec.url
         if candidate["location"] == "path":
             url = url.replace(candidate["original"], probe_val, 1)
@@ -122,8 +121,8 @@ class IDORTester:
             body=spec.body,
         )
 
-    def _detect_sensitive_leaks(self, body: str) -> List[str]:
-        found: List[str] = []
+    def _detect_sensitive_leaks(self, body: str) -> list[str]:
+        found: list[str] = []
         for label, pattern in SENSITIVE_PATTERNS.items():
             if pattern.search(body):
                 found.append(label)
@@ -137,9 +136,9 @@ class IDORTester:
         probe_auth: AuthContext,
         url: str,
         method: str = "GET",
-        headers: Optional[Dict[str, str]] = None,
-        params: Optional[Dict[str, str]] = None,
-        body: Optional[str] = None,
+        headers: dict[str, str] | None = None,
+        params: dict[str, str] | None = None,
+        body: str | None = None,
     ) -> IDORScanReport:
         start = time.monotonic()
         request_spec = RequestSpec(
@@ -151,9 +150,9 @@ class IDORTester:
         )
 
         candidates = self._extract_idor_candidates(url, method)
-        vulnerable: List[IDORTestResult] = []
-        blocked: List[IDORTestResult] = []
-        inconclusive: List[IDORTestResult] = []
+        vulnerable: list[IDORTestResult] = []
+        blocked: list[IDORTestResult] = []
+        inconclusive: list[IDORTestResult] = []
 
         for candidate in candidates:
             probe_val = self._generate_probe_value(candidate["original"])
@@ -185,7 +184,6 @@ class IDORTester:
 
             if probe_resp.status_code == 200 and baseline_resp.status_code in (200, 403, 404):
                 if body_diff_ratio < 0.3:
-                    verdict = "vulnerable"
                     reason = f"Probe got 200 with similar body to baseline (diff={body_diff_ratio:.2f})"
                     if sensitive_leaks:
                         reason += f", leaked: {', '.join(sensitive_leaks)}"

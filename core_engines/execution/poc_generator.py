@@ -1,5 +1,5 @@
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from dataclasses import dataclass
+from typing import Any
 
 from core_engines.execution.request_mutator import RequestMutator
 from core_engines.validation.replayer import AuthContext, RequestSpec
@@ -11,26 +11,26 @@ class TestScenario:
     node_id: str
     attack_vector: str
     request_spec: RequestSpec
-    mutations: Dict[str, str]
+    mutations: dict[str, str]
     auth_baseline: AuthContext
     auth_probe: AuthContext
-    endpoint_signals: Dict[str, Any]
+    endpoint_signals: dict[str, Any]
     template_name: str
 
 
 class PoCGenerator:
-    def __init__(self, mutator: Optional[RequestMutator] = None):
+    def __init__(self, mutator: RequestMutator | None = None):
         self._mutator = mutator or RequestMutator()
 
     def build_test_plan(
         self,
-        hot_paths: List[Dict[str, Any]],
-        endpoint_details_map: Dict[str, Dict[str, Any]],
-        endpoint_signals_map: Dict[str, Dict[str, Any]],
-        baseline_token: Optional[str] = None,
-        probe_token: Optional[str] = None,
-    ) -> List[TestScenario]:
-        scenarios: List[TestScenario] = []
+        hot_paths: list[dict[str, Any]],
+        endpoint_details_map: dict[str, dict[str, Any]],
+        endpoint_signals_map: dict[str, dict[str, Any]],
+        baseline_token: str | None = None,
+        probe_token: str | None = None,
+    ) -> list[TestScenario]:
+        scenarios: list[TestScenario] = []
         for hp in hot_paths:
             hp_id = hp.get("id") or hp.get("hot_path_id") or str(id(hp))
             template_name = hp.get("template", {}).get("name", "unknown") if isinstance(hp.get("template"), dict) else "unknown"
@@ -72,11 +72,11 @@ class PoCGenerator:
                 ))
         return scenarios
 
-    def _detect_vector(self, node_id: str, signals: Dict[str, Any]) -> str:
+    def _detect_vector(self, node_id: str, signals: dict[str, Any]) -> str:
         node_lower = node_id.lower()
         signals_list = signals.get("signals", []) if isinstance(signals, dict) else []
         attack_surface = signals.get("attack_surface", []) if isinstance(signals, dict) else []
-        labels = signals.get("labels", []) if isinstance(signals, dict) else []
+        signals.get("labels", []) if isinstance(signals, dict) else []
 
         if any(s in attack_surface for s in ("idor_candidate", "ownership_boundary")):
             return "IDOR"

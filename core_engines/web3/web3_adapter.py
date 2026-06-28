@@ -1,8 +1,10 @@
+import logging
 import re
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
+logger = logging.getLogger("rastro.web3.adapter")
 
 CHAIN_IDENTIFIERS = {
     "ethereum": ["ethereum", "eth", "mainnet", "0x1"],
@@ -75,14 +77,14 @@ class Web3Vulnerability:
 @dataclass
 class Web3Target:
     target_type: Web3EntityType
-    chain: Optional[str] = None
-    contract_address: Optional[str] = None
-    method_signature: Optional[str] = None
-    rpc_method: Optional[str] = None
+    chain: str | None = None
+    contract_address: str | None = None
+    method_signature: str | None = None
+    rpc_method: str | None = None
     is_authenticated: bool = False
-    wallet_keywords_found: List[str] = field(default_factory=list)
+    wallet_keywords_found: list[str] = field(default_factory=list)
 
-    def to_entity_node(self) -> Dict[str, Any]:
+    def to_entity_node(self) -> dict[str, Any]:
         return {
             "node_id": f"web3_entity:{self.target_type.value}",
             "type": "web3_entity",
@@ -99,7 +101,7 @@ class Web3Target:
 
 
 class Web3Adapter:
-    def detect(self, path: str, method: str, params: Optional[Dict[str, Any]] = None, headers: Optional[Dict[str, str]] = None) -> Optional[Web3Target]:
+    def detect(self, path: str, method: str, params: dict[str, Any] | None = None, headers: dict[str, str] | None = None) -> Web3Target | None:
         safe_path = str(path or "/")
         safe_params = params or {}
         safe_headers = headers or {}
@@ -132,8 +134,8 @@ class Web3Adapter:
 
         return None
 
-    def analyze_vulnerabilities(self, target: Web3Target, path: str, method: str, params: Optional[Dict[str, Any]] = None, headers: Optional[Dict[str, str]] = None) -> List[Web3Vulnerability]:
-        vulns: List[Web3Vulnerability] = []
+    def analyze_vulnerabilities(self, target: Web3Target, path: str, method: str, params: dict[str, Any] | None = None, headers: dict[str, str] | None = None) -> list[Web3Vulnerability]:
+        vulns: list[Web3Vulnerability] = []
         safe_params = params or {}
         safe_headers = headers or {}
 
@@ -148,14 +150,14 @@ class Web3Adapter:
 
         return vulns
 
-    def _detect_chain(self, lower_path: str, params: Dict[str, Any]) -> Optional[str]:
+    def _detect_chain(self, lower_path: str, params: dict[str, Any]) -> str | None:
         combined = f"{lower_path} {str(params).lower()}"
         for chain_name, identifiers in CHAIN_IDENTIFIERS.items():
             if any(ident in combined for ident in identifiers):
                 return chain_name
         return None
 
-    def _classify_rpc(self, path: str, method: str, params: Dict[str, Any], headers: Dict[str, str], chain: Optional[str]) -> Web3Target:
+    def _classify_rpc(self, path: str, method: str, params: dict[str, Any], headers: dict[str, str], chain: str | None) -> Web3Target:
         rpc_method = None
         if isinstance(params, dict):
             rpc_method = params.get("method") or params.get("jsonrpc_method")
@@ -165,7 +167,7 @@ class Web3Adapter:
                 parsed = json.loads(params)
                 rpc_method = parsed.get("method")
             except (json.JSONDecodeError, ValueError, TypeError):
-                pass
+                logger.warning("Failed to parse RPC params as JSON", exc_info=True)
 
         return Web3Target(
             target_type=Web3EntityType.RPC_METHOD,
@@ -174,7 +176,7 @@ class Web3Adapter:
             is_authenticated=bool(headers.get("Authorization")),
         )
 
-    def _classify_contract(self, path: str, method: str, params: Dict[str, Any], headers: Dict[str, str], contract_address: str, chain: Optional[str]) -> Web3Target:
+    def _classify_contract(self, path: str, method: str, params: dict[str, Any], headers: dict[str, str], contract_address: str, chain: str | None) -> Web3Target:
         method_sig = None
         lower_path = path.lower()
         for func in ["transfer", "balanceOf", "approve", "allowance", "mint", "burn", "swap"]:
@@ -190,7 +192,7 @@ class Web3Adapter:
             is_authenticated="sign" in str(headers).lower() or bool(headers.get("Authorization")),
         )
 
-    def _classify_jsonrpc(self, path: str, method: str, params: Dict[str, Any], headers: Dict[str, str], chain: Optional[str]) -> Web3Target:
+    def _classify_jsonrpc(self, path: str, method: str, params: dict[str, Any], headers: dict[str, str], chain: str | None) -> Web3Target:
         body_str = str(params)
         if all(kw in body_str for kw in JSON_RPC_KEYWORDS):
             return Web3Target(
@@ -206,7 +208,7 @@ class Web3Adapter:
             is_authenticated=bool(headers.get("Authorization")),
         )
 
-    def _classify_wallet(self, path: str, method: str, params: Dict[str, Any], headers: Dict[str, str], wallet_kw: List[str], chain: Optional[str]) -> Web3Target:
+    def _classify_wallet(self, path: str, method: str, params: dict[str, Any], headers: dict[str, str], wallet_kw: list[str], chain: str | None) -> Web3Target:
         return Web3Target(
             target_type=Web3EntityType.WALLET_OPERATION,
             chain=chain,
@@ -214,15 +216,15 @@ class Web3Adapter:
             is_authenticated=bool(headers.get("Authorization") or headers.get("x-signature")),
         )
 
-    def _classify_signature_auth(self, path: str, method: str, params: Dict[str, Any], headers: Dict[str, str], chain: Optional[str]) -> Web3Target:
+    def _classify_signature_auth(self, path: str, method: str, params: dict[str, Any], headers: dict[str, str], chain: str | None) -> Web3Target:
         return Web3Target(
             target_type=Web3EntityType.SIGNATURE_AUTH,
             chain=chain,
             is_authenticated=True,
         )
 
-    def _rpc_vulnerabilities(self, target: Web3Target, headers: Dict[str, str]) -> List[Web3Vulnerability]:
-        vulns: List[Web3Vulnerability] = []
+    def _rpc_vulnerabilities(self, target: Web3Target, headers: dict[str, str]) -> list[Web3Vulnerability]:
+        vulns: list[Web3Vulnerability] = []
         if target.rpc_method in ("eth_getStorageAt", "debug_traceTransaction", "personal_unlockAccount"):
             vulns.append(Web3Vulnerability(
                 vuln_type=Web3VulnType.UNAUTHORIZED_RPC,
@@ -234,13 +236,13 @@ class Web3Adapter:
             vulns.append(Web3Vulnerability(
                 vuln_type=Web3VulnType.UNAUTHORIZED_RPC,
                 confidence=0.35,
-                description=f"Unauthenticated RPC endpoint. Attacker can query chain state without credentials.",
+                description="Unauthenticated RPC endpoint. Attacker can query chain state without credentials.",
                 poc_curl_template="curl -X POST '<rpc_url>' -H 'Content-Type: application/json' -d '{\"jsonrpc\":\"2.0\",\"method\":\"eth_blockNumber\",\"params\":[],\"id\":1}'",
             ))
         return vulns
 
-    def _signature_vulnerabilities(self, target: Web3Target, params: Dict[str, Any], headers: Dict[str, str]) -> List[Web3Vulnerability]:
-        vulns: List[Web3Vulnerability] = []
+    def _signature_vulnerabilities(self, target: Web3Target, params: dict[str, Any], headers: dict[str, str]) -> list[Web3Vulnerability]:
+        vulns: list[Web3Vulnerability] = []
         has_nonce = any("nonce" in str(k).lower() for k in headers) or any("nonce" in str(k).lower() for k in params)
         has_timestamp = any("timestamp" in str(k).lower() for k in headers) or any("timestamp" in str(k).lower() for k in params)
 
@@ -260,8 +262,8 @@ class Web3Adapter:
             ))
         return vulns
 
-    def _contract_vulnerabilities(self, target: Web3Target, params: Dict[str, Any]) -> List[Web3Vulnerability]:
-        vulns: List[Web3Vulnerability] = []
+    def _contract_vulnerabilities(self, target: Web3Target, params: dict[str, Any]) -> list[Web3Vulnerability]:
+        vulns: list[Web3Vulnerability] = []
         if target.method_signature in ("transfer", "approve"):
             vulns.append(Web3Vulnerability(
                 vuln_type=Web3VulnType.CONTRACT_STATE_ASSUMPTION,
@@ -274,12 +276,12 @@ class Web3Adapter:
                 vuln_type=Web3VulnType.CONTRACT_STATE_ASSUMPTION,
                 confidence=0.45,
                 description="Owner/admin parameter modifiable in contract call. May allow unauthorized state mutation.",
-                poc_curl_template=f"curl -X POST '<endpoint>' -d '{{\"owner\":\"<attacker_address>\"}}'",
+                poc_curl_template="curl -X POST '<endpoint>' -d '{\"owner\":\"<attacker_address>\"}'",
             ))
         return vulns
 
-    def _wallet_vulnerabilities(self, target: Web3Target, params: Dict[str, Any]) -> List[Web3Vulnerability]:
-        vulns: List[Web3Vulnerability] = []
+    def _wallet_vulnerabilities(self, target: Web3Target, params: dict[str, Any]) -> list[Web3Vulnerability]:
+        vulns: list[Web3Vulnerability] = []
         if "balance" in target.wallet_keywords_found:
             vulns.append(Web3Vulnerability(
                 vuln_type=Web3VulnType.WALLET_DISCLOSURE,

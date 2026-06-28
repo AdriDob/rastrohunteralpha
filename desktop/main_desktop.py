@@ -25,6 +25,7 @@ Path strategy:
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import logging
 import logging.handlers
 import os
@@ -33,7 +34,6 @@ import sys
 import threading
 import time
 from pathlib import Path
-from typing import Optional
 
 import webview
 
@@ -47,7 +47,7 @@ _READY = "[READY]"
 _SHUTDOWN = "[SHUTDOWN]"
 
 logger = logging.getLogger("rastro.desktop")
-_lifecycle_logger: Optional[logging.Logger] = None
+_lifecycle_logger: logging.Logger | None = None
 
 
 # ── Error dialog (visible even without console) ──────────────────────
@@ -60,17 +60,14 @@ def _show_error(title: str, message: str) -> None:
         try:
             import tkinter.messagebox as mb
             mb.showerror(title, message)
-        except Exception:
-            pass
+        except Exception as exc:
+            _lifecycle("[ERROR]", "Fallback error dialog failed: %s", exc)
 
 
 # ── Logging ──────────────────────────────────────────────────────────
 
 def _setup_logging(dev: bool) -> str:
-    if getattr(sys, "frozen", False):
-        base_dir = Path(sys.executable).resolve().parent
-    else:
-        base_dir = Path.cwd()
+    base_dir = Path(sys.executable).resolve().parent if getattr(sys, "frozen", False) else Path.cwd()
     log_dir = base_dir / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
 
@@ -124,8 +121,8 @@ class ServerThread:
     def __init__(self, host: str, port: int):
         self.host = host
         self.port = port
-        self._server: Optional[object] = None
-        self._thread: Optional[threading.Thread] = None
+        self._server: object | None = None
+        self._thread: threading.Thread | None = None
 
     def start(self, app) -> None:
         self._thread = threading.Thread(
@@ -134,7 +131,6 @@ class ServerThread:
         self._thread.start()
 
     def _run(self, app) -> None:
-        import uvicorn
         from uvicorn import Config, Server
         config = Config(
             app,
@@ -185,11 +181,12 @@ def _wait_for_health(host: str, port: int, timeout: float = 30.0) -> bool:
 # ── Frontend mounting ────────────────────────────────────────────────
 
 def _mount_frontend(app) -> bool:
-    from pathlib import Path
     import logging
     import mimetypes
-    from core_engines.platform.system import get_frontend_dist_dir
+
     from fastapi.responses import FileResponse, JSONResponse
+
+    from core_engines.platform.system import get_frontend_dist_dir
 
     mimetypes.add_type("application/javascript", ".js")
     mimetypes.add_type("text/css", ".css")
@@ -246,35 +243,48 @@ def _create_desktop_session(port: int) -> None:
 
     settings = get_settings()
     device_id = settings.get("device_id")
+    _lifecycle(_BOOT, "Session — device_id from settings: %s", device_id)
     if not device_id:
         try:
             device_id = settings.ensure_device_id()
+            _lifecycle(_BOOT, "Session — new device_id created: %s", device_id)
         except Exception as exc:
             _lifecycle(_BOOT, "Device ID creation failed (non-critical): %s", exc)
             return
 
     try:
         manager = get_auth_manager()
+        _lifecycle(_BOOT, "Session — calling manager.authenticate (device=%s)", device_id)
         result = manager.authenticate(device_id, {
             "desktop": True,
             "port": port,
             "frozen": getattr(sys, "frozen", False),
         })
+        _lifecycle(_BOOT, "Session — authenticate result keys: %s", list(result.keys()) if result else "NONE")
         if result and "token" in result:
+            token_preview = result["token"][:20] + "..." if len(result["token"]) > 20 else result["token"]
+            _lifecycle(_BOOT, "Session — token obtained: %s", token_preview)
             settings.set_auth_tokens(
                 session_token=result["token"],
                 refresh_token=result.get("refresh", ""),
             )
+            # Verify token was stored
+            stored = settings.get("session_token")
+            _lifecycle(_BOOT, "Session — stored token check: %s", "OK" if stored else "MISSING")
             _lifecycle(_BOOT, "Desktop session created (device=%s)", device_id)
+        else:
+            _lifecycle(_BOOT, "Session — authenticate returned no token (result=%s)", result)
     except Exception as exc:
         _lifecycle(_BOOT, "Session creation failed (non-critical): %s", exc)
+        import traceback
+        _lifecycle(_BOOT, "Session — traceback: %s", traceback.format_exc())
 
 
 # ── Settings / first run ─────────────────────────────────────────────
 
 def _init_settings() -> int:
-    from desktop.settings import get_settings
     from desktop.first_run import run_first_time
+    from desktop.settings import get_settings
 
     settings = get_settings()
     port = settings.get("backend_port", 8000)
@@ -296,8 +306,8 @@ def _open_desktop_window(host: str, port: int) -> bool:
     or if webview.start() returned without blocking — caller should fall
     back to browser mode.
     """
-    from desktop.settings import get_settings
     from desktop.browser_opener import build_dashboard_url
+    from desktop.settings import get_settings
 
     settings = get_settings()
     url = build_dashboard_url(
@@ -339,9 +349,9 @@ def _open_desktop_window(host: str, port: int) -> bool:
 
 
 def _open_browser(port: int) -> None:
-    from desktop.settings import get_settings
-    from desktop.browser_opener import open_dashboard, build_dashboard_url
+    from desktop.browser_opener import build_dashboard_url, open_dashboard
     from desktop.notifications import notify_dashboard_ready
+    from desktop.settings import get_settings
 
     settings = get_settings()
     ctx: dict = {
@@ -368,9 +378,9 @@ def _open_browser(port: int) -> None:
 # ── Tray (optional, never blocks) ────────────────────────────────────
 
 def _start_tray(server: ServerThread, shutdown_event: threading.Event):
-    from desktop.tray import TrayController
     from desktop.browser_opener import open_dashboard
     from desktop.settings import get_settings
+    from desktop.tray import TrayController
 
     settings = get_settings()
 
@@ -535,10 +545,8 @@ def main() -> None:
     server.stop()
 
     if tray is not None:
-        try:
+        with contextlib.suppress(Exception):
             tray.stop()
-        except Exception:
-            pass
 
     try:
         from database.db import engine

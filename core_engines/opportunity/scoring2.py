@@ -9,10 +9,10 @@ Never invents values. Unknown information remains unknown.
 
 from __future__ import annotations
 
+import contextlib
 import logging
 import re
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Set
 
 from core_engines.opportunity.models import (
     EVHCalculation,
@@ -25,7 +25,7 @@ from core_engines.opportunity.models import (
 logger = logging.getLogger("rastro.opportunity.scoring2")
 
 # Known high-value technology keywords
-_HIGH_VALUE_TAGS: Set[str] = {
+_HIGH_VALUE_TAGS: set[str] = {
     "cloud", "aws", "gcp", "azure", "kubernetes", "docker",
     "api", "graphql", "rest", "oauth", "saml", "jwt",
     "mobile", "ios", "android", "react-native", "flutter",
@@ -34,7 +34,7 @@ _HIGH_VALUE_TAGS: Set[str] = {
 }
 
 # Attack surface diversity markers
-_DISCOVERY_SURFACE_KEYWORDS: Dict[str, float] = {
+_DISCOVERY_SURFACE_KEYWORDS: dict[str, float] = {
     "graphql": 0.3,
     "api": 0.25,
     "admin": 0.2,
@@ -54,13 +54,13 @@ _WEB3_PLATFORMS = {"immunefi", "hackenproof", "code4rena", "hats finance"}
 
 def compute_layered_score(
     opp: Opportunity,
-    operator_tags: Optional[List[str]] = None,
+    operator_tags: list[str] | None = None,
     pattern_score: float = 0.0,
     historical_score: float = 0.0,
     memory_score: float = 0.0,
 ) -> OpportunityScore:
     """Compute layered OpportunityScore with EVH and breakdown."""
-    reasoning: List[str] = []
+    reasoning: list[str] = []
 
     # ── 1. Reward Score (0-100) ────────────────────────────────────
     reward_score, reward_exp = _compute_reward_score(opp)
@@ -216,7 +216,7 @@ def _compute_reward_score(opp: Opportunity) -> tuple[float, str]:
 
 def _compute_competition_score(opp: Opportunity) -> tuple[float, str]:
     """Competition Score: popularity, duplicate probability, age, activity.
-    
+
     Lower score = more competition (less favourable).
     Higher score = less competition (more favourable).
     """
@@ -252,7 +252,7 @@ def _compute_competition_score(opp: Opportunity) -> tuple[float, str]:
                 score -= 10.0
                 age_text = "Stale — may be inactive"
         except (ValueError, TypeError):
-            pass
+            logger.warning("Failed to parse activity date for scoring", exc_info=True)
 
     score = max(0.0, min(100.0, score))
     label = "Low competition" if score > 60 else "Moderate competition" if score > 35 else "High competition"
@@ -286,7 +286,7 @@ def _compute_discovery_score(opp: Opportunity) -> tuple[float, str]:
 def _compute_execution_score(opp: Opportunity) -> tuple[float, str]:
     """Execution Score: estimated research time, quick win probability, automation coverage."""
     score = 50.0
-    factors: List[str] = []
+    factors: list[str] = []
 
     # Quick win potential from tech tags
     automation_tags = {"api", "graphql", "rest", "oauth", "jwt"}
@@ -339,7 +339,7 @@ def _compute_intelligence_score(
 def _compute_strategic_score(opp: Opportunity) -> tuple[float, str]:
     """Strategic Score: emerging technology, ecosystem relevance, long-term value."""
     score = 35.0
-    factors: List[str] = []
+    factors: list[str] = []
 
     strategic_tags = {"web3", "solidity", "defi", "ai", "ml", "llm", "rust", "move", "zero-knowledge"}
     opp_tags = set(t.lower() for t in opp.technology_tags)
@@ -388,7 +388,7 @@ def _compute_confidence_score(opp: Opportunity) -> tuple[float, str]:
     return score, f"{tier} confidence ({score:.0f}/100)"
 
 
-def _compute_tech_overlap(opp: Opportunity, operator_tags: List[str]) -> float:
+def _compute_tech_overlap(opp: Opportunity, operator_tags: list[str]) -> float:
     """Measure technology overlap with operator preferences (0.0-1.0)."""
     opp_tags = set(t.lower() for t in opp.technology_tags)
     op_tags = set(t.lower() for t in operator_tags)
@@ -434,10 +434,8 @@ def _estimate_payout_from_reward(opp: Opportunity) -> float:
     amounts = re.findall(r'\$?([0-9,]+)', text)
     parsed = []
     for a in amounts:
-        try:
+        with contextlib.suppress(ValueError):
             parsed.append(float(a.replace(",", "")))
-        except ValueError:
-            pass
 
     if parsed:
         return max(parsed) * 0.5  # conservative estimate

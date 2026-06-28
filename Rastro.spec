@@ -1,4 +1,5 @@
 # -*- mode: python ; coding: utf-8 -*-
+# ruff: noqa
 #
 # Rastro Desktop — PyInstaller build spec.
 # Single entrypoint: run.py → desktop/main_desktop.py → FastAPI + pywebview.
@@ -41,7 +42,9 @@ BASE_HIDDEN = [
     'desktop', 'desktop.main_desktop', 'desktop.settings',
     'desktop.autostart', 'desktop.browser_opener', 'desktop.notifications',
     'desktop.tray', 'desktop.serve_frontend', 'desktop.first_run',
-    'desktop.updater',
+    'desktop.updater', 'desktop.watchdog', 'desktop.service',
+    'desktop.service_util',
+    'win32serviceutil', 'win32service', 'win32event', 'win32api',
     # API layer
     'api', 'api.main', *router_modules,
     # Database

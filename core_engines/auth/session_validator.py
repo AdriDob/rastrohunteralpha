@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import logging
 import time
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
-from core_engines.auth.auth import verify_session, verify_token
+from core_engines.auth.auth import verify_session
 from core_engines.auth.session import get_session_store
 
 logger = logging.getLogger("rastro.auth.session_validator")
@@ -16,10 +16,10 @@ class SessionValidationResult:
     def __init__(
         self,
         valid: bool,
-        device_id: Optional[str] = None,
-        user_id: Optional[str] = None,
-        reason: Optional[str] = None,
-        data: Optional[Dict[str, Any]] = None,
+        device_id: str | None = None,
+        user_id: str | None = None,
+        reason: str | None = None,
+        data: dict[str, Any] | None = None,
     ) -> None:
         self.valid = valid
         self.device_id = device_id
@@ -27,7 +27,7 @@ class SessionValidationResult:
         self.reason = reason
         self.data = data or {}
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "valid": self.valid,
             "device_id": self.device_id,
@@ -45,9 +45,9 @@ class SessionValidator:
 
     def __init__(self) -> None:
         self._store = get_session_store()
-        self._anomalies: List[Dict[str, Any]] = []
+        self._anomalies: list[dict[str, Any]] = []
 
-    def validate(self, token: str, device_id: Optional[str] = None) -> SessionValidationResult:
+    def validate(self, token: str, device_id: str | None = None) -> SessionValidationResult:
         valid, data = verify_session(token)
         if not valid:
             self._anomalies.append({
@@ -108,18 +108,16 @@ class SessionValidator:
         if session is None:
             return False
         last_seen = session.get("last_seen", 0)
-        if last_seen and (time.time() - last_seen) > self.MAX_INACTIVE_HOURS * 3600:
-            return False
-        return True
+        return not (last_seen and time.time() - last_seen > self.MAX_INACTIVE_HOURS * 3600)
 
-    def get_anomalies(self, limit: int = 20) -> List[Dict[str, Any]]:
+    def get_anomalies(self, limit: int = 20) -> list[dict[str, Any]]:
         return self._anomalies[-limit:]
 
     def clear_anomalies(self) -> None:
         self._anomalies.clear()
 
 
-_VALIDATOR: Optional[SessionValidator] = None
+_VALIDATOR: SessionValidator | None = None
 
 
 def get_session_validator() -> SessionValidator:

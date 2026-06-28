@@ -8,14 +8,14 @@ Each artifact declares its dependencies, version, and source_ids for invalidatio
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from datetime import timezone
+from typing import Any
 
-from core_engines.contracts import ArtifactProtocol, CacheProtocol, InvalidationPolicy
+from core_engines.contracts import ArtifactProtocol, InvalidationPolicy
 
 LOG = logging.getLogger("rastro.intelligence.cache")
 
-AFFECTED_BY_CHANGE: Dict[str, List[str]] = {
+AFFECTED_BY_CHANGE: dict[str, list[str]] = {
     "PipelineArtifact": [
         "AttackSurfaceArtifact", "ROIArtifact", "HypothesisArtifact",
         "EvidenceGraphArtifact", "QuickWinsArtifact", "ExecutionPlanArtifact",
@@ -59,12 +59,12 @@ class ArtifactCache:
     """
 
     def __init__(self) -> None:
-        self._store: Dict[str, ArtifactProtocol] = {}
+        self._store: dict[str, ArtifactProtocol] = {}
         self._hits: int = 0
         self._misses: int = 0
         self._invalidations: int = 0
 
-    def get(self, key: str) -> Optional[ArtifactProtocol]:
+    def get(self, key: str) -> ArtifactProtocol | None:
         artifact = self._store.get(key)
         if artifact is not None:
             self._hits += 1
@@ -81,11 +81,11 @@ class ArtifactCache:
             self._invalidations += 1
             LOG.debug("Invalidated cache: %s", key)
 
-    def invalidate_many(self, keys: List[str]) -> None:
+    def invalidate_many(self, keys: list[str]) -> None:
         for key in keys:
             self.invalidate(key)
 
-    def invalidate_related(self, changed_artifact: str) -> List[str]:
+    def invalidate_related(self, changed_artifact: str) -> list[str]:
         affected = AFFECTED_BY_CHANGE.get(changed_artifact, [])
         self.invalidate_many(affected)
         return affected
@@ -96,7 +96,7 @@ class ArtifactCache:
         self._misses = 0
         self._invalidations = 0
 
-    def stats(self) -> Dict[str, Any]:
+    def stats(self) -> dict[str, Any]:
         total = self._hits + self._misses
         return {
             "cached_artifacts": list(self._store.keys()),
@@ -107,7 +107,7 @@ class ArtifactCache:
             "invalidations": self._invalidations,
         }
 
-    def get_artifact(self, artifact_type: str) -> Optional[ArtifactProtocol]:
+    def get_artifact(self, artifact_type: str) -> ArtifactProtocol | None:
         return self.get(artifact_type)
 
     def set_artifact(self, artifact: ArtifactProtocol) -> None:
@@ -118,7 +118,7 @@ class ArtifactCache:
         self,
         policy: InvalidationPolicy,
         artifact_type: str,
-        changed_sources: Optional[List[str]] = None,
+        changed_sources: list[str] | None = None,
     ) -> bool:
         """
         Check if an artifact should be invalidated based on policy.
@@ -140,7 +140,7 @@ class ArtifactCache:
                     self.invalidate(artifact_type)
                     return True
             except (ValueError, TypeError):
-                pass
+                LOG.warning("Failed to check artifact age for invalidation", exc_info=True)
 
         if policy.dependencies_changed and changed_sources:
             current_sources = set(artifact.source_ids)
@@ -151,7 +151,7 @@ class ArtifactCache:
         return False
 
 
-_global_cache: Optional[ArtifactCache] = None
+_global_cache: ArtifactCache | None = None
 
 
 def get_cache() -> ArtifactCache:

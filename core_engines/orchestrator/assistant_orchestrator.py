@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger("rastro.orchestrator.assistant")
 
@@ -27,10 +27,10 @@ class OrchestratorDecision:
     reason: str
     confidence: float = 0.0
     priority: int = 0
-    context: Dict[str, Any] = field(default_factory=dict)
-    payload: Dict[str, Any] = field(default_factory=dict)
+    context: dict[str, Any] = field(default_factory=dict)
+    payload: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "action": self.action,
             "label": self.label,
@@ -46,14 +46,14 @@ class AssistantOrchestrator:
     """Decides system behavior based on priority engine + learning loop."""
 
     def __init__(self) -> None:
-        self._decisions: Dict[str, OrchestratorDecision] = {}
-        self._suppressed: Dict[str, float] = {}
+        self._decisions: dict[str, OrchestratorDecision] = {}
+        self._suppressed: dict[str, float] = {}
 
-    def recommend_next_action(self, top_n: int = 3) -> List[OrchestratorDecision]:
+    def recommend_next_action(self, top_n: int = 3) -> list[OrchestratorDecision]:
         from core_engines.intelligence.priority_engine import get_priority_engine
         engine = get_priority_engine()
         ranked = engine.get_ranked(limit=top_n + 5)
-        decisions: List[OrchestratorDecision] = []
+        decisions: list[OrchestratorDecision] = []
         for action in ranked:
             if action.id in self._suppressed:
                 continue
@@ -71,7 +71,7 @@ class AssistantOrchestrator:
                 break
         return decisions
 
-    def auto_prioritize_dashboard(self) -> Dict[str, Any]:
+    def auto_prioritize_dashboard(self) -> dict[str, Any]:
         decisions = self.recommend_next_action(5)
         if not decisions:
             return {"top_action": None, "decisions": []}
@@ -82,7 +82,7 @@ class AssistantOrchestrator:
             "generated_at": time.time(),
         }
 
-    def highlight_ui_elements(self) -> List[Dict[str, Any]]:
+    def highlight_ui_elements(self) -> list[dict[str, Any]]:
         from core_engines.intelligence.priority_engine import get_priority_engine
         engine = get_priority_engine()
         top = engine.get_top(3)
@@ -111,7 +111,7 @@ class AssistantOrchestrator:
         logger.info("Suppressed %d noise items (threshold=%.2f)", count, threshold)
         return count
 
-    def trigger_discovery_refresh(self) -> Optional[OrchestratorDecision]:
+    def trigger_discovery_refresh(self) -> OrchestratorDecision | None:
         from core_engines.intelligence.learning_loop import get_learning_loop
         loop = get_learning_loop()
         success_rate = loop.get_success_rate("open_opportunity")
@@ -127,7 +127,7 @@ class AssistantOrchestrator:
         )
         return decision
 
-    def get_active_suppressions(self) -> List[str]:
+    def get_active_suppressions(self) -> list[str]:
         now = time.time()
         return [aid for aid, ts in self._suppressed.items() if now - ts < 3600]
 
@@ -137,7 +137,7 @@ class AssistantOrchestrator:
     def clear_suppressions(self) -> None:
         self._suppressed.clear()
 
-    def get_decisions(self) -> Dict[str, Any]:
+    def get_decisions(self) -> dict[str, Any]:
         return {
             "active_decisions": len(self._decisions),
             "suppressed": len(self._suppressed),
@@ -145,7 +145,7 @@ class AssistantOrchestrator:
         }
 
 
-_ORCHESTRATOR: Optional[AssistantOrchestrator] = None
+_ORCHESTRATOR: AssistantOrchestrator | None = None
 
 
 def get_orchestrator() -> AssistantOrchestrator:

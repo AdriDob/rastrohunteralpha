@@ -13,6 +13,7 @@ import pytest
 @pytest.fixture(scope="module")
 def client():
     from fastapi.testclient import TestClient
+
     from api.main import app
     from core_engines.license.validator import generate_license
     c = TestClient(app)

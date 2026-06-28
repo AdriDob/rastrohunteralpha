@@ -94,7 +94,9 @@ export function DesktopSidebar({ isExpanded }: { isExpanded: boolean }) {
     {
       titleKey: 'nav_operations',
       items: [
-        { to: '/actions', labelKey: 'actions_view', icon: '▶' },
+        { to: '/agents', labelKey: 'agent_center', icon: '🤖' },
+        { to: '/executive-dashboard', labelKey: 'executive_dashboard', icon: '📊' },
+        { to: '/pipeline-monitor', labelKey: 'pipeline_monitor', icon: '⚙' },
       ],
       submenus: [
         {
@@ -111,11 +113,14 @@ export function DesktopSidebar({ isExpanded }: { isExpanded: boolean }) {
     {
       titleKey: 'nav_intelligence',
       items: [
+        { to: '/agents', labelKey: 'agent_center', icon: '🤖' },
+        { to: '/executive-dashboard', labelKey: 'executive_dashboard', icon: '📊' },
         { to: '/radar', labelKey: 'opportunity_radar', icon: '◎' },
         { to: '/programs', labelKey: 'program_catalog', icon: '📋' },
         { to: '/reports', labelKey: 'report_center', icon: '📄' },
         { to: '/reports/history', labelKey: 'report_history', icon: '📋' },
         { to: '/project-dashboard', labelKey: 'project_dashboard', icon: '◈' },
+        { to: '/identity-center', labelKey: 'identity_center', icon: '🔐' },
         { to: '/settings', labelKey: 'settings', icon: '⚙' },
       ],
     },

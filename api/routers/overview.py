@@ -1,16 +1,21 @@
 from __future__ import annotations
 
+import contextlib
 import json
+import logging
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, Query
-from sqlalchemy import cast, Float, func as sa_func
+from sqlalchemy import func as sa_func
 
-from database import db, models
-from core_engines.engine.unified_scoring import score as unified_score, score_target as unified_score_target
+from core_engines.engine.unified_scoring import score as unified_score
+from core_engines.engine.unified_scoring import score_target as unified_score_target
 from core_engines.gateway.schemas import safe_response
 from core_engines.targets.models import TargetIntel
+from database import db, models
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api", tags=["overview"])
 
@@ -32,18 +37,16 @@ def get_overview():
         # Risk/vector distribution — deduplicate by (path, method) to minimise scoring calls
         high_signal = 0
         total_risk = 0.0
-        risk_buckets: Dict[str, int] = {"critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0}
-        vector_dist: Dict[str, int] = {}
-        endpoint_target_ids: Dict[int, int] = {}
-        _score_cache: Dict[Tuple[str, str], Dict[str, Any]] = {}
+        risk_buckets: dict[str, int] = {"critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0}
+        vector_dist: dict[str, int] = {}
+        endpoint_target_ids: dict[int, int] = {}
+        _score_cache: dict[tuple[str, str], dict[str, Any]] = {}
 
         for ep in session.query(models.Endpoint.path, models.Endpoint.method, models.Endpoint.params, models.Endpoint.target_id, models.Endpoint.id).all():
             ep_params = {}
             if ep.params:
-                try:
+                with contextlib.suppress(json.JSONDecodeError, ValueError):
                     ep_params = json.loads(ep.params)
-                except (json.JSONDecodeError, ValueError):
-                    pass
             key = (ep.path or "/", ep.method or "GET")
             if key not in _score_cache:
                 _score_cache[key] = unified_score(*key, ep_params)
@@ -69,7 +72,7 @@ def get_overview():
         avg_risk = round(total_risk / max(endpoint_count, 1), 1)
 
         # Severity counts — SQL GROUP BY
-        severity_counts: Dict[str, int] = {"critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0}
+        severity_counts: dict[str, int] = {"critical": 0, "high": 0, "medium": 0, "low": 0, "info": 0}
         for row in session.query(models.Finding.severity, sa_func.count(models.Finding.id)).group_by(models.Finding.severity).all():
             sev = (row[0] or "info").lower()
             severity_counts[sev] = row[1]
@@ -154,7 +157,7 @@ def get_activity(
     session = db.SessionLocal()
     try:
         since = datetime.utcnow() - timedelta(hours=hours)
-        events: List[Dict[str, Any]] = []
+        events: list[dict[str, Any]] = []
 
         for f in session.query(models.Finding).filter(models.Finding.created_at >= since).all():
             events.append({
@@ -210,11 +213,11 @@ def get_intelligence_summary():
     try:
         intel_records = session.query(TargetIntel).all()
 
-        platform_dist: Dict[str, int] = {}
-        qualities: List[float] = []
-        complexities: List[float] = []
-        rois: List[float] = []
-        fresh: List[float] = []
+        platform_dist: dict[str, int] = {}
+        qualities: list[float] = []
+        complexities: list[float] = []
+        rois: list[float] = []
+        fresh: list[float] = []
         b2b_count = 0
         saas_count = 0
         graphql_count = 0

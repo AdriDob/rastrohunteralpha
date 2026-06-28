@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from database.db import SessionLocal
 from database.models import MemoryRecord
@@ -23,12 +23,12 @@ class MemoryStore:
     """
 
     def __init__(self) -> None:
-        pass
+        logger.debug("MemoryStore initialized")
 
     def _session(self):
         return SessionLocal()
 
-    def store(self, category: str, key: str, details: Dict[str, Any]) -> MemoryRecord:
+    def store(self, category: str, key: str, details: dict[str, Any]) -> MemoryRecord:
         session = self._session()
         try:
             record = MemoryRecord(
@@ -43,7 +43,7 @@ class MemoryStore:
         finally:
             session.close()
 
-    def get(self, category: str, key: str) -> Optional[Dict[str, Any]]:
+    def get(self, category: str, key: str) -> dict[str, Any] | None:
         session = self._session()
         try:
             record = (
@@ -62,10 +62,10 @@ class MemoryStore:
     def query(
         self,
         category: str,
-        key_prefix: Optional[str] = None,
+        key_prefix: str | None = None,
         limit: int = 50,
         offset: int = 0,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         session = self._session()
         try:
             q = session.query(MemoryRecord).filter(MemoryRecord.category == category)
@@ -119,7 +119,7 @@ class MemoryStore:
         finally:
             session.close()
 
-    def count(self, category: Optional[str] = None) -> int:
+    def count(self, category: str | None = None) -> int:
         session = self._session()
         try:
             q = session.query(MemoryRecord)
@@ -129,7 +129,7 @@ class MemoryStore:
         finally:
             session.close()
 
-    def categories(self) -> List[str]:
+    def categories(self) -> list[str]:
         session = self._session()
         try:
             records = (
@@ -142,10 +142,10 @@ class MemoryStore:
             session.close()
 
     def close(self) -> None:
-        pass
+        logger.debug("MemoryStore closed")
 
 
-_STORE: Optional[MemoryStore] = None
+_STORE: MemoryStore | None = None
 
 
 def get_memory_store() -> MemoryStore:

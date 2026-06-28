@@ -12,7 +12,6 @@ and produces narrative. It NEVER modifies other artifacts.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
 
 from core_engines.contracts import Bundle
 
@@ -21,7 +20,7 @@ from core_engines.contracts import Bundle
 class AIInsightArtifact(Bundle):
     summary: str = ""
     narrative: str = ""
-    recommendations: List[str] = field(default_factory=list)
+    recommendations: list[str] = field(default_factory=list)
     findings_explanation: str = ""
     differential_explanation: str = ""
     quick_wins_narrative: str = ""

@@ -49,54 +49,122 @@ export const useStore = create<AppStore>()(
       }),
       onRehydrateStorage: () => {
         return (state) => {
-          console.log('[onRehydrateStorage] inner function called with state:', state ? 'present' : 'null/undefined', 'url:', window.location.href);
-          if (state) {
-            setHydrating(true);
-            Promise.resolve().then(async () => {
-              console.log('[onRehydrateStorage] async block started');
+          console.log('BUILD 27 - INNER CALLED state=', state ? 'present' : 'null/undefined', 'url=', window.location.href);
+          console.log('BUILD 27 - rastro-token at entry:', sessionStorage.getItem('rastro-token'));
+          if (!state) {
+            console.log('[onRehydrateStorage] RETURN EARLY — state was falsy');
+            return;
+          }
+          console.log('[onRehydrateStorage] state present — calling setHydrating(true)');
+          setHydrating(true);
+          Promise.resolve().then(async () => {
+            console.log('[onRehydrateStorage] ASYNC BLOCK ENTERED');
+            try {
+              const urlToken = new URLSearchParams(window.location.search).get('token');
+              console.log('[onRehydrateStorage] urlToken:', JSON.stringify(urlToken));
+
+              if (urlToken) {
+                console.log('[onRehydrateStorage] BRANCH A: urlToken present — calling setAuthToken');
+                const { setAuthToken } = await import('../lib/api');
+                setAuthToken(urlToken);
+                const afterSet = sessionStorage.getItem('rastro-token');
+                console.log('[onRehydrateStorage] BRANCH A: after setAuthToken, rastro-token=', afterSet ? 'present (' + afterSet.slice(0, 8) + '...)' : 'STILL NULL');
+              } else {
+                const existing = sessionStorage.getItem('rastro-token');
+                console.log('[onRehydrateStorage] BRANCH B: no urlToken, existing rastro-token=', existing ? 'present (' + existing.slice(0, 8) + '...)' : 'null');
+              }
+
+              // license check
+              console.log('[onRehydrateStorage] BEFORE license fetch');
+              let licValid = false;
               try {
-                // Extract token from URL before any API calls to avoid 401 loop
-                const urlToken = new URLSearchParams(window.location.search).get('token');
-                console.log('[onRehydrateStorage] urlToken from search:', urlToken);
-                if (urlToken) {
-                  console.log('[onRehydrateStorage] calling setAuthToken from rehydration');
-                  const { setAuthToken } = await import('../lib/api');
-                  setAuthToken(urlToken);
-                  console.log('[onRehydrateStorage] setAuthToken done, sessionStorage rastro-token:', sessionStorage.getItem('rastro-token'));
-                }
+                const licRes = await fetch('/api/license/status');
+                console.log('[onRehydrateStorage] license fetch status:', licRes.status);
+                const licData = await licRes.json();
+                console.log('[onRehydrateStorage] license fetch body:', JSON.stringify(licData));
+                licValid = licData?.data?.valid === true;
+                console.log('[onRehydrateStorage] licValid =', licValid);
+              } catch (licErr) {
+                console.log('[onRehydrateStorage] license fetch EXCEPTION:', licErr);
+              }
 
-                // Check license status before proceeding
-                console.log('[onRehydrateStorage] checking license status');
+              if (!licValid) {
+                console.log('[onRehydrateStorage] RETURN — license invalid, setting licenseValid=false');
+                useStore.setState({ licenseValid: false, licenseLoading: false });
+                setHydrating(false);
+                setHydrated(true);
+                console.log('[onRehydrateStorage] RETURN DONE (license invalid)');
+                return;
+              }
+
+              console.log('[onRehydrateStorage] CONTINUE — license valid');
+              const tokenBefore = sessionStorage.getItem('rastro-token');
+              console.log('[onRehydrateStorage] tokenBefore dashboard call:', tokenBefore ? 'present (' + tokenBefore.slice(0, 8) + '...)' : 'null');
+
+              if (!tokenBefore && !urlToken) {
+                console.log('[onRehydrateStorage] BRANCH C: no token anywhere — attempting auto-login');
                 try {
-                  const licRes = await fetch('/api/license/status');
-                  const licData = await licRes.json();
-                  const licValid = licData?.data?.valid === true;
-                  console.log('[onRehydrateStorage] license valid:', licValid);
-                  if (!licValid) {
-                    console.log('[onRehydrateStorage] license invalid — setting licenseValid=false, skipping overview');
-                    useStore.setState({ licenseValid: false, licenseLoading: false });
-                    setHydrating(false);
-                    setHydrated(true);
-                    return; // prevent dashboard render
+                  let deviceId = localStorage.getItem('rastro-device-id');
+                  console.log('[onRehydrateStorage] auto-login deviceId from localStorage:', deviceId);
+                  if (!deviceId) {
+                    deviceId = 'web-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 8);
+                    localStorage.setItem('rastro-device-id', deviceId);
+                    console.log('[onRehydrateStorage] auto-login generated new deviceId:', deviceId);
                   }
-                } catch (licErr) {
-                  console.log('[onRehydrateStorage] license check failed:', licErr);
-                  // backend not reachable — keep stale state
+                  const requestBody = JSON.stringify({ device_id: deviceId, device_info: { source: 'browser' } });
+                  console.log('[onRehydrateStorage] auto-login REQUEST body:', requestBody);
+                  const loginRes = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: requestBody,
+                  });
+                  console.log('[onRehydrateStorage] auto-login RESPONSE status:', loginRes.status);
+                  let loginData: any;
+                  try {
+                    loginData = await loginRes.json();
+                    console.log('[onRehydrateStorage] auto-login RESPONSE body:', JSON.stringify(loginData));
+                  } catch (parseErr) {
+                    console.log('[onRehydrateStorage] auto-login JSON parse ERROR:', parseErr);
+                    const text = await loginRes.text();
+                    console.log('[onRehydrateStorage] auto-login RAW body:', text);
+                    loginData = null;
+                  }
+                  if (loginData?.data?.token) {
+                    console.log('[onRehydrateStorage] auto-login SUCCESS — token found, calling setAuthToken');
+                    const { setAuthToken } = await import('../lib/api');
+                    setAuthToken(loginData.data.token);
+                    const afterLogin = sessionStorage.getItem('rastro-token');
+                    console.log('[onRehydrateStorage] auto-login — after setAuthToken, rastro-token=', afterLogin ? 'present (' + afterLogin.slice(0, 8) + '...)' : 'STILL NULL');
+                  } else {
+                    console.log('[onRehydrateStorage] auto-login FAIL — response had no token');
+                    if (loginData?.error) {
+                      console.log('[onRehydrateStorage] auto-login server error:', loginData.error);
+                    }
+                  }
+                } catch (loginErr) {
+                  console.log('[onRehydrateStorage] auto-login FETCH EXCEPTION:', loginErr);
                 }
+              } else {
+                console.log('[onRehydrateStorage] BRANCH D: token already present — skipping auto-login (tokenBefore=', !!tokenBefore, 'urlToken=', !!urlToken, ')');
+              }
 
-                console.log('[onRehydrateStorage] calling getOverviewPreload');
+              console.log('[onRehydrateStorage] BEFORE getOverviewPreload');
+              const tokenFinal = sessionStorage.getItem('rastro-token');
+              console.log('[onRehydrateStorage] token before overview call:', tokenFinal ? 'present (' + tokenFinal.slice(0, 8) + '...)' : 'null');
+              try {
                 const { getOverviewPreload } = await import('../lib/api');
                 const overview = await getOverviewPreload();
-                console.log('[onRehydrateStorage] getOverviewPreload succeeded:', overview);
-              } catch (e) {
-                console.log('[onRehydrateStorage] getOverviewPreload failed:', e);
-                // backend fetch failed — keep stale persisted state
+                console.log('[onRehydrateStorage] getOverviewPreload SUCCESS:', overview ? 'data received' : 'null');
+              } catch (overviewErr) {
+                console.log('[onRehydrateStorage] getOverviewPreload EXCEPTION:', overviewErr);
               }
-              setHydrating(false);
-              setHydrated(true);
-              console.log('[onRehydrateStorage] hydration flags set to hydrated');
-            });
-          }
+            } catch (e) {
+              console.log('[onRehydrateStorage] TOP-LEVEL EXCEPTION:', e);
+            }
+            setHydrating(false);
+            setHydrated(true);
+            console.log('[onRehydrateStorage] ASYNC BLOCK COMPLETE — hydrating=false, hydrated=true');
+          });
         };
       },
     },

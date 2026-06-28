@@ -1,5 +1,5 @@
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Set
+from dataclasses import dataclass
+from typing import Any
 
 from core_engines.execution.poc_generator import TestScenario
 from core_engines.validation.gate import Verdict
@@ -9,35 +9,35 @@ from core_engines.validation.gate import Verdict
 class GapReport:
     coverage_score: float
     total_endpoints: int
-    covered_endpoints: List[str]
-    uncovered_endpoints: List[str]
-    missing_hot_paths: List[Dict[str, Any]]
-    under_tested_entities: List[str]
-    blind_spots: List[Dict[str, str]]
-    reinjection_plan: List[Dict[str, Any]]
+    covered_endpoints: list[str]
+    uncovered_endpoints: list[str]
+    missing_hot_paths: list[dict[str, Any]]
+    under_tested_entities: list[str]
+    blind_spots: list[dict[str, str]]
+    reinjection_plan: list[dict[str, Any]]
 
 
 class GapAnalyzer:
     def analyze(
         self,
-        endpoints: List[Dict[str, Any]],
-        test_scenarios: List[TestScenario],
-        verdicts: Dict[str, Verdict],
-        hot_paths: List[Dict[str, Any]],
-        entity_endpoints: Optional[Dict[str, List[str]]] = None,
-        auth_contexts: Optional[List[str]] = None,
+        endpoints: list[dict[str, Any]],
+        test_scenarios: list[TestScenario],
+        verdicts: dict[str, Verdict],
+        hot_paths: list[dict[str, Any]],
+        entity_endpoints: dict[str, list[str]] | None = None,
+        auth_contexts: list[str] | None = None,
     ) -> GapReport:
         entity_endpoints = entity_endpoints or {}
         auth_contexts = auth_contexts or ["authenticated", "anonymous"]
 
-        all_endpoint_ids: Set[str] = set()
-        for idx, ep in enumerate(endpoints):
+        all_endpoint_ids: set[str] = set()
+        for _idx, ep in enumerate(endpoints):
             path = str(ep.get("path", "/"))
             method = str(ep.get("method", "GET")).upper()
             all_endpoint_ids.add(f"endpoint:{method}:{path}")
 
-        covered_endpoints: Set[str] = set()
-        used_hot_path_ids: Set[str] = set()
+        covered_endpoints: set[str] = set()
+        used_hot_path_ids: set[str] = set()
 
         for scenario in test_scenarios:
             covered_endpoints.add(scenario.node_id)
@@ -47,11 +47,11 @@ class GapAnalyzer:
             for node_id in hp.get("nodes", []):
                 covered_endpoints.add(node_id)
 
-        for v_id, verdict in verdicts.items():
+        for v_id, _verdict in verdicts.items():
             used_hot_path_ids.add(v_id)
 
-        uncovered: List[str] = sorted(all_endpoint_ids - covered_endpoints)
-        covered: List[str] = sorted(all_endpoint_ids & covered_endpoints)
+        uncovered: list[str] = sorted(all_endpoint_ids - covered_endpoints)
+        covered: list[str] = sorted(all_endpoint_ids & covered_endpoints)
 
         coverage_score = round(len(covered) / max(len(all_endpoint_ids), 1) * 100.0, 1)
 
@@ -78,7 +78,7 @@ class GapAnalyzer:
             reinjection_plan=reinjection,
         )
 
-    def _generate_missing_hot_paths(self, uncovered: List[str], endpoints: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _generate_missing_hot_paths(self, uncovered: list[str], endpoints: list[dict[str, Any]]) -> list[dict[str, Any]]:
         ep_map = {}
         for ep in endpoints:
             method = str(ep.get("method", "GET")).upper()
@@ -86,7 +86,7 @@ class GapAnalyzer:
             eid = f"endpoint:{method}:{path}"
             ep_map[eid] = ep
 
-        missing: List[Dict[str, Any]] = []
+        missing: list[dict[str, Any]] = []
         for eid in uncovered:
             ep = ep_map.get(eid, {})
             missing.append({
@@ -100,8 +100,8 @@ class GapAnalyzer:
         missing.sort(key=lambda x: x["risk_score"], reverse=True)
         return missing
 
-    def _find_under_tested_entities(self, entity_endpoints: Dict[str, List[str]], covered: Set[str]) -> List[str]:
-        under_tested: List[str] = []
+    def _find_under_tested_entities(self, entity_endpoints: dict[str, list[str]], covered: set[str]) -> list[str]:
+        under_tested: list[str] = []
         for entity, eids in entity_endpoints.items():
             covered_count = sum(1 for eid in eids if eid in covered)
             total = len(eids)
@@ -109,7 +109,7 @@ class GapAnalyzer:
                 under_tested.append(entity)
         return under_tested
 
-    def _detect_blind_spots(self, uncovered: List[str], endpoints: List[Dict[str, Any]], auth_contexts: List[str]) -> List[Dict[str, str]]:
+    def _detect_blind_spots(self, uncovered: list[str], endpoints: list[dict[str, Any]], auth_contexts: list[str]) -> list[dict[str, str]]:
         ep_map = {}
         for ep in endpoints:
             method = str(ep.get("method", "GET")).upper()
@@ -117,7 +117,7 @@ class GapAnalyzer:
             eid = f"endpoint:{method}:{path}"
             ep_map[eid] = ep
 
-        spots: List[Dict[str, str]] = []
+        spots: list[dict[str, str]] = []
         for eid in uncovered:
             ep = ep_map.get(eid, {})
             spots.append({
@@ -127,7 +127,7 @@ class GapAnalyzer:
             })
         return spots
 
-    def _build_reinjection_plan(self, missing: List[Dict[str, Any]], uncovered: List[str], endpoints: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _build_reinjection_plan(self, missing: list[dict[str, Any]], uncovered: list[str], endpoints: list[dict[str, Any]]) -> list[dict[str, Any]]:
         return [
             {
                 "node_id": m["node_id"],
@@ -139,12 +139,10 @@ class GapAnalyzer:
         ]
 
     @staticmethod
-    def _infer_auth_context(ep: Dict[str, Any]) -> bool:
+    def _infer_auth_context(ep: dict[str, Any]) -> bool:
         path = str(ep.get("path", "")).lower()
         labels = ep.get("labels", [])
         signals = ep.get("signals", [])
         if "auth" in labels or "auth" in signals:
             return True
-        if any(kw in path for kw in ["login", "auth", "signin", "oauth", "token"]):
-            return True
-        return False
+        return bool(any(kw in path for kw in ["login", "auth", "signin", "oauth", "token"]))

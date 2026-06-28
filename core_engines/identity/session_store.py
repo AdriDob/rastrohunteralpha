@@ -9,7 +9,7 @@ import json
 import logging
 import os
 import time
-from typing import Any, Dict, Optional
+from typing import Any
 
 logger = logging.getLogger("rastro.identity.session")
 
@@ -24,7 +24,7 @@ class SessionStore:
     """Persistent session key-value store. Survives restarts."""
 
     def __init__(self) -> None:
-        self._data: Dict[str, Any] = {}
+        self._data: dict[str, Any] = {}
         os.makedirs(DATA_DIR, exist_ok=True)
         self._load()
 
@@ -32,7 +32,7 @@ class SessionStore:
         self._data[key] = {"value": value, "updated_at": time.time()}
         self._save()
 
-    def get(self, key: str) -> Optional[Any]:
+    def get(self, key: str) -> Any | None:
         entry = self._data.get(key)
         if entry:
             return entry.get("value")
@@ -49,7 +49,7 @@ class SessionStore:
     def keys(self) -> list:
         return list(self._data.keys())
 
-    def get_all(self) -> Dict[str, Any]:
+    def get_all(self) -> dict[str, Any]:
         return {k: v.get("value") for k, v in self._data.items()}
 
     def _path(self) -> str:
@@ -61,7 +61,7 @@ class SessionStore:
                 with open(self._path()) as f:
                     self._data = json.load(f)
         except (json.JSONDecodeError, OSError):
-            pass
+            logger.warning("Failed to load session store from disk", exc_info=True)
 
     def _save(self) -> None:
         try:

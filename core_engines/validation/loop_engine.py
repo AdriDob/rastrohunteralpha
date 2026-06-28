@@ -1,11 +1,10 @@
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from core_engines.validation.confidence import ConfidenceScorer
 from core_engines.validation.gate import ReportGate, Verdict
-from core_engines.validation.replayer import AuthContext, ComparisonResult, RequestReplayer, RequestSpec
-from core_engines.validation.rules import ValidationReport, ValidationRuleSet
-
+from core_engines.validation.replayer import AuthContext, RequestReplayer, RequestSpec
+from core_engines.validation.rules import ValidationRuleSet
 
 DEFAULT_CONCURRENCY = 5
 
@@ -13,10 +12,10 @@ DEFAULT_CONCURRENCY = 5
 class ValidationLoopEngine:
     def __init__(
         self,
-        replayer: Optional[RequestReplayer] = None,
-        rules: Optional[ValidationRuleSet] = None,
-        scorer: Optional[ConfidenceScorer] = None,
-        gate: Optional[ReportGate] = None,
+        replayer: RequestReplayer | None = None,
+        rules: ValidationRuleSet | None = None,
+        scorer: ConfidenceScorer | None = None,
+        gate: ReportGate | None = None,
     ):
         self._replayer = replayer or RequestReplayer()
         self._rules = rules or ValidationRuleSet()
@@ -26,11 +25,11 @@ class ValidationLoopEngine:
     def evaluate(
         self,
         hot_path_id: str,
-        endpoint_details: Dict[str, Any],
-        endpoint_signals: Dict[str, Any],
+        endpoint_details: dict[str, Any],
+        endpoint_signals: dict[str, Any],
         auth_baseline: AuthContext,
         auth_probe: AuthContext,
-        mutations: Optional[Dict[str, str]] = None,
+        mutations: dict[str, str] | None = None,
         min_attempts: int = 3,
     ) -> Verdict:
         request_spec = RequestSpec(
@@ -113,15 +112,15 @@ class ValidationLoopEngine:
 
     def evaluate_all(
         self,
-        hot_paths: List[Dict[str, Any]],
-        endpoint_details_map: Dict[str, Dict[str, Any]],
-        endpoint_signals_map: Dict[str, Dict[str, Any]],
+        hot_paths: list[dict[str, Any]],
+        endpoint_details_map: dict[str, dict[str, Any]],
+        endpoint_signals_map: dict[str, dict[str, Any]],
         auth_baseline: AuthContext,
         auth_probe: AuthContext,
-        mutations_map: Optional[Dict[str, Dict[str, str]]] = None,
+        mutations_map: dict[str, dict[str, str]] | None = None,
         min_attempts: int = 3,
-    ) -> Dict[str, Verdict]:
-        verdicts: Dict[str, Verdict] = {}
+    ) -> dict[str, Verdict]:
+        verdicts: dict[str, Verdict] = {}
         for hp in hot_paths:
             hp_id = hp.get("id") or hp.get("hot_path_id") or str(id(hp))
             for node_id in hp.get("nodes", []):

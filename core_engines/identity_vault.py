@@ -2,24 +2,29 @@
 
 Stores encrypted credentials for bug bounty platforms.
 Never logs secrets. Never auto-submits reports.
-All storage is encrypted at rest using a local key.
+All storage is encrypted at rest using AES-256-GCM.
 """
 
 from __future__ import annotations
 
 import base64
+import contextlib
 import hashlib
 import json
 import logging
 import os
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
+
+from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 
 logger = logging.getLogger("rastro.identity_vault")
 
-_VAULT_PATH: Optional[str] = None
-_VAULT_KEY: Optional[bytes] = None
-_VAULT_DATA: Dict[str, Dict[str, Any]] = {}
+_VAULT_PATH: str | None = None
+_VAULT_KEY: bytes | None = None
+_VAULT_DATA: dict[str, dict[str, Any]] = {}
+
+_AES_NONCE_BYTES = 12
 
 
 def _get_vault_path() -> str:
@@ -47,11 +52,10 @@ def _get_machine_id() -> str:
             with open(etc_machine) as f:
                 raw.append(f.read().strip())
         except Exception:
-            pass
+            logger.warning("Failed to read /etc/machine-id", exc_info=True)
     if not raw:
         raw.append(os.environ.get("HOSTNAME", "rastro-default"))
 
-    # Deduplicate in case future additions produce the same value.
     seen: set[str] = set()
     deduped: list[str] = []
     for v in raw:
@@ -62,28 +66,30 @@ def _get_machine_id() -> str:
     return "|".join(deduped)
 
 
-def _xor_encrypt(data: str, key: bytes) -> str:
-    """Simple XOR-based encryption for local storage.
-
-    This is NOT production-grade encryption. In a production environment,
-    replace with AES-256-GCM or similar. For a local desktop app running
-    on the operator's machine, this provides basic at-rest protection.
-    """
-    payload = data.encode("utf-8")
-    result = bytearray()
-    for i, b in enumerate(payload):
-        result.append(b ^ key[i % len(key)])
-    return base64.b64encode(bytes(result)).decode("ascii")
+def _aes_encrypt(plaintext: str, key: bytes) -> str:
+    """Encrypt data with AES-256-GCM. Returns base64(nonce + ciphertext + tag)."""
+    if not plaintext:
+        return ""
+    aesgcm = AESGCM(key)
+    nonce = os.urandom(_AES_NONCE_BYTES)
+    ciphertext = aesgcm.encrypt(nonce, plaintext.encode("utf-8"), None)
+    return base64.b64encode(nonce + ciphertext).decode("ascii")
 
 
-def _xor_decrypt(data: str, key: bytes) -> str:
+def _aes_decrypt(payload: str, key: bytes) -> str:
+    """Decrypt data encrypted with AES-256-GCM. Expects base64(nonce + ciphertext + tag)."""
+    if not payload:
+        return ""
     try:
-        payload = base64.b64decode(data.encode("ascii"))
-        result = bytearray()
-        for i, b in enumerate(payload):
-            result.append(b ^ key[i % len(key)])
-        return result.decode("utf-8")
+        raw = base64.b64decode(payload.encode("ascii"))
+        if len(raw) < _AES_NONCE_BYTES + 16:
+            return ""
+        nonce = raw[:_AES_NONCE_BYTES]
+        ciphertext = raw[_AES_NONCE_BYTES:]
+        aesgcm = AESGCM(key)
+        return aesgcm.decrypt(nonce, ciphertext, None).decode("utf-8")
     except Exception:
+        logger.warning("AES-256-GCM decryption failed — key may have changed")
         return ""
 
 
@@ -92,7 +98,7 @@ class IdentityVault:
 
     SUPPORTED_PROVIDERS = [
         "hackerone", "bugcrowd", "huntr", "immunefi",
-        "intigriti", "yeswehack", "github",
+        "intigriti", "yeswehack", "github", "synack",
     ]
 
     def __init__(self) -> None:
@@ -100,7 +106,7 @@ class IdentityVault:
 
     # ── Public API ─────────────────────────────────────────────────
 
-    def list_accounts(self) -> List[Dict[str, Any]]:
+    def list_accounts(self) -> list[dict[str, Any]]:
         """List all stored accounts (without secrets)."""
         result = []
         for provider, data in _VAULT_DATA.items():
@@ -114,7 +120,7 @@ class IdentityVault:
             })
         return result
 
-    def get_account(self, provider: str) -> Optional[Dict[str, Any]]:
+    def get_account(self, provider: str) -> dict[str, Any] | None:
         """Get a specific stored account (without secrets)."""
         data = _VAULT_DATA.get(provider)
         if not data:
@@ -134,7 +140,7 @@ class IdentityVault:
         email: str,
         token: str = "",
         password: str = "",
-        metadata: Optional[Dict[str, str]] = None,
+        metadata: dict[str, str] | None = None,
     ) -> None:
         """Store encrypted credentials for a provider."""
         if provider not in self.SUPPORTED_PROVIDERS and provider not in _VAULT_DATA:
@@ -146,8 +152,8 @@ class IdentityVault:
             "session_state": "disconnected",
             "last_checked": datetime.now(timezone.utc).isoformat(),
             "health_status": "unknown",
-            "encrypted_token": _xor_encrypt(token, key) if token else "",
-            "encrypted_password": _xor_encrypt(password, key) if password else "",
+            "encrypted_token": _aes_encrypt(token, key) if token else "",
+            "encrypted_password": _aes_encrypt(password, key) if password else "",
             "metadata": json.dumps(metadata or {}),
         }
 
@@ -164,15 +170,15 @@ class IdentityVault:
         self._save()
         logger.info("Credentials stored for provider: %s (email: %s)", provider, email)
 
-    def get_credentials(self, provider: str) -> Dict[str, str]:
+    def get_credentials(self, provider: str) -> dict[str, str]:
         """Retrieve decrypted credentials. Use sparingly — never log."""
         data = _VAULT_DATA.get(provider)
         if not data:
             return {}
 
         key = _get_vault_key()
-        token = _xor_decrypt(data.get("encrypted_token", ""), key)
-        password = _xor_decrypt(data.get("encrypted_password", ""), key)
+        token = _aes_decrypt(data.get("encrypted_token", ""), key)
+        password = _aes_decrypt(data.get("encrypted_password", ""), key)
         metadata_raw = data.get("metadata", "{}")
         try:
             metadata = json.loads(metadata_raw)
@@ -207,7 +213,7 @@ class IdentityVault:
             _VAULT_DATA[provider]["last_checked"] = datetime.now(timezone.utc).isoformat()
             self._save()
 
-    def check_session_health(self, provider: str) -> Dict[str, Any]:
+    def check_session_health(self, provider: str) -> dict[str, Any]:
         """Check whether a stored session is still valid."""
         data = _VAULT_DATA.get(provider)
         if not data:
@@ -216,10 +222,8 @@ class IdentityVault:
         last_checked_str = data.get("last_checked", "")
         last_checked = None
         if last_checked_str:
-            try:
+            with contextlib.suppress(ValueError, TypeError):
                 last_checked = datetime.fromisoformat(last_checked_str)
-            except (ValueError, TypeError):
-                pass
 
         hours_since_check = 999
         if last_checked:
@@ -273,7 +277,7 @@ class IdentityVault:
             logger.warning("Failed to save identity vault: %s", exc)
 
 
-_VAULT_INSTANCE: Optional[IdentityVault] = None
+_VAULT_INSTANCE: IdentityVault | None = None
 
 
 def get_identity_vault() -> IdentityVault:

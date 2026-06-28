@@ -5,10 +5,8 @@ categorization by use case.
 """
 
 import logging
-import os
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional, Set
 
 LOG = logging.getLogger("rastro.recon.seclists")
 
@@ -20,12 +18,12 @@ class WordlistProfile:
     description: str
     relative_path: str
     category: str
-    estimated_size: Optional[int] = None
-    tags: List[str] = field(default_factory=list)
+    estimated_size: int | None = None
+    tags: list[str] = field(default_factory=list)
 
 
 # Common SecLists wordlists organized by category
-WORDLISTS: List[WordlistProfile] = [
+WORDLISTS: list[WordlistProfile] = [
     # Discovery / Web Content
     WordlistProfile(
         name="common",
@@ -144,25 +142,25 @@ WORDLISTS: List[WordlistProfile] = [
 ]
 
 # Fast lookup structures
-_BY_NAME: Dict[str, WordlistProfile] = {wl.name: wl for wl in WORDLISTS}
-_BY_CATEGORY: Dict[str, List[WordlistProfile]] = {}
+_BY_NAME: dict[str, WordlistProfile] = {wl.name: wl for wl in WORDLISTS}
+_BY_CATEGORY: dict[str, list[WordlistProfile]] = {}
 for wl in WORDLISTS:
     _BY_CATEGORY.setdefault(wl.category, []).append(wl)
 
 
-def get_wordlist(name: str) -> Optional[WordlistProfile]:
+def get_wordlist(name: str) -> WordlistProfile | None:
     """Get a wordlist profile by name."""
     return _BY_NAME.get(name)
 
 
-def get_wordlists_by_category(category: str) -> List[WordlistProfile]:
+def get_wordlists_by_category(category: str) -> list[WordlistProfile]:
     """Get all wordlists in a category."""
     return _BY_CATEGORY.get(category, [])
 
 
 def resolve_path(
     profile: WordlistProfile, seclists_dir: str = "/usr/share/seclists"
-) -> Optional[Path]:
+) -> Path | None:
     """Resolve the absolute path to a wordlist file."""
     candidate = Path(seclists_dir) / profile.relative_path
     if candidate.exists():
@@ -171,7 +169,7 @@ def resolve_path(
     return None
 
 
-def available_wordlists(seclists_dir: str = "/usr/share/seclists") -> List[str]:
+def available_wordlists(seclists_dir: str = "/usr/share/seclists") -> list[str]:
     """Return names of wordlists that exist on disk."""
     available = []
     for wl in WORDLISTS:
@@ -180,7 +178,7 @@ def available_wordlists(seclists_dir: str = "/usr/share/seclists") -> List[str]:
     return available
 
 
-def get_recommended_profiles(mode: str) -> List[str]:
+def get_recommended_profiles(mode: str) -> list[str]:
     """Get recommended wordlist names for a scan mode."""
     mode_map = {
         "FAST": ["common", "subdomains-top1million-5000"],

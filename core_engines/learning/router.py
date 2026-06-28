@@ -2,19 +2,19 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query, Request
 from pydantic import BaseModel
 
 from core_engines.auth.auth import verify_token
 from core_engines.learning import (
-    get_profile_service,
     get_event_tracker,
-    get_prioritizer,
     get_explainer,
-    get_memory_builder,
     get_exporter,
+    get_memory_builder,
+    get_prioritizer,
+    get_profile_service,
 )
 
 router = APIRouter(prefix="/api/learning", tags=["learning"])
@@ -37,23 +37,23 @@ def _get_user_id(request: Request) -> str:
 
 class EventBody(BaseModel):
     event_type: str
-    data: Dict[str, Any] = {}
+    data: dict[str, Any] = {}
 
 
 class PrioritizeTargetsBody(BaseModel):
-    targets: List[Dict[str, Any]]
+    targets: list[dict[str, Any]]
 
 
 class PrioritizeFindingsBody(BaseModel):
-    findings: List[Dict[str, Any]]
+    findings: list[dict[str, Any]]
 
 
 class TargetContextBody(BaseModel):
-    target: Dict[str, Any]
+    target: dict[str, Any]
 
 
 class PreferenceUpdate(BaseModel):
-    adaptive_mode: Optional[bool] = None
+    adaptive_mode: bool | None = None
 
 
 # ─── Profile ─────────────────────────────────────────────────────────────
@@ -120,7 +120,7 @@ def track_event(body: EventBody, request: Request):
 @router.get("/events")
 def list_events(
     request: Request,
-    event_type: Optional[str] = Query(None),
+    event_type: str | None = Query(None),
     limit: int = Query(50, le=500),
 ):
     user_id = _get_user_id(request)

@@ -1,9 +1,9 @@
 import csv
 import io
-from typing import Any, Dict, List
+from typing import Any
 
 
-def _to_csv(headers: List[str], rows: List[List[str]]) -> str:
+def _to_csv(headers: list[str], rows: list[list[str]]) -> str:
     buf = io.StringIO()
     writer = csv.writer(buf)
     writer.writerow(headers)
@@ -11,7 +11,7 @@ def _to_csv(headers: List[str], rows: List[List[str]]) -> str:
     return buf.getvalue()
 
 
-def _to_markdown_table(headers: List[str], rows: List[List[str]]) -> str:
+def _to_markdown_table(headers: list[str], rows: list[list[str]]) -> str:
     buf = io.StringIO()
     buf.write(" | ".join(headers) + "\n")
     buf.write(" | ".join("---" for _ in headers) + "\n")
@@ -117,7 +117,7 @@ def export_recommendations(recs: Any, fmt: str) -> str:
     return str(d)
 
 
-def export_snapshots(snapshots: List[Dict[str, Any]], fmt: str) -> str:
+def export_snapshots(snapshots: list[dict[str, Any]], fmt: str) -> str:
     if fmt == "csv":
         headers = ["id", "key", "snapshot_type", "targets", "endpoints", "findings",
                     "confirmed", "payout", "acceptance_rate", "created_at"]

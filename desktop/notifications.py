@@ -8,7 +8,6 @@ If plyer is unavailable, notifications degrade to log messages.
 from __future__ import annotations
 
 import logging
-from typing import Optional
 
 logger = logging.getLogger("rastro.desktop.notifications")
 
@@ -51,9 +50,8 @@ def send_notification(title: str, message: str, urgency: str = "normal") -> None
         logger.debug("[Notification suppressed] %s: %s", title, message)
         return
 
-    if _HAS_PLYER:
-        if _notify_plyer(title, message, urgency):
-            return
+    if _HAS_PLYER and _notify_plyer(title, message, urgency):
+        return
 
     logger.info("[NOTIFICATION] %s: %s", title, message)
 

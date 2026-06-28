@@ -5,7 +5,6 @@ Quick Wins API — evaluate monetization opportunities from pipeline data.
 from __future__ import annotations
 
 from dataclasses import asdict
-from typing import Optional
 
 from fastapi import APIRouter, HTTPException
 
@@ -17,15 +16,15 @@ from core_engines.engine.snapshot import (
     TargetSnapshot,
     VerdictSnapshot,
 )
+from core_engines.engine.unified_scoring import score as unified_score
 from core_engines.evidence.graph import EvidenceGraph
 from core_engines.quick_wins.quick_wins_engine import QuickWinsEngine
-from core_engines.engine.unified_scoring import score as unified_score
 from database import db, models
 
 router = APIRouter(prefix="/api/quick-wins", tags=["quick_wins"])
 
 
-def _build_snapshot(target_id: Optional[int] = None) -> PipelineSnapshot:
+def _build_snapshot(target_id: int | None = None) -> PipelineSnapshot:
     session = db.SessionLocal()
     try:
         targets = session.query(models.Target).all()
@@ -131,7 +130,7 @@ def _build_snapshot(target_id: Optional[int] = None) -> PipelineSnapshot:
 
 
 @router.post("/evaluate")
-def evaluate_quick_wins(target_id: Optional[int] = None):
+def evaluate_quick_wins(target_id: int | None = None):
     snapshot = _build_snapshot(target_id)
     evidence_graph = EvidenceGraph()
     engine = QuickWinsEngine()

@@ -1,4 +1,4 @@
-from core_engines.validation.confidence import ConfidenceScorer, ConfidenceScore
+from core_engines.validation.confidence import ConfidenceScore, ConfidenceScorer
 from core_engines.validation.gate import ReportGate, Verdict
 from core_engines.validation.loop_engine import ValidationLoopEngine
 from core_engines.validation.replayer import (

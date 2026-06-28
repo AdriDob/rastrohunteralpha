@@ -1,8 +1,6 @@
 import asyncio
-import json
 import logging
 from pathlib import Path
-from typing import List, Optional, Set
 
 from .tools import _resolve_tool
 
@@ -23,7 +21,7 @@ class GauRunner:
         domain: str,
         out_file: str = "gau.txt",
         max_urls: int = 5000,
-        filters: Optional[List[str]] = None,
+        filters: list[str] | None = None,
     ) -> Path:
         """Fetch historical URLs for domain using gau."""
         path = self.output_dir / out_file
@@ -60,11 +58,11 @@ class GauRunner:
 
         return path
 
-    def load_urls(self, path: Path) -> List[str]:
+    def load_urls(self, path: Path) -> list[str]:
         """Load and deduplicate URLs from a gau output file."""
         if not path.exists():
             return []
-        seen: Set[str] = set()
+        seen: set[str] = set()
         urls = []
         for line in path.read_text().splitlines():
             line = line.strip()
@@ -73,7 +71,7 @@ class GauRunner:
                 urls.append(line)
         return urls
 
-    async def discover_endpoints(self, domain: str) -> List[str]:
+    async def discover_endpoints(self, domain: str) -> list[str]:
         """Convenience: run gau and load results in one call."""
         out = await self.run_gau(domain)
         return self.load_urls(out)

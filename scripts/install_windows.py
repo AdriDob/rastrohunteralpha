@@ -17,12 +17,10 @@ Build steps:
 from __future__ import annotations
 
 import argparse
-import os
 import shutil
 import subprocess
 import sys
 import zipfile
-from datetime import datetime
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -208,8 +206,8 @@ def main() -> None:
     print(f"  Release zip:       {zip_path}")
     if installer_path:
         print(f"  Installer:         {installer_path}")
-    print(f"\nRun 'Rastro.exe' to start the desktop application.")
-    print(f"Logs and data will be stored in %APPDATA%\\Rastro\\")
+    print("\nRun 'Rastro.exe' to start the desktop application.")
+    print("Logs and data will be stored in %APPDATA%\\Rastro\\")
 
 
 if __name__ == "__main__":

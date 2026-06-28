@@ -7,14 +7,13 @@ from __future__ import annotations
 
 import logging
 from datetime import datetime, timezone
-from typing import List
 
 from core_engines.opportunity.models import Opportunity, OpportunityRecommendations
 
 logger = logging.getLogger("rastro.opportunity.recommendations")
 
 
-def generate_recommendations(opportunities: List[Opportunity]) -> OpportunityRecommendations:
+def generate_recommendations(opportunities: list[Opportunity]) -> OpportunityRecommendations:
     """Generate advisory recommendation lists from scored opportunities.
 
     Categories:

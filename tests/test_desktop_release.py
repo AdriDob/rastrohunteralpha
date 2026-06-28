@@ -21,8 +21,8 @@ from __future__ import annotations
 import hashlib
 import json
 import os
-import sys
 import subprocess
+import sys
 import tempfile
 from pathlib import Path
 
@@ -35,7 +35,7 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent
 
 class TestEnvConfig:
     def test_import(self):
-        from core_engines.env.config import EnvConfig, get_config
+        from core_engines.env.config import get_config
         cfg = get_config()
         assert cfg.port == 8000
         assert cfg.host == "127.0.0.1"
@@ -47,6 +47,7 @@ class TestEnvConfig:
         monkeypatch.setenv("RASTRO_DEBUG", "1")
         # Reload by re-importing (reset module state)
         import importlib
+
         from core_engines import env as env_module
         importlib.reload(env_module.config)
         from core_engines.env.config import get_config
@@ -172,8 +173,8 @@ class TestFirstRun:
         assert DEFAULT_SETTINGS["onboarding_complete"] is False
 
     def test_run_first_time(self, monkeypatch):
-        from desktop.settings import DesktopSettings, DEFAULT_SETTINGS
-        from desktop.first_run import run_first_time, is_first_run_complete
+        from desktop.first_run import is_first_run_complete, run_first_time
+        from desktop.settings import DEFAULT_SETTINGS, DesktopSettings
 
         with tempfile.TemporaryDirectory() as td:
             settings_path = os.path.join(td, "rastro", "settings.json")
@@ -284,7 +285,7 @@ class TestTrayController:
 
 class TestAutostart:
     def test_enable_disable_functions_exist(self):
-        from desktop.autostart import enable_autostart, disable_autostart, is_autostart_enabled
+        from desktop.autostart import disable_autostart, enable_autostart, is_autostart_enabled
         assert callable(enable_autostart)
         assert callable(disable_autostart)
         assert callable(is_autostart_enabled)
@@ -299,13 +300,12 @@ class TestAutostart:
 
 class TestUpdater:
     def test_import(self):
-        import importlib
         from desktop.updater import (
+            apply_update,
             check_for_updates,
             download_update,
-            verify_checksum,
-            apply_update,
             rollback,
+            verify_checksum,
         )
         assert callable(check_for_updates)
         assert callable(download_update)
@@ -331,7 +331,7 @@ class TestUpdater:
 
 class TestFirstRunModule:
     def test_import(self):
-        from desktop.first_run import run_first_time, is_first_run_complete
+        from desktop.first_run import is_first_run_complete, run_first_time
         assert callable(run_first_time)
         assert callable(is_first_run_complete)
 
@@ -393,8 +393,8 @@ class TestPortConsistency:
 
     def test_build_dashboard_url_default_port(self):
         """build_dashboard_url default port matches canonical port."""
-        from desktop.browser_opener import build_dashboard_url
         from core_engines.env.config import EnvConfig
+        from desktop.browser_opener import build_dashboard_url
         cfg = EnvConfig()
 
         url = build_dashboard_url()
@@ -417,8 +417,9 @@ class TestPortConsistency:
 
     def test_open_dashboard_default_port(self):
         """open_dashboard default port matches canonical port."""
-        from desktop.browser_opener import open_dashboard
         import inspect
+
+        from desktop.browser_opener import open_dashboard
         sig = inspect.signature(open_dashboard)
         default_port = sig.parameters["port"].default
         from core_engines.env.config import EnvConfig
@@ -437,6 +438,7 @@ class TestPortConsistency:
     def test_start_tray_uses_server_port(self):
         """Verify _start_tray capture uses server.port, not hardcoded constant."""
         import inspect
+
         from desktop.main_desktop import _start_tray
         source = inspect.getsource(_start_tray)
         # Must NOT contain port=5173
@@ -451,6 +453,7 @@ class TestPortConsistency:
     def test_open_browser_uses_port_parameter(self):
         """Verify _open_browser uses its port parameter, not hardcoded constant."""
         import inspect
+
         from desktop.main_desktop import _open_browser
         source = inspect.getsource(_open_browser)
         # Must NOT contain port=5173
@@ -484,8 +487,9 @@ class TestPortConsistency:
 
     def test_browser_opener_defaults_match(self):
         """build_dashboard_url and open_dashboard share the same default port."""
-        from desktop.browser_opener import build_dashboard_url, open_dashboard
         import inspect
+
+        from desktop.browser_opener import build_dashboard_url, open_dashboard
         b_sig = inspect.signature(build_dashboard_url)
         o_sig = inspect.signature(open_dashboard)
         assert b_sig.parameters["port"].default == o_sig.parameters["port"].default, (
@@ -513,7 +517,7 @@ class TestSilentRun:
 class TestSettingsMigration:
     def test_legacy_port_5173_migrated(self, tmp_path):
         """legacy backend_port:5173 is auto-migrated to 8000."""
-        from desktop.settings import DesktopSettings, DEFAULT_SETTINGS
+        from desktop.settings import DEFAULT_SETTINGS, DesktopSettings
         settings_path = tmp_path / "settings.json"
         settings_path.write_text(json.dumps({"backend_port": 5173}))
         ds = DesktopSettings.__new__(DesktopSettings)
@@ -524,7 +528,7 @@ class TestSettingsMigration:
 
     def test_legacy_port_5173_persisted(self, tmp_path):
         """After migration, the saved file has 8000, not 5173."""
-        from desktop.settings import DesktopSettings, DEFAULT_SETTINGS
+        from desktop.settings import DEFAULT_SETTINGS, DesktopSettings
         settings_path = tmp_path / "settings.json"
         settings_path.write_text(json.dumps({"backend_port": 5173}))
         ds = DesktopSettings.__new__(DesktopSettings)
@@ -537,7 +541,7 @@ class TestSettingsMigration:
 
     def test_valid_port_not_migrated(self, tmp_path):
         """backend_port:8000 is kept as-is."""
-        from desktop.settings import DesktopSettings, DEFAULT_SETTINGS
+        from desktop.settings import DEFAULT_SETTINGS, DesktopSettings
         settings_path = tmp_path / "settings.json"
         settings_path.write_text(json.dumps({"backend_port": 8000}))
         ds = DesktopSettings.__new__(DesktopSettings)
@@ -548,7 +552,7 @@ class TestSettingsMigration:
 
     def test_other_legacy_ports_not_touched(self, tmp_path):
         """Custom ports are preserved."""
-        from desktop.settings import DesktopSettings, DEFAULT_SETTINGS
+        from desktop.settings import DEFAULT_SETTINGS, DesktopSettings
         settings_path = tmp_path / "settings.json"
         settings_path.write_text(json.dumps({"backend_port": 9090}))
         ds = DesktopSettings.__new__(DesktopSettings)
@@ -559,7 +563,7 @@ class TestSettingsMigration:
 
     def test_settings_version_tracked(self, tmp_path):
         """settings_version is set after migration."""
-        from desktop.settings import DesktopSettings, DEFAULT_SETTINGS, SETTINGS_VERSION
+        from desktop.settings import DEFAULT_SETTINGS, SETTINGS_VERSION, DesktopSettings
         settings_path = tmp_path / "settings.json"
         settings_path.write_text(json.dumps({}))
         ds = DesktopSettings.__new__(DesktopSettings)
@@ -570,7 +574,7 @@ class TestSettingsMigration:
 
     def test_installed_version_updated(self, tmp_path):
         """installed_version is migrated from legacy to 1.5.0."""
-        from desktop.settings import DesktopSettings, DEFAULT_SETTINGS
+        from desktop.settings import DEFAULT_SETTINGS, DesktopSettings
         settings_path = tmp_path / "settings.json"
         settings_path.write_text(json.dumps({"installed_version": "0.4.0"}))
         ds = DesktopSettings.__new__(DesktopSettings)
@@ -581,7 +585,7 @@ class TestSettingsMigration:
 
     def test_corrupted_settings_uses_defaults(self, tmp_path):
         """Corrupted settings file falls back to defaults."""
-        from desktop.settings import DesktopSettings, DEFAULT_SETTINGS
+        from desktop.settings import DEFAULT_SETTINGS, DesktopSettings
         settings_path = tmp_path / "settings.json"
         settings_path.write_text("this is not json")
         ds = DesktopSettings.__new__(DesktopSettings)
@@ -609,6 +613,7 @@ class TestPortValidation:
         settings_file = tmp_path / "settings.json"
         settings_file.write_text(json.dumps({"backend_port": -1}))
         import importlib
+
         import desktop.settings as s_mod
         importlib.reload(s_mod)
         from desktop.main_desktop import _init_settings
@@ -622,6 +627,7 @@ class TestPortValidation:
         settings_file = tmp_path / "settings.json"
         settings_file.write_text(json.dumps({"backend_port": 0}))
         import importlib
+
         import desktop.settings as s_mod
         importlib.reload(s_mod)
         from desktop.main_desktop import _init_settings
@@ -635,6 +641,7 @@ class TestPortValidation:
         settings_file = tmp_path / "settings.json"
         settings_file.write_text(json.dumps({"backend_port": 99999}))
         import importlib
+
         import desktop.settings as s_mod
         importlib.reload(s_mod)
         from desktop.main_desktop import _init_settings
@@ -648,6 +655,7 @@ class TestPortValidation:
         settings_file = tmp_path / "settings.json"
         settings_file.write_text(json.dumps({"backend_port": "abc"}))
         import importlib
+
         import desktop.settings as s_mod
         importlib.reload(s_mod)
         from desktop.main_desktop import _init_settings
@@ -661,6 +669,7 @@ class TestPortValidation:
         settings_file = tmp_path / "settings.json"
         settings_file.write_text(json.dumps({"backend_port": None}))
         import importlib
+
         import desktop.settings as s_mod
         importlib.reload(s_mod)
         from desktop.main_desktop import _init_settings
@@ -719,8 +728,9 @@ class TestBrowserOpener:
 
     def test_open_browser_ctx_keys_are_valid_open_dashboard_params(self):
         """Every key in _open_browser's ctx dict is a valid open_dashboard parameter."""
-        from desktop.browser_opener import open_dashboard
         import inspect
+
+        from desktop.browser_opener import open_dashboard
         sig = inspect.signature(open_dashboard)
         # Simulate the exact ctx dict built in _open_browser
         ctx_keys = {"port", "token", "device_id", "tab", "target_id", "onboarding"}
@@ -731,8 +741,9 @@ class TestBrowserOpener:
 
     def test_build_and_open_signatures_agree(self):
         """build_dashboard_url and open_dashboard accept the same parameters."""
-        from desktop.browser_opener import build_dashboard_url, open_dashboard
         import inspect
+
+        from desktop.browser_opener import build_dashboard_url, open_dashboard
         b_params = set(inspect.signature(build_dashboard_url).parameters)
         o_params = set(inspect.signature(open_dashboard).parameters)
         assert b_params == o_params, (
@@ -774,51 +785,6 @@ class TestWebviewFallback:
         from desktop.main_desktop import _open_desktop_window
         result = _open_desktop_window("0.0.0.0", 18001)
         assert result is False
-
-
-# ── Tray controller ────────────────────────────────────────────────
-
-class TestTrayController:
-    def test_tray_import(self):
-        """TrayController imports cleanly."""
-        from desktop.tray import TrayController
-        assert callable(TrayController)
-
-    def test_tray_init(self):
-        """TrayController initializes with callbacks."""
-        from desktop.tray import TrayController
-        tray = TrayController(
-            on_open_dashboard=lambda: None,
-            on_open_daily_mode=lambda: None,
-            on_restart=lambda: None,
-            on_check_status=lambda: "ok",
-            on_quit=lambda: None,
-        )
-        assert tray._on_open_dashboard is not None
-        assert tray._on_open_daily_mode is not None
-        assert tray._on_restart is not None
-        assert tray._on_check_status is not None
-        assert tray._on_quit is not None
-        assert tray.is_running is False
-
-    def test_tray_stop_without_start(self):
-        """TrayController.stop() does not crash if never started."""
-        from desktop.tray import TrayController
-        tray = TrayController(
-            on_open_dashboard=lambda: None,
-            on_open_daily_mode=lambda: None,
-            on_restart=lambda: None,
-            on_check_status=lambda: "ok",
-            on_quit=lambda: None,
-        )
-        tray.stop()  # should not raise
-
-    def test_tray_create_icon_image(self):
-        """_create_icon_image returns an Image."""
-        from desktop.tray import _create_icon_image
-        img = _create_icon_image(64)
-        assert img is not None
-        assert img.size == (64, 64)
 
 
 # ── Startup/shutdown lifecycle ─────────────────────────────────────
@@ -863,7 +829,6 @@ class TestStartupShutdown:
 
     def test_lifecycle_logger_format(self):
         """_lifecycle logs correctly through both handlers."""
-        import logging
         from desktop.main_desktop import _lifecycle
         # Should not raise
         _lifecycle("[TEST]", "Test message: %s", "ok")
@@ -901,7 +866,7 @@ class TestReactHooksOrder:
 
         # Find the if(!bootComplete) conditional line (return is on next line)
         boot_check_idx = next(
-            (i for i, l in enumerate(lines) if "!bootComplete" in l and "if (" in l),
+            (i for i, line in enumerate(lines) if "!bootComplete" in line and "if (" in line),
             None,
         )
         assert boot_check_idx is not None, "Could not find !bootComplete check"
@@ -909,7 +874,7 @@ class TestReactHooksOrder:
 
         # Find where showOnboarding useState is declared
         onboarding_idx = next(
-            (i for i, l in enumerate(lines) if "showOnboarding" in l and "useState" in l),
+            (i for i, line in enumerate(lines) if "showOnboarding" in line and "useState" in line),
             None,
         )
         assert onboarding_idx is not None, "Could not find showOnboarding useState"
@@ -917,7 +882,7 @@ class TestReactHooksOrder:
 
         # Find where showTour useState is declared
         tour_idx = next(
-            (i for i, l in enumerate(lines) if "showTour" in l and "useState" in l),
+            (i for i, line in enumerate(lines) if "showTour" in line and "useState" in line),
             None,
         )
         assert tour_idx is not None, "Could not find showTour useState"
@@ -965,9 +930,8 @@ class TestReactHooksOrder:
             cwd=str(frontend_dir),
         )
         stdout = result.stdout or ""
-        stderr = result.stderr or ""
         # Filter out warnings and unrelated errors — only fail on rules-of-hooks
-        rules_violations = [l for l in stdout.split("\n") if "rules-of-hooks" in l]
+        rules_violations = [line for line in stdout.split("\n") if "rules-of-hooks" in line]
         assert not rules_violations, (
             f"eslint found {len(rules_violations)} react-hooks/rules-of-hooks violations:\n"
             + "\n".join(rules_violations)
@@ -1022,17 +986,17 @@ class TestServiceWorker:
         lines = code.split("\n")
         install_lines = []
         in_install = False
-        for i, l in enumerate(lines):
-            if "addEventListener('install'" in l:
+        for i, line in enumerate(lines):
+            if "addEventListener('install'" in line:
                 in_install = True
             if in_install:
                 install_lines.append(i)
-                if l.strip() == "});" and i > install_lines[0] + 1:
+                if line.strip() == "});" and i > install_lines[0] + 1:
                     break
 
         install_zone = set(install_lines)
-        for i, l in enumerate(lines):
-            if "cache.addAll" in l:
+        for i, line in enumerate(lines):
+            if "cache.addAll" in line:
                 assert i in install_zone, (
                     f"cache.addAll() found outside install event at line {i+1}"
                 )
@@ -1085,8 +1049,8 @@ class TestHardwareIDConsistency:
 
     def test_hwid_prefix_validation_pass(self):
         """validate_license must accept a key generated on this machine."""
-        from core_engines.license.validator import generate_license, validate_license
         from core_engines.license.store import get_license_store
+        from core_engines.license.validator import generate_license, validate_license
 
         # Clean up any existing license for this test
         store = get_license_store()
@@ -1144,7 +1108,6 @@ class TestHardwareIDConsistency:
 
     def test_hwid_hostname_component(self):
         """Hostname part of HWID must be from socket.gethostname()."""
-        import socket
         from core_engines.license.hardware import get_hardware_id
 
         # We can't fully recompute, but we can verify the hostname influences
@@ -1156,8 +1119,8 @@ class TestHardwareIDConsistency:
     def test_hwid_consistent_across_license_lifecycle(self):
         """End-to-end: generate → validate → store → load = same HWID."""
         from core_engines.license.hardware import get_hardware_id
-        from core_engines.license.validator import generate_license, validate_license, is_license_valid
         from core_engines.license.store import get_license_store
+        from core_engines.license.validator import generate_license, is_license_valid, validate_license
 
         store = get_license_store()
         old = store.load()
@@ -1198,9 +1161,8 @@ class TestHardwareIDStability:
 
     def test_dedup_removes_identical_entries(self):
         """Two identical raw IDs produce the same machine_id as one."""
-        from core_engines.license.hardware import _get_machine_id
-
         import core_engines.license.hardware as hw_mod
+        from core_engines.license.hardware import _get_machine_id
 
         _orig = hw_mod._get_raw_machine_ids
 
@@ -1221,8 +1183,8 @@ class TestHardwareIDStability:
 
     def test_dedup_three_identical(self):
         """Three identical raw entries collapse to one."""
-        from core_engines.license.hardware import _get_machine_id
         import core_engines.license.hardware as hw_mod
+        from core_engines.license.hardware import _get_machine_id
 
         _orig = hw_mod._get_raw_machine_ids
         try:
@@ -1233,8 +1195,8 @@ class TestHardwareIDStability:
 
     def test_dedup_preserves_different_entries(self):
         """Distinct values are all preserved."""
-        from core_engines.license.hardware import _get_machine_id
         import core_engines.license.hardware as hw_mod
+        from core_engines.license.hardware import _get_machine_id
 
         _orig = hw_mod._get_raw_machine_ids
         try:
@@ -1246,8 +1208,8 @@ class TestHardwareIDStability:
 
     def test_dedup_mixed(self):
         """Mixed duplicates: each unique value appears once."""
-        from core_engines.license.hardware import _get_machine_id
         import core_engines.license.hardware as hw_mod
+        from core_engines.license.hardware import _get_machine_id
 
         _orig = hw_mod._get_raw_machine_ids
         try:
@@ -1261,8 +1223,8 @@ class TestHardwareIDStability:
 
     def test_dedup_empty_values_skipped(self):
         """Empty strings in raw list are filtered out."""
-        from core_engines.license.hardware import _get_machine_id
         import core_engines.license.hardware as hw_mod
+        from core_engines.license.hardware import _get_machine_id
 
         _orig = hw_mod._get_raw_machine_ids
         try:
@@ -1273,8 +1235,8 @@ class TestHardwareIDStability:
 
     def test_dedup_empty_raw_produces_empty(self):
         """When all raw values are empty/falsy, deduped result is empty."""
-        from core_engines.license.hardware import _get_machine_id
         import core_engines.license.hardware as hw_mod
+        from core_engines.license.hardware import _get_machine_id
 
         _orig = hw_mod._get_raw_machine_ids
         try:
@@ -1292,6 +1254,7 @@ class TestHardwareIDStability:
     def test_dedup_does_not_change_hwid_when_no_duplicates(self):
         """Backward compat: non-duplicate inputs produce the same HWID."""
         import hashlib
+
         import core_engines.license.hardware as hw_mod
 
         hostname = "test-pc"
@@ -1315,12 +1278,13 @@ class TestHardwareIDStability:
 
     def test_hwid_stable_with_real_duplicate(self):
         """Simulate the real WSL symlink scenario and verify HWID stability."""
-        import socket
+        import builtins as _builtins
         import hashlib
         import importlib
-        import builtins as _builtins
-        import core_engines.license.hardware as hw_mod
+        import socket
         import tempfile
+
+        import core_engines.license.hardware as hw_mod
 
         with tempfile.TemporaryDirectory() as tmp:
             mid = "9ca1be381cc34a80a4c748cdcc3d7937"
@@ -1374,9 +1338,9 @@ class TestHardwareIDStability:
 
     def test_all_three_machine_id_implementations_handle_duplicates(self):
         """All three _get_machine_id() implementations deduplicate."""
+        import core_engines.identity_vault as id_vault
         import core_engines.license.hardware as lic_hw
         import core_engines.target_auth.vault as ta_vault
-        import core_engines.identity_vault as id_vault
 
         for mod, name in [(lic_hw, "license/hardware"), (ta_vault, "target_auth/vault"), (id_vault, "identity_vault")]:
             _orig = mod._get_machine_id

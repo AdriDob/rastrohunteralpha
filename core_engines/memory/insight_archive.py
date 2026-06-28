@@ -2,13 +2,12 @@
 
 from __future__ import annotations
 
-import json
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from core_engines.memory.memory_store import get_memory_store, MemoryStore
+from core_engines.memory.memory_store import MemoryStore, get_memory_store
 
 logger = logging.getLogger("rastro.memory.insight")
 
@@ -23,11 +22,11 @@ class Insight:
     insight_type: str = "observation"
     source: str = "system"
     severity: str = "info"
-    tags: List[str] = field(default_factory=list)
-    context: Dict[str, Any] = field(default_factory=dict)
+    tags: list[str] = field(default_factory=list)
+    context: dict[str, Any] = field(default_factory=dict)
     timestamp: float = field(default_factory=time.time)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "title": self.title,
@@ -54,18 +53,18 @@ class InsightArchive:
     def archive(self, insight: Insight) -> None:
         self._store.store(CATEGORY, insight.id, insight.to_dict())
 
-    def get(self, insight_id: str) -> Optional[Dict[str, Any]]:
+    def get(self, insight_id: str) -> dict[str, Any] | None:
         return self._store.get(CATEGORY, insight_id)
 
     def list_insights(
         self,
-        insight_type: Optional[str] = None,
-        source: Optional[str] = None,
-        tag: Optional[str] = None,
-        severity: Optional[str] = None,
+        insight_type: str | None = None,
+        source: str | None = None,
+        tag: str | None = None,
+        severity: str | None = None,
         limit: int = 50,
         offset: int = 0,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         results = self._store.query(CATEGORY, limit=limit, offset=offset)
         filtered = []
         for r in results:
@@ -81,23 +80,23 @@ class InsightArchive:
             filtered.append(r)
         return filtered
 
-    def count_by_type(self) -> Dict[str, int]:
+    def count_by_type(self) -> dict[str, int]:
         results = self._store.query(CATEGORY, limit=2000)
-        counts: Dict[str, int] = {}
+        counts: dict[str, int] = {}
         for r in results:
             t = r.get("details", {}).get("insight_type", "unknown")
             counts[t] = counts.get(t, 0) + 1
         return counts
 
-    def count_by_severity(self) -> Dict[str, int]:
+    def count_by_severity(self) -> dict[str, int]:
         results = self._store.query(CATEGORY, limit=2000)
-        counts: Dict[str, int] = {}
+        counts: dict[str, int] = {}
         for r in results:
             s = r.get("details", {}).get("severity", "info")
             counts[s] = counts.get(s, 0) + 1
         return counts
 
-    def recent_by_source(self, source: str, limit: int = 20) -> List[Dict[str, Any]]:
+    def recent_by_source(self, source: str, limit: int = 20) -> list[dict[str, Any]]:
         return self.list_insights(source=source, limit=limit)
 
     def total_count(self) -> int:
@@ -107,7 +106,7 @@ class InsightArchive:
         return self._store.delete_older_than(CATEGORY, days)
 
 
-_ARCHIVE: Optional[InsightArchive] = None
+_ARCHIVE: InsightArchive | None = None
 
 
 def get_insight_archive() -> InsightArchive:

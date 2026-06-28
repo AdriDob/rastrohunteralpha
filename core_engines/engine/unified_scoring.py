@@ -1,8 +1,6 @@
 import re
 import threading
-from functools import lru_cache
-from typing import Any, Dict, List, Optional, Set, Tuple
-
+from typing import Any
 
 UUID_PATTERN = re.compile(
     r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
@@ -12,13 +10,13 @@ NUMERIC_SEGMENT_PATTERN = re.compile(r"/(?:[0-9]+)(?:/|$)")
 ID_PATTERN = re.compile(r"(?:user|account|order|invoice|device|file|customer|subscription|team|project|resource)_?id", re.I)
 NOUN_ID_PATTERN = re.compile(r"/(?:[A-Za-z]+)-?(?:id|uuid|key|token)(?:/|$)", re.I)
 
-STATIC_EXTENSIONS: Set[str] = {
+STATIC_EXTENSIONS: set[str] = {
     ".png", ".jpg", ".jpeg", ".gif", ".svg",
     ".woff", ".woff2", ".ttf", ".css", ".js",
     ".map", ".ico", ".mp4", ".webm",
 }
 
-LOW_VALUE_PATTERNS: List[str] = [
+LOW_VALUE_PATTERNS: list[str] = [
     "/health", "/status", "/metrics", "/favicon.ico",
     "/robots.txt", "/sitemap.xml", "/ping", "/version",
     "/swagger-resources", "/v2/api-docs", "/webjars",
@@ -27,95 +25,95 @@ LOW_VALUE_PATTERNS: List[str] = [
     "/logo",
 ]
 
-AUTH_KEYWORDS: List[str] = [
+AUTH_KEYWORDS: list[str] = [
     "login", "auth", "session", "token", "password",
     "oauth", "signin", "signup", "refresh", "apikey", "jwt",
 ]
 
-MULTI_TENANT_KEYWORDS: List[str] = [
+MULTI_TENANT_KEYWORDS: list[str] = [
     "org", "tenant", "workspace", "account", "company", "team", "member",
 ]
 
-ADMIN_KEYWORDS: List[str] = [
+ADMIN_KEYWORDS: list[str] = [
     "admin", "dashboard", "internal", "staff", "superuser", "management",
 ]
 
-EXPORT_KEYWORDS: List[str] = [
+EXPORT_KEYWORDS: list[str] = [
     "export", "download", "backup", "report", "csv", "pdf",
 ]
 
-UPLOAD_KEYWORDS: List[str] = [
+UPLOAD_KEYWORDS: list[str] = [
     "upload", "attachment", "file", "import",
 ]
 
-GRAPHQL_KEYWORDS: List[str] = [
+GRAPHQL_KEYWORDS: list[str] = [
     "graphql", "gql",
 ]
 
-IDOR_PARAMS: List[str] = [
+IDOR_PARAMS: list[str] = [
     "id", "user_id", "org_id", "tenant_id", "account_id",
     "workspace_id", "member_id", "team_id",
 ]
 
-AUTH_SMELL_TOKENS: List[str] = [
+AUTH_SMELL_TOKENS: list[str] = [
     "org_id", "tenant_id", "workspace_id", "account_id",
     "user_id", "team_id",
 ]
 
-OBJECT_REFERENCE_TOKENS: List[str] = [
+OBJECT_REFERENCE_TOKENS: list[str] = [
     "user_id", "uid", "account_id", "order_id", "invoice_id",
     "device_id", "file_id", "customer_id", "subscription_id",
     "team_id", "project_id", "resource_id", "session_id",
 ]
 
-OWNERSHIP_HINTS: List[str] = [
+OWNERSHIP_HINTS: list[str] = [
     "user", "account", "profile", "order", "invoice",
     "subscription", "device", "tenant", "org", "project",
     "team", "resource", "member",
 ]
 
-HIGH_VALUE_KEYWORDS: Set[str] = {
+HIGH_VALUE_KEYWORDS: set[str] = {
     "billing", "admin", "internal", "graphql", "export",
     "attachments", "uploads", "reports", "audit", "token",
     "apikey", "keys", "invite", "organization", "workspace", "tenant",
 }
 
-BILLING_KEYWORDS: List[str] = [
+BILLING_KEYWORDS: list[str] = [
     "billing", "invoice", "subscription", "payment", "transfer",
 ]
 
-IDENTITY_KEYWORDS: List[str] = [
+IDENTITY_KEYWORDS: list[str] = [
     "invite", "member", "user",
 ]
 
-SENSITIVE_OPERATIONS: List[str] = [
+SENSITIVE_OPERATIONS: list[str] = [
     "/delete", "/remove", "/transfer", "/approve", "/reject",
 ]
 
-WEB3_KEYWORDS: List[str] = [
+WEB3_KEYWORDS: list[str] = [
     "wallet", "balance", "transfer", "tx", "transaction",
     "signature", "nonce", "rpc", "infura", "alchemy",
     "contract", "ethereum", "solana", "web3", "chain",
 ]
 
-RPC_KEYWORDS: List[str] = [
+RPC_KEYWORDS: list[str] = [
     "eth_", "net_", "web3_", "sol_", "jsonrpc",
 ]
 
-SENSITIVE_PATHS: List[str] = [
+SENSITIVE_PATHS: list[str] = [
     "admin", "dashboard", "export", "download",
     "settings", "profile", "billing", "payment",
     "transfer", "report",
 ]
 
-LOW_VALUE_ATTACK_PATTERNS: List[str] = [
+LOW_VALUE_ATTACK_PATTERNS: list[str] = [
     r"/health", r"/status", r"/metrics", r"/favicon\.ico",
     r"/robots\.txt", r"/sitemap\.xml", r"/static/",
     r"/assets/", r"/css/", r"/js/", r"/images/",
     r"/logo", r"/ping",
 ]
 
-ATTACK_VECTOR_KEYWORDS: Dict[str, List[str]] = {
+ATTACK_VECTOR_KEYWORDS: dict[str, list[str]] = {
     "IDOR": ["user_id", "account_id", "order_id", "file_id", "device_id",
              "customer_id", "subscription_id", "team_id", "project_id",
              "resource_id", "uid"],
@@ -127,17 +125,14 @@ ATTACK_VECTOR_KEYWORDS: Dict[str, List[str]] = {
 
 
 def _is_low_value_path(lower_path: str) -> bool:
-    for pattern in LOW_VALUE_PATTERNS:
-        if pattern in lower_path:
-            return True
-    return False
+    return any(pattern in lower_path for pattern in LOW_VALUE_PATTERNS)
 
 
 def _is_static_asset(lower_path: str) -> bool:
     return any(lower_path.endswith(ext) for ext in STATIC_EXTENSIONS)
 
 
-def _rank_attack_vector(path: str, params: Optional[Dict[str, Any]]) -> str:
+def _rank_attack_vector(path: str, params: dict[str, Any] | None) -> str:
     lower = path.lower()
     p = params or {}
 
@@ -149,7 +144,7 @@ def _rank_attack_vector(path: str, params: Optional[Dict[str, Any]]) -> str:
             or bool(NUMERIC_SEGMENT_PATTERN.search(path))
             or any(
                 any(ref == k.lower() for ref in OBJECT_REFERENCE_TOKENS)
-                for k in p.keys()
+                for k in p
             )
         )
     )
@@ -163,7 +158,7 @@ def _rank_attack_vector(path: str, params: Optional[Dict[str, Any]]) -> str:
     return "Business logic"
 
 
-_score_cache: Dict[Tuple[str, str, str], Dict[str, Any]] = {}
+_score_cache: dict[tuple[str, str, str], dict[str, Any]] = {}
 _score_cache_lock = threading.Lock()
 
 try:
@@ -173,7 +168,7 @@ except Exception:
     _MAX_CACHE = 4096
 
 
-def _make_score_key(path: str, method: str, params: Optional[Dict[str, Any]]) -> Tuple[str, str, str]:
+def _make_score_key(path: str, method: str, params: dict[str, Any] | None) -> tuple[str, str, str]:
     params_key = str(sorted((params or {}).items()))
     return (path, method.upper(), params_key)
 
@@ -181,9 +176,9 @@ def _make_score_key(path: str, method: str, params: Optional[Dict[str, Any]]) ->
 def score(
     path: str,
     method: str = "GET",
-    params: Optional[Dict[str, Any]] = None,
-    target_meta: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
+    params: dict[str, Any] | None = None,
+    target_meta: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """
     Unified scoring engine — single source of truth for Rastro.
 
@@ -229,10 +224,10 @@ def score(
             "is_graphql": False,
         }
 
-    labels: List[str] = []
-    signals: List[str] = []
-    attack_surface: List[str] = []
-    auth_smells: List[str] = []
+    labels: list[str] = []
+    signals: list[str] = []
+    attack_surface: list[str] = []
+    auth_smells: list[str] = []
     score_val: float = 0.0
 
     is_api = (
@@ -345,7 +340,7 @@ def score(
         signals.append("post_method")
 
     if safe_params:
-        lowered_params = [str(p).lower() for p in safe_params.keys()]
+        lowered_params = [str(p).lower() for p in safe_params]
 
         if any(p in IDOR_PARAMS for p in lowered_params):
             labels.append("id_parameter")
@@ -420,7 +415,7 @@ def score(
     return result
 
 
-def score_target(meta: Optional[Dict[str, Any]] = None) -> Dict[str, float]:
+def score_target(meta: dict[str, Any] | None = None) -> dict[str, float]:
     """
     Unified target-level scoring.
 
@@ -553,8 +548,8 @@ def score_target(meta: Optional[Dict[str, Any]] = None) -> Dict[str, float]:
     }
 
 
-def generate_suggestions(path: str, method: str, params: Dict[str, Any]) -> List[str]:
-    suggestions: List[str] = []
+def generate_suggestions(path: str, method: str, params: dict[str, Any]) -> list[str]:
+    suggestions: list[str] = []
     lower = path.lower()
     p = params or {}
 
@@ -566,7 +561,7 @@ def generate_suggestions(path: str, method: str, params: Dict[str, Any]) -> List
             or bool(NUMERIC_SEGMENT_PATTERN.search(path))
             or any(
                 any(ref == k.lower() for ref in OBJECT_REFERENCE_TOKENS)
-                for k in p.keys()
+                for k in p
             )
         )
     )

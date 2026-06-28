@@ -4,12 +4,12 @@ from __future__ import annotations
 
 import pytest
 
-
 # ─── Fixtures ─────────────────────────────────────────────────────────────
 
 @pytest.fixture(scope="module")
 def client():
     from fastapi.testclient import TestClient
+
     from api.main import app
     from core_engines.license.validator import generate_license
 
@@ -51,8 +51,8 @@ def clean_ple_data(request):
         svc = get_profile_service()
         svc.reset(uid)
         # Also clean up learning events
-        from database.db import SessionLocal
         from core_engines.learning.profile import LearningEvent
+        from database.db import SessionLocal
         s = SessionLocal()
         s.query(LearningEvent).filter(LearningEvent.user_id == uid).delete()
         s.commit()

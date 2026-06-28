@@ -1,26 +1,64 @@
 @import "tailwindcss";
 
 :root {
-  /* ── Colors ─────────────────────────────────────────────── */
-  --bg-primary: #0f1117;
-  --bg-secondary: #1a1d29;
-  --bg-card: #1e2230;
-  --bg-hover: #252836;
-  --bg-pressed: #2a2e3d;
-  --border: #2a2e3d;
-  --border-hover: #3b3f52;
-  --text-primary: #e2e4e9;
-  --text-secondary: #c4c7d0;
-  --text-muted: #7c8299;
-  --text-faint: #4a4f63;
-  --accent: #7c3aed;
-  --accent-hover: #6d28d9;
-  --accent-glow: rgba(124,58,237,0.12);
-  --success: #22c55e;
-  --warning: #f59e0b;
-  --error: #ef4444;
+  /* ── Rastro Brand Colors (override PrimeReact lara-dark-blue) ── */
+  --rastro-base: #05070A;
+  --rastro-surface: #0B0F16;
+  --rastro-elevated: #111827;
+  --rastro-card: #161B22;
+  --rastro-hover: #1C2333;
+  --rastro-border: #212838;
+  --rastro-border-hover: #2D3548;
+  --rastro-text: #E2E4E9;
+  --rastro-text-secondary: #C4C7D0;
+  --rastro-text-muted: #7C8299;
+  --rastro-text-faint: #4A4F63;
+  --rastro-primary: #3B82F6;
+  --rastro-primary-hover: #2563EB;
+  --rastro-accent: #F59E0B;
+  --rastro-accent-hover: #D97706;
+  --rastro-success: #22C55E;
+  --rastro-warning: #F59E0B;
+  --rastro-error: #EF4444;
+  --rastro-info: #3B82F6;
+  --rastro-font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --rastro-mono: 'JetBrains Mono', 'Fira Code', monospace;
 
-  /* ── Typography Scale ────────────────────────────────────── */
+  /* ── Legacy CSS variables (backward compat for existing pages) ── */
+  --bg-primary: var(--rastro-surface);
+  --bg-secondary: var(--rastro-elevated);
+  --bg-card: var(--rastro-card);
+  --bg-hover: var(--rastro-hover);
+  --bg-pressed: #2a2e3d;
+  --border: var(--rastro-border);
+  --border-hover: var(--rastro-border-hover);
+  --text-primary: var(--rastro-text);
+  --text-secondary: var(--rastro-text-secondary);
+  --text-muted: var(--rastro-text-muted);
+  --text-faint: var(--rastro-text-faint);
+  --accent: var(--rastro-primary);
+  --accent-hover: var(--rastro-primary-hover);
+  --accent-glow: rgba(59,130,246,0.12);
+  --success: var(--rastro-success);
+  --warning: var(--rastro-warning);
+  --error: var(--rastro-error);
+
+  /* ── PrimeReact CSS variable overrides ── */
+  --p-primary-color: var(--rastro-primary);
+  --p-primary-hover-color: var(--rastro-primary-hover);
+  --p-surface-ground: var(--rastro-base);
+  --p-surface-section: var(--rastro-surface);
+  --p-surface-card: var(--rastro-card);
+  --p-surface-overlay: var(--rastro-elevated);
+  --p-surface-border: var(--rastro-border);
+  --p-surface-hover: var(--rastro-hover);
+  --p-text-color: var(--rastro-text);
+  --p-text-secondary-color: var(--rastro-text-muted);
+  --p-focus-ring-color: var(--rastro-primary);
+  --p-focus-ring-shadow: 0 0 0 3px rgba(59,130,246,0.2);
+  --p-content-border-radius: 8px;
+
+  /* ── Typography Scale ── */
   --font-title: 24px;
   --font-heading: 22px;
   --font-section: 14px;
@@ -33,7 +71,7 @@
   --font-weight-medium: 500;
   --font-weight-regular: 400;
 
-  /* ── Spacing ─────────────────────────────────────────────── */
+  /* ── Spacing ── */
   --space-xs: 4px;
   --space-sm: 8px;
   --space-md: 12px;
@@ -41,19 +79,19 @@
   --space-xl: 20px;
   --space-2xl: 24px;
 
-  /* ── Radii ───────────────────────────────────────────────── */
+  /* ── Radii ── */
   --radius-sm: 4px;
   --radius-md: 6px;
   --radius-lg: 10px;
   --radius-xl: 14px;
   --radius-full: 999px;
 
-  /* ── Transitions ─────────────────────────────────────────── */
+  /* ── Transitions ── */
   --transition-fast: 0.12s ease;
   --transition-normal: 0.15s ease;
   --transition-slow: 0.2s ease;
 
-  /* ── Shadows (mobile: reduced) ───────────────────────────── */
+  /* ── Shadows ── */
   --shadow-card: 0 1px 3px rgba(0,0,0,0.3);
   --shadow-primary: 0 0 16px var(--accent-glow);
   --shadow-risk: 0 0 12px rgba(239,68,68,0.08);
@@ -61,12 +99,144 @@
 
 body {
   margin: 0;
-  background: var(--bg-primary);
-  color: var(--text-primary);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--rastro-base);
+  color: var(--rastro-text);
+  font-family: var(--rastro-font-family);
   font-size: var(--font-body);
   -webkit-font-smoothing: antialiased;
   line-height: 1.5;
+}
+
+/* ── PrimeReact overrides for Rastro dark theme ── */
+.p-component {
+  font-family: var(--rastro-font-family);
+}
+
+.p-card {
+  background: var(--rastro-card);
+  border: 1px solid var(--rastro-border);
+  border-radius: 12px;
+  box-shadow: none;
+}
+
+.p-card .p-card-content {
+  padding: 0;
+}
+
+.p-datatable .p-datatable-thead > tr > th {
+  background: var(--rastro-surface);
+  color: var(--rastro-text-muted);
+  border-color: var(--rastro-border);
+  font-weight: 600;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.p-datatable .p-datatable-tbody > tr {
+  background: transparent;
+  color: var(--rastro-text);
+  border-color: var(--rastro-border);
+}
+
+.p-datatable .p-datatable-tbody > tr:hover {
+  background: var(--rastro-hover);
+}
+
+.p-dialog .p-dialog-header {
+  background: var(--rastro-elevated);
+  color: var(--rastro-text);
+  border-color: var(--rastro-border);
+}
+
+.p-dialog .p-dialog-content {
+  background: var(--rastro-surface);
+  color: var(--rastro-text);
+}
+
+.p-dropdown,
+.p-inputtext,
+.p-multiselect,
+.p-inputnumber {
+  background: var(--rastro-card);
+  color: var(--rastro-text);
+  border-color: var(--rastro-border);
+}
+
+.p-dropdown:hover,
+.p-inputtext:hover,
+.p-multiselect:hover {
+  border-color: var(--rastro-border-hover);
+}
+
+.p-dropdown-panel,
+.p-multiselect-panel {
+  background: var(--rastro-elevated);
+  border-color: var(--rastro-border);
+}
+
+.p-dropdown-item,
+.p-multiselect-item {
+  color: var(--rastro-text);
+}
+
+.p-dropdown-item:hover,
+.p-multiselect-item:hover {
+  background: var(--rastro-hover);
+}
+
+.p-badge {
+  font-weight: 600;
+}
+
+.p-tag {
+  font-weight: 500;
+}
+
+.p-timeline .p-timeline-event-connector {
+  background: var(--rastro-border);
+}
+
+.p-timeline .p-timeline-event-marker {
+  border-color: var(--rastro-primary);
+  background: var(--rastro-surface);
+}
+
+.p-progressbar {
+  background: var(--rastro-border);
+  height: 6px;
+  border-radius: 3px;
+}
+
+.p-progressbar .p-progressbar-value {
+  background: var(--rastro-primary);
+}
+
+.p-skeleton {
+  background: var(--rastro-hover);
+  border-radius: 6px;
+}
+
+.p-toast {
+  backdrop-filter: blur(12px);
+}
+
+.p-toast .p-toast-message {
+  border-radius: 8px;
+}
+
+.p-tabview .p-tabview-nav {
+  background: transparent;
+  border-color: var(--rastro-border);
+}
+
+.p-tabview .p-tabview-nav li .p-tabview-nav-link {
+  color: var(--rastro-text-muted);
+}
+
+.p-tabview .p-tabview-nav li.p-highlight .p-tabview-nav-link {
+  color: var(--rastro-primary);
+  border-color: var(--rastro-primary);
 }
 
 * { box-sizing: border-box; }

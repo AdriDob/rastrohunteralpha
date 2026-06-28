@@ -8,12 +8,13 @@ so the product behaves predictably across desktop, web, and mobile.
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional
+from collections.abc import Callable
+from dataclasses import dataclass
+from typing import Any
 
 logger = logging.getLogger("rastro.product_rules")
 
-RuleCheck = Callable[[], Optional[str]]
+RuleCheck = Callable[[], str | None]
 
 
 @dataclass
@@ -21,10 +22,10 @@ class ProductRule:
     name: str
     description: str
     severity: str = "error"
-    check: Optional[RuleCheck] = None
+    check: RuleCheck | None = None
 
 
-_RULES: List[ProductRule] = []
+_RULES: list[ProductRule] = []
 
 
 def rule(
@@ -42,14 +43,14 @@ def rule(
 # ── Boot & System State ──────────────────────────────────────────────
 
 
-BOOT_TRANSITIONS: Dict[str, List[str]] = {
+BOOT_TRANSITIONS: dict[str, list[str]] = {
     "BOOTING": ["READY", "DEGRADED", "FAILED"],
     "READY": ["DEGRADED", "FAILED"],
     "DEGRADED": ["READY", "FAILED"],
     "FAILED": [],
 }
 
-SYSTEM_TRANSITIONS: Dict[str, List[str]] = {
+SYSTEM_TRANSITIONS: dict[str, list[str]] = {
     "BOOTING": ["READY", "DEGRADED", "FAILED"],
     "READY": ["DEGRADED", "FAILED"],
     "DEGRADED": ["READY", "FAILED"],
@@ -58,7 +59,7 @@ SYSTEM_TRANSITIONS: Dict[str, List[str]] = {
 
 
 @rule("boot-state-machine", "Boot state must follow valid transitions")
-def _check_boot_transitions() -> Optional[str]:
+def _check_boot_transitions() -> str | None:
     for state, allowed in BOOT_TRANSITIONS.items():
         for target in allowed:
             if target not in BOOT_TRANSITIONS:
@@ -67,7 +68,7 @@ def _check_boot_transitions() -> Optional[str]:
 
 
 @rule("system-state-reachable", "READY must be reachable from BOOTING")
-def _check_system_reachable() -> Optional[str]:
+def _check_system_reachable() -> str | None:
     if "READY" not in SYSTEM_TRANSITIONS.get("BOOTING", []):
         return "READY not reachable from BOOTING"
     return None
@@ -80,7 +81,7 @@ NOTIFICATION_DEDUP_WINDOW = 30  # seconds
 
 
 @rule("notification-dedup-window", f"Dedup window must be >= 10s (currently {NOTIFICATION_DEDUP_WINDOW}s)")
-def _check_dedup_window() -> Optional[str]:
+def _check_dedup_window() -> str | None:
     if NOTIFICATION_DEDUP_WINDOW < 10:
         return f"Dedup window too small: {NOTIFICATION_DEDUP_WINDOW}s"
     return None
@@ -94,14 +95,14 @@ META_FIELDS = {"total", "skip", "limit"}
 
 
 @rule("paginated-response-shape", "All paginated responses must have {items, meta: {total, skip, limit}}")
-def _check_paginated_shape() -> Optional[str]:
+def _check_paginated_shape() -> str | None:
     if not PAGINATED_FIELDS:
         return "Empty paginated fields config"
     return None
 
 
 @rule("contract-normalizer-safety", "Unknown fields in normalizer must not cause errors")
-def _check_normalizer_safety() -> Optional[str]:
+def _check_normalizer_safety() -> str | None:
     return None
 
 
@@ -109,12 +110,12 @@ def _check_normalizer_safety() -> Optional[str]:
 
 
 @rule("desktop-zero-terminal", "Desktop launcher must never expose terminal/port/stack traces to the user")
-def _check_desktop_silence() -> Optional[str]:
+def _check_desktop_silence() -> str | None:
     return None
 
 
 @rule("desktop-health-retry", "Service health checks must retry at most 3 times before declaring failure")
-def _check_health_retry() -> Optional[str]:
+def _check_health_retry() -> str | None:
     return None
 
 
@@ -122,7 +123,7 @@ def _check_health_retry() -> Optional[str]:
 
 
 @rule("sync-last-write-wins", "State sync must resolve conflicts with last-write-wins")
-def _check_sync_strategy() -> Optional[str]:
+def _check_sync_strategy() -> str | None:
     return None
 
 
@@ -130,32 +131,32 @@ def _check_sync_strategy() -> Optional[str]:
 
 
 @rule("daily-mode-default", "System should open in Daily Mode by default (configurable)")
-def _check_daily_mode_default() -> Optional[str]:
+def _check_daily_mode_default() -> str | None:
     return None
 
 
 @rule("assistant-default-entry", "Assistant is the default entry interaction point")
-def _check_assistant_entry() -> Optional[str]:
+def _check_assistant_entry() -> str | None:
     return None
 
 
 @rule("no-empty-dashboards", "No empty dashboards ever — always show cached or fallback state")
-def _check_no_empty() -> Optional[str]:
+def _check_no_empty() -> str | None:
     return None
 
 
 @rule("always-suggest-next-action", "System must always suggest a next action")
-def _check_next_action() -> Optional[str]:
+def _check_next_action() -> str | None:
     return None
 
 
 @rule("everything-actionable", "Every UI element must have an associated action or be hidden")
-def _check_everything_actionable() -> Optional[str]:
+def _check_everything_actionable() -> str | None:
     return None
 
 
 @rule("decision-engine-not-explorer", "UI must behave as a decision engine, not an explorer")
-def _check_decision_engine() -> Optional[str]:
+def _check_decision_engine() -> str | None:
     return None
 
 
@@ -163,7 +164,7 @@ def _check_decision_engine() -> Optional[str]:
 
 
 @rule("execution-tracker-active", "Execution tracker must be available to record actions")
-def _check_execution_tracker() -> Optional[str]:
+def _check_execution_tracker() -> str | None:
     try:
         from core_engines.actions.execution_tracker import get_execution_tracker
         tracker = get_execution_tracker()
@@ -175,7 +176,7 @@ def _check_execution_tracker() -> Optional[str]:
 
 
 @rule("explainability-available", "Every decision must be explainable on request")
-def _check_explainability() -> Optional[str]:
+def _check_explainability() -> str | None:
     try:
         from core_engines.explainability.explanation_engine import get_explanation_engine
         engine = get_explanation_engine()
@@ -187,7 +188,7 @@ def _check_explainability() -> Optional[str]:
 
 
 @rule("accountability-enabled", "Outcome tracking must be enabled for accountability")
-def _check_accountability() -> Optional[str]:
+def _check_accountability() -> str | None:
     try:
         from core_engines.accountability.outcome_tracker import get_outcome_tracker
         tracker = get_outcome_tracker()
@@ -199,7 +200,7 @@ def _check_accountability() -> Optional[str]:
 
 
 @rule("scorecard-reachable", "System scorecard must be reachable for health monitoring")
-def _check_scorecard() -> Optional[str]:
+def _check_scorecard() -> str | None:
     try:
         from core_engines.accountability.system_scorecard import get_system_scorecard
         scorecard = get_system_scorecard()
@@ -212,7 +213,7 @@ def _check_scorecard() -> Optional[str]:
 
 
 @rule("decision-memory-persistent", "Decision memory must persist across restarts")
-def _check_decision_memory() -> Optional[str]:
+def _check_decision_memory() -> str | None:
     try:
         from core_engines.memory.decision_memory import get_decision_memory
         memory = get_decision_memory()
@@ -224,7 +225,7 @@ def _check_decision_memory() -> Optional[str]:
 
 
 @rule("insight-archival-enabled", "All insights must be archived for traceability")
-def _check_insight_archive() -> Optional[str]:
+def _check_insight_archive() -> str | None:
     try:
         from core_engines.memory.insight_archive import get_insight_archive
         archive = get_insight_archive()
@@ -236,7 +237,7 @@ def _check_insight_archive() -> Optional[str]:
 
 
 @rule("execution-api-reachable", "Execution layer API endpoints must be registered")
-def _check_execution_api() -> Optional[str]:
+def _check_execution_api() -> str | None:
     try:
         from api.routers.execution import router
         if router is None:
@@ -247,7 +248,7 @@ def _check_execution_api() -> Optional[str]:
 
 
 @rule("priority-memory-consume", "Priority engine must consume decision memory for weight adjustment")
-def _check_priority_memory() -> Optional[str]:
+def _check_priority_memory() -> str | None:
     try:
         from core_engines.intelligence.priority_engine import get_priority_engine
         engine = get_priority_engine()
@@ -262,12 +263,12 @@ def _check_priority_memory() -> Optional[str]:
 # ── Runner ───────────────────────────────────────────────────────────
 
 
-def get_all_rules() -> List[ProductRule]:
+def get_all_rules() -> list[ProductRule]:
     return _RULES.copy()
 
 
-def check_all_rules() -> List[Dict[str, Any]]:
-    results: List[Dict[str, Any]] = []
+def check_all_rules() -> list[dict[str, Any]]:
+    results: list[dict[str, Any]] = []
     for r in _RULES:
         violation = None
         if r.check:

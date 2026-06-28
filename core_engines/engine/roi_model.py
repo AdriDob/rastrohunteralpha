@@ -11,18 +11,16 @@ Data flow:
 
 from __future__ import annotations
 
-import math
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
 
-from core_engines.engine.hypothesis.models import Hypothesis, VulnerabilityType
+from core_engines.engine.hypothesis.models import Hypothesis, HypothesisScore, VulnerabilityType
 
 # ── Constants ────────────────────────────────────────────────────────
 
 HOURLY_RATE = 50.0  # Standard bug bounty researcher hourly rate
 
 # Base payout by vulnerability type (USD) — calibrated from HackerOne medians
-BASE_PAYOUT: Dict[VulnerabilityType, float] = {
+BASE_PAYOUT: dict[VulnerabilityType, float] = {
     VulnerabilityType.IDOR: 3000.0,
     VulnerabilityType.AUTH_BYPASS: 5000.0,
     VulnerabilityType.SSRF: 4000.0,
@@ -40,7 +38,7 @@ BASE_PAYOUT: Dict[VulnerabilityType, float] = {
 }
 
 # Estimated research hours to validate by type
-BASE_HOURS: Dict[VulnerabilityType, float] = {
+BASE_HOURS: dict[VulnerabilityType, float] = {
     VulnerabilityType.IDOR: 3.0,
     VulnerabilityType.AUTH_BYPASS: 6.0,
     VulnerabilityType.SSRF: 8.0,
@@ -58,7 +56,7 @@ BASE_HOURS: Dict[VulnerabilityType, float] = {
 }
 
 # Payout multipliers for high-value signal keywords
-SIGNAL_PAYOUT_MULTIPLIERS: Dict[str, float] = {
+SIGNAL_PAYOUT_MULTIPLIERS: dict[str, float] = {
     "billing": 1.5,
     "admin": 1.3,
     "export": 1.2,
@@ -71,7 +69,7 @@ SIGNAL_PAYOUT_MULTIPLIERS: Dict[str, float] = {
 }
 
 # Time multipliers for complex paths
-COMPLEXITY_HOURS_MULTIPLIERS: Dict[str, float] = {
+COMPLEXITY_HOURS_MULTIPLIERS: dict[str, float] = {
     "uuid": 1.3,
     "mutating_method": 1.4,
     "auth": 1.5,
@@ -91,7 +89,7 @@ class ROIScore:
     payout_estimate: float
     time_cost_hours: float
     probability_success: float
-    breakdown: Dict[str, float] = field(default_factory=dict)
+    breakdown: dict[str, float] = field(default_factory=dict)
 
     @property
     def is_profitable(self) -> bool:
@@ -153,21 +151,18 @@ def calculate_roi(
     payout = PayoutEstimator.estimate(hypothesis)
     hours = PayoutEstimator.estimate_hours(hypothesis)
 
-    L = hypothesis.likelihood
-    E = hypothesis.exploitability
-    C = hypothesis.confidence
+    likelihood = hypothesis.likelihood
+    exploitability = hypothesis.exploitability
+    confidence = hypothesis.confidence
 
-    p_success = L * E * C
+    p_success = likelihood * exploitability * confidence
     # Floor at realistic minimum: even low-confidence hypotheses have small success chance
     p_success = max(p_success, 0.001)
 
     expected_return = p_success * payout
     expected_cost = hours * HOURLY_RATE
 
-    if expected_cost <= 0:
-        roi_ratio = 0.0
-    else:
-        roi_ratio = (expected_return - expected_cost) / expected_cost
+    roi_ratio = 0.0 if expected_cost <= 0 else (expected_return - expected_cost) / expected_cost
 
     # Normalize: roi_ratio -5..+5 maps to 0..100, centered at 50 (break-even)
     roi_normalized = max(0.0, min(100.0, roi_ratio * 10.0 + 50.0))
@@ -184,9 +179,9 @@ def calculate_roi(
             "payout_estimate": round(payout, 2),
             "time_cost_hours": round(hours, 1),
             "hourly_rate": HOURLY_RATE,
-            "likelihood": L,
-            "exploitability": E,
-            "confidence": C,
+            "likelihood": likelihood,
+            "exploitability": exploitability,
+            "confidence": confidence,
             "probability_success": round(p_success, 4),
             "expected_return": round(expected_return, 2),
             "expected_cost": round(expected_cost, 2),
@@ -211,10 +206,7 @@ def update_roi_after_verdict(
     actual_cost = actual_hours * HOURLY_RATE
     realized_return = actual_payout if verdict_status == "confirmed" else 0.0
 
-    if actual_cost <= 0:
-        realized_ratio = 0.0
-    else:
-        realized_ratio = (realized_return - actual_cost) / actual_cost
+    realized_ratio = 0.0 if actual_cost <= 0 else (realized_return - actual_cost) / actual_cost
 
     realized_normalized = max(0.0, min(100.0, realized_ratio * 10.0 + 50.0))
 
@@ -246,10 +238,10 @@ def update_roi_after_verdict(
 
 
 def normalize_roi_scores(
-    hypotheses: List[Hypothesis],
+    hypotheses: list[Hypothesis],
     min_roi: float = 0.0,
     max_roi: float = 100.0,
-) -> List[Hypothesis]:
+) -> list[Hypothesis]:
     """
     Normalize ROI scores across a set of hypotheses.
     Ensures efficient frontier — the best hypothesis always gets 100, worst gets 0.
@@ -325,10 +317,6 @@ def apply_roi_to_priority(
     roi_factor = roi_normalized / 10.0  # 0..10 range
     return round(priority_score * (1.0 - roi_weight) + roi_factor * roi_weight, 2)
 
-
-# ── Lazy import to avoid circular dependency at module level ─────────
-
-from core_engines.engine.hypothesis.models import HypothesisScore
 
 __all__ = [
     "ROIScore",

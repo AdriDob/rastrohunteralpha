@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class EVHRating(str, Enum):
@@ -26,7 +26,7 @@ class OpportunitySource:
 class OpportunityCategory:
     """Categorisation of the opportunity's technical domain."""
     primary: str  # web, api, mobile, web3, cloud, hardware, other
-    secondary: List[str] = field(default_factory=list)
+    secondary: list[str] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
@@ -68,9 +68,9 @@ class OpportunityScore:
     technology_overlap: float
     competition_estimate: float
     freshness: float
-    reasoning: List[str]
-    breakdown: Optional[ScoreBreakdown] = None
-    evh: Optional[EVHCalculation] = None
+    reasoning: list[str]
+    breakdown: ScoreBreakdown | None = None
+    evh: EVHCalculation | None = None
 
 
 @dataclass(frozen=True)
@@ -81,15 +81,15 @@ class Opportunity:
     source: OpportunitySource
     category: str  # "platform", "independent", "web3", "emerging", "research", "ai", "infrastructure", "cloud", "mobile", "browser_extension", "api_ecosystem", "open_source", "paid_research"
     subcategory: str = ""  # more granular classification
-    public_url: Optional[str] = None
-    scope_summary: Optional[str] = None
-    reward_info: Optional[str] = None
-    technology_tags: List[str] = field(default_factory=list)
-    last_update: Optional[str] = None
+    public_url: str | None = None
+    scope_summary: str | None = None
+    reward_info: str | None = None
+    technology_tags: list[str] = field(default_factory=list)
+    last_update: str | None = None
     confidence: float = 0.5
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    score: Optional[OpportunityScore] = None
-    priority: Optional[str] = None  # critical, high, medium, low
+    metadata: dict[str, Any] = field(default_factory=dict)
+    score: OpportunityScore | None = None
+    priority: str | None = None  # critical, high, medium, low
     created_at: str = ""
     estimated_payout: float = 0.0
     estimated_effort_hours: float = 1.0
@@ -102,8 +102,8 @@ class OpportunitySnapshot:
     id: str
     timestamp: str
     period: str  # daily, weekly, monthly
-    opportunities: List[Opportunity] = field(default_factory=list)
-    metrics: Dict[str, Any] = field(default_factory=dict)
+    opportunities: list[Opportunity] = field(default_factory=list)
+    metrics: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -113,20 +113,20 @@ class OpportunityProviderInfo:
     category: str
     active: bool
     opportunity_count: int
-    last_refresh: Optional[str] = None
+    last_refresh: str | None = None
     health_status: str = "unknown"  # healthy, degraded, down
 
 
 @dataclass(frozen=True)
 class OpportunityRecommendations:
     """Generated operator recommendations."""
-    top_opportunities: List[Opportunity] = field(default_factory=list)
-    top_independent: List[Opportunity] = field(default_factory=list)
-    top_web3: List[Opportunity] = field(default_factory=list)
-    fast_roi: List[Opportunity] = field(default_factory=list)
-    long_term: List[Opportunity] = field(default_factory=list)
-    low_competition: List[Opportunity] = field(default_factory=list)
-    evh_ranked: List[Opportunity] = field(default_factory=list)
+    top_opportunities: list[Opportunity] = field(default_factory=list)
+    top_independent: list[Opportunity] = field(default_factory=list)
+    top_web3: list[Opportunity] = field(default_factory=list)
+    fast_roi: list[Opportunity] = field(default_factory=list)
+    long_term: list[Opportunity] = field(default_factory=list)
+    low_competition: list[Opportunity] = field(default_factory=list)
+    evh_ranked: list[Opportunity] = field(default_factory=list)
     generated_at: str = ""
     summary: str = ""
 
@@ -136,7 +136,7 @@ class IdentityVaultEntry:
     """Stored provider identity."""
     provider_name: str
     email: str = ""
-    metadata: Dict[str, str] = field(default_factory=dict)
+    metadata: dict[str, str] = field(default_factory=dict)
     session_state: str = "disconnected"  # connected, disconnected, expired
-    last_checked: Optional[str] = None
+    last_checked: str | None = None
     health_status: str = "unknown"

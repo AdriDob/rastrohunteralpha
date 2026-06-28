@@ -10,7 +10,6 @@ from __future__ import annotations
 import argparse
 import hashlib
 import os
-import shutil
 import sys
 import zipfile
 from pathlib import Path
@@ -31,7 +30,7 @@ def create_portable_zip(source_dir: Path, output_dir: Path, version: str = "1.0.
 
     print(f"Creating portable ZIP: {zip_path}")
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
-        for root, dirs, files in os.walk(source_dir):
+        for root, _dirs, files in os.walk(source_dir):
             for file in files:
                 file_path = Path(root) / file
                 arcname = str(file_path.relative_to(source_dir.parent))

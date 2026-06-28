@@ -1,12 +1,15 @@
-from typing import Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Query
 from fastapi.responses import PlainTextResponse
 
 from core_engines.intelligence.adaptive_memory import get_memory
 from core_engines.intelligence.export import (
-    export_history, export_trends, export_recommendations, export_snapshots,
+    export_history,
+    export_recommendations,
+    export_snapshots,
+    export_trends,
 )
+
 
 def _fmt_validator(fmt: str) -> str:
     if fmt not in ("json", "csv", "markdown"):

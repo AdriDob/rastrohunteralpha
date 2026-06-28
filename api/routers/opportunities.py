@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Query
 
-from api.schemas.models import OpportunityOut, PaginatedResponse
+from api.schemas.models import PaginatedResponse
 from api.services.data_service import list_opportunities
 
 router = APIRouter(prefix="/api/opportunities", tags=["opportunities"])

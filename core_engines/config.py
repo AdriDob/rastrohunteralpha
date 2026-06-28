@@ -1,6 +1,5 @@
 import os
 from dataclasses import dataclass, field
-from typing import List, Optional
 
 
 @dataclass
@@ -15,7 +14,7 @@ class RastroConfig:
     cache_size: int = int(os.environ.get("CACHE_SIZE", "4096"))
 
 
-_config: Optional[RastroConfig] = None
+_config: RastroConfig | None = None
 
 
 def get_config() -> RastroConfig:

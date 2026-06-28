@@ -6,7 +6,7 @@ Prevents false negatives/positives from WAF, throttling, timeouts, rate limiting
 import re
 import time
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
@@ -17,9 +17,9 @@ class NetworkBehaviorMetadata:
     waf_strength: str = "none"
     has_timeout: bool = False
     has_throttle_escalation: bool = False
-    detected_patterns: List[str] = None
+    detected_patterns: list[str] = None
     recommendation: str = "continue"  # continue | backoff | abort
-    
+
     def __post_init__(self):
         if self.detected_patterns is None:
             self.detected_patterns = []
@@ -57,7 +57,7 @@ class NetworkBehaviorDetector:
         r"incorrect",
     ]
 
-    def detect_rate_limiting(self, status_code: int, body: str, headers: Dict[str, str]) -> bool:
+    def detect_rate_limiting(self, status_code: int, body: str, headers: dict[str, str]) -> bool:
         """Detect rate limiting from response."""
         if status_code in self.RATE_LIMIT_STATUS_CODES:
             return True
@@ -69,20 +69,17 @@ class NetworkBehaviorDetector:
             if re.search(pattern, body_lower, re.IGNORECASE):
                 return True
             # Check headers too
-            for key, val in headers_lower.items():
+            for _key, val in headers_lower.items():
                 if re.search(pattern, val, re.IGNORECASE):
                     return True
 
         # Check RateLimit-* headers
-        if any(k.startswith("x-ratelimit") or k.startswith("ratelimit") for k in headers_lower):
-            return True
+        return bool(any(k.startswith("x-ratelimit") or k.startswith("ratelimit") for k in headers_lower))
 
-        return False
-
-    def detect_waf_blocking(self, status_code: int, body: str, headers: Dict[str, str]) -> str:
+    def detect_waf_blocking(self, status_code: int, body: str, headers: dict[str, str]) -> str:
         """
         Detect WAF blocking.
-        
+
         Returns: "none" | "weak" | "strong"
         """
         body_lower = body.lower()
@@ -93,7 +90,7 @@ class NetworkBehaviorDetector:
             for pattern in self.WAF_KEYWORDS:
                 if re.search(pattern, body_lower, re.IGNORECASE):
                     return "strong"
-                for key, val in headers_lower.items():
+                for _key, val in headers_lower.items():
                     if re.search(pattern, val, re.IGNORECASE):
                         return "strong"
 
@@ -105,7 +102,7 @@ class NetworkBehaviorDetector:
 
         return "none"
 
-    def detect_timeout_pattern(self, responses: List[Dict[str, Any]]) -> bool:
+    def detect_timeout_pattern(self, responses: list[dict[str, Any]]) -> bool:
         """Detect if there's a pattern of consecutive timeouts."""
         if not responses or len(responses) < 2:
             return False
@@ -113,10 +110,10 @@ class NetworkBehaviorDetector:
         timeout_count = sum(1 for r in responses if r.get("has_timeout", False))
         return timeout_count >= len(responses) * 0.5
 
-    def detect_throttle_escalation(self, responses: List[Dict[str, Any]]) -> bool:
+    def detect_throttle_escalation(self, responses: list[dict[str, Any]]) -> bool:
         """
         Detect if response times are escalating (sign of throttling).
-        
+
         Pattern: response times increasing across attempts.
         """
         if not responses or len(responses) < 2:
@@ -139,13 +136,13 @@ class NetworkBehaviorDetector:
         self,
         status_code: int,
         body: str,
-        headers: Dict[str, str],
+        headers: dict[str, str],
         elapsed_ms: int,
-        error: Optional[str] = None,
+        error: str | None = None,
     ) -> NetworkBehaviorMetadata:
         """
         Analyze response for all anomalies.
-        
+
         Returns NetworkBehaviorMetadata with detected patterns and recommendation.
         """
         metadata = NetworkBehaviorMetadata()
@@ -180,7 +177,7 @@ class NetworkBehaviorDetector:
 class AdaptiveRetryStrategy:
     """
     Adaptive retry strategy with exponential backoff + jitter.
-    
+
     Decides whether to retry and calculates appropriate delays.
     """
 
@@ -194,22 +191,22 @@ class AdaptiveRetryStrategy:
 
     def __init__(self, base_timeout: int = 15):
         self._base_timeout = base_timeout
-        self._request_history: Dict[str, List[Dict]] = {}
+        self._request_history: dict[str, list[dict]] = {}
 
     def should_retry(
         self,
         response_metadata: NetworkBehaviorMetadata,
         attempt: int,
-        endpoint_pattern: Optional[str] = None,
+        endpoint_pattern: str | None = None,
     ) -> bool:
         """
         Decide whether to retry based on network behavior.
-        
+
         Args:
             response_metadata: Detected anomalies
             attempt: Current attempt number (1-indexed)
             endpoint_pattern: Pattern of endpoint (admin|auth|api|safe)
-        
+
         Returns: True if should retry, False if should stop
         """
         # Never retry if WAF strong block detected
@@ -228,10 +225,7 @@ class AdaptiveRetryStrategy:
             return True
 
         # Retry if timeout (up to budget)
-        if response_metadata.has_timeout:
-            return True
-
-        return False
+        return bool(response_metadata.has_timeout)
 
     def calculate_backoff(
         self,
@@ -242,15 +236,15 @@ class AdaptiveRetryStrategy:
     ) -> float:
         """
         Calculate exponential backoff with optional jitter.
-        
+
         Formula: base_delay * (2 ^ (attempt - 1)) + random jitter
-        
+
         Args:
             attempt: Current attempt (1-indexed)
             base_delay: Base delay in seconds
             max_delay: Cap on delay
             jitter: Add random jitter
-        
+
         Returns: Delay in seconds
         """
         import random
@@ -266,10 +260,10 @@ class AdaptiveRetryStrategy:
 
         return delay
 
-    def max_retries_for_endpoint(self, endpoint: Dict[str, str]) -> int:
+    def max_retries_for_endpoint(self, endpoint: dict[str, str]) -> int:
         """
         Determine max retries for an endpoint based on its characteristics.
-        
+
         Conservative approach:
         - Admin endpoints: 1 retry
         - Auth endpoints: 2 retries
@@ -292,20 +286,19 @@ class AdaptiveRetryStrategy:
     def get_request_mutation(
         self,
         attempt: int,
-        base_headers: Dict[str, str],
-    ) -> Dict[str, str]:
+        base_headers: dict[str, str],
+    ) -> dict[str, str]:
         """
         Generate request mutations for retry (vary headers for bypass).
-        
+
         Conservative approach: only vary User-Agent, not payloads.
-        
+
         Args:
             attempt: Attempt number (for mutation variety)
             base_headers: Original headers
-        
+
         Returns: Mutated headers dict
         """
-        import random
 
         mutated = dict(base_headers)
 

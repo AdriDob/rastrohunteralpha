@@ -46,7 +46,7 @@ def main():
 
     # === Phase 2: Recon tools ===
     print("\n── Recon tools ──")
-    from core_engines.recon.tools import _resolve_tool, check_tool_available
+    from core_engines.recon.tools import _resolve_tool
 
     for tool in ["subfinder", "katana", "httpx"]:
         resolved = _resolve_tool(tool)
@@ -62,7 +62,7 @@ def main():
     print("\n── Database ──")
     try:
         _orig_db_url = os.environ.pop("DATABASE_URL", None)
-        from database import db, models
+        from database import db
         db.init_db()
         session = db.SessionLocal()
         from sqlalchemy import text
@@ -107,11 +107,47 @@ def main():
     else:
         check("Frontend directory exists", False, f"{frontend_dir} not found")
 
-    # === Phase 6: Test suite ===
+    # === Phase 6: Static analysis (ruff) ===
+    print("\n── Static analysis (ruff) ──")
+    try:
+        result = subprocess.run(
+            [sys.executable, "-m", "ruff", "check", "."],
+            cwd=str(ROOT),
+            capture_output=True, text=True, timeout=60,
+        )
+        if result.returncode == 0:
+            check("ruff lint passes", True)
+        else:
+            issues = len(result.stdout.strip().split("\n")) if result.stdout.strip() else 0
+            check("ruff lint passes", False, f"{issues} issues found")
+    except subprocess.TimeoutExpired:
+        check("ruff lint passes", False, "timed out (60s)")
+    except FileNotFoundError:
+        check("ruff lint passes", False, "ruff not installed")
+
+    # === Phase 7: Type checking (mypy) ===
+    print("\n── Type checking (mypy) ──")
+    try:
+        result = subprocess.run(
+            [sys.executable, "-m", "mypy", "core_engines/", "api/", "database/", "desktop/"],
+            cwd=str(ROOT),
+            capture_output=True, text=True, timeout=60,
+        )
+        if result.returncode == 0:
+            check("mypy type checks pass", True)
+        else:
+            last_line = result.stdout.strip().split("\n")[-1] if result.stdout.strip() else result.stderr[:200]
+            check("mypy type checks pass", False, last_line)
+    except subprocess.TimeoutExpired:
+        check("mypy type checks pass", False, "timed out (60s)")
+    except FileNotFoundError:
+        check("mypy type checks pass", False, "mypy not installed")
+
+    # === Phase 8: Test suite ===
     print("\n── Test suite ──")
     try:
         result = subprocess.run(
-            [sys.executable, "-m", "pytest", "tests/", "--tb=short", "-q"],
+            [sys.executable, "-m", "pytest", "tests/", "--tb=short", "-q", "--cov=core_engines", "--cov-report=term-missing:skip-covered"],
             cwd=str(ROOT),
             capture_output=True, text=True, timeout=120,
         )

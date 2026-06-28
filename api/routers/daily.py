@@ -14,7 +14,7 @@ from __future__ import annotations
 import logging
 import threading
 import time
-from typing import Any, Dict
+from typing import Any
 
 from fastapi import APIRouter
 
@@ -22,7 +22,7 @@ logger = logging.getLogger("rastro.api.daily")
 
 router = APIRouter(prefix="/api/daily", tags=["daily"])
 
-_CACHE: Dict[str, Any] = {}
+_CACHE: dict[str, Any] = {}
 _CACHE_LOCK = threading.Lock()
 _CACHE_TTL = 30
 _CACHE_KEY = "briefing"

@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import json
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
 
 from .profile import ProfileService, get_profile_service
 
@@ -12,7 +11,7 @@ from .profile import ProfileService, get_profile_service
 class ProfileExporter:
     """Export the investigator profile in various formats."""
 
-    def __init__(self, profile_service: Optional[ProfileService] = None):
+    def __init__(self, profile_service: ProfileService | None = None):
         self._profile = profile_service or get_profile_service()
 
     def to_json(self, user_id: str) -> str:
@@ -87,7 +86,7 @@ class ProfileExporter:
         return self.to_json(user_id)
 
 
-_exporter: Optional[ProfileExporter] = None
+_exporter: ProfileExporter | None = None
 
 
 def get_exporter() -> ProfileExporter:

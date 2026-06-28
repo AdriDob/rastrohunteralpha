@@ -1,20 +1,20 @@
-from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
-from api.schemas.models import FindingOut, PaginatedResponse
-from api.services.data_service import list_findings, create_finding as svc_create_finding
+from api.schemas.models import PaginatedResponse
+from api.services.data_service import create_finding as svc_create_finding
+from api.services.data_service import list_findings
 
 router = APIRouter(prefix="/api/findings", tags=["findings"])
 
 
 class FindingCreate(BaseModel):
     target_id: int
-    endpoint_id: Optional[int] = None
+    endpoint_id: int | None = None
     title: str
-    severity: Optional[str] = "medium"
-    description: Optional[str] = None
+    severity: str | None = "medium"
+    description: str | None = None
 
 
 @router.post("")
@@ -28,7 +28,7 @@ def create_finding(body: FindingCreate):
             endpoint_id=body.endpoint_id,
         )
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e
 
 
 @router.get("", response_model=PaginatedResponse)

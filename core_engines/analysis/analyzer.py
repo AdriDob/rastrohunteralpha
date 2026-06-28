@@ -1,7 +1,8 @@
-from typing import Dict, Iterable, Any
+from collections.abc import Iterable
+from typing import Any
 
-from core_engines.engine.unified_scoring import score as unified_score
-from core_engines.engine.unified_classifier import classify as unified_classify, synthesize_target_meta as unified_synthesize
+from core_engines.engine.unified_classifier import classify as unified_classify
+from core_engines.engine.unified_classifier import synthesize_target_meta as unified_synthesize
 
 
 class EndpointAnalyzer:
@@ -15,12 +16,12 @@ class EndpointAnalyzer:
         self,
         path: str,
         method: str,
-        params: Dict[str, Any] | None,
-    ) -> Dict[str, Any]:
+        params: dict[str, Any] | None,
+    ) -> dict[str, Any]:
         return unified_classify(path, method, params)
 
     def synthesize_target_meta(
         self,
-        endpoints: Iterable[Dict[str, Any]],
-    ) -> Dict[str, bool]:
+        endpoints: Iterable[dict[str, Any]],
+    ) -> dict[str, bool]:
         return unified_synthesize(endpoints)

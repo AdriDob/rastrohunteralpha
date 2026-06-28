@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -20,9 +20,9 @@ class VerdictHandler:
         verdict: Verdict,
         endpoint_id: int,
         target_id: int,
-        evidence_records: List[Dict[str, Any]],
-        comparison_summary: Optional[Dict[str, Any]] = None,
-    ) -> Optional[models.Finding]:
+        evidence_records: list[dict[str, Any]],
+        comparison_summary: dict[str, Any] | None = None,
+    ) -> models.Finding | None:
         db_verdict = self._save_verdict(verdict, endpoint_id, comparison_summary)
         self._save_evidence(db_verdict.id, evidence_records)
 
@@ -34,7 +34,7 @@ class VerdictHandler:
         self,
         verdict: Verdict,
         endpoint_id: int,
-        comparison_summary: Optional[Dict[str, Any]] = None,
+        comparison_summary: dict[str, Any] | None = None,
     ) -> models.Verdict:
         db_verdict = models.Verdict(
             hot_path_id=verdict.hot_path_id,
@@ -63,7 +63,7 @@ class VerdictHandler:
         return db_verdict
 
     def _save_evidence(
-        self, verdict_id: int, evidence_records: List[Dict[str, Any]]
+        self, verdict_id: int, evidence_records: list[dict[str, Any]]
     ) -> None:
         for rec in evidence_records:
             db_ev = models.Evidence(

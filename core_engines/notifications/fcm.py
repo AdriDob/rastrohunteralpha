@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-import json
+import contextlib
 import logging
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import httpx
 
@@ -26,14 +26,14 @@ class FCMAdapter:
     def is_enabled(self) -> bool:
         return self._enabled
 
-    def _get_device_tokens(self) -> List[str]:
+    def _get_device_tokens(self) -> list[str]:
         """Get all active FCM device tokens from the database."""
         rows = db.query(
             "SELECT token FROM devices WHERE platform = 'fcm' AND is_active = 'true'",
         )
         return [r["token"] for r in rows]
 
-    def send(self, title: str, message: str, priority: str = "medium", metadata: Optional[Dict[str, Any]] = None) -> int:
+    def send(self, title: str, message: str, priority: str = "medium", metadata: dict[str, Any] | None = None) -> int:
         """Send to all registered FCM devices. Returns count of successful sends."""
         if not self._enabled:
             logger.debug("FCM disabled — set RASTRO_FCM_SERVER_KEY and RASTRO_FCM_PROJECT_ID")
@@ -80,13 +80,11 @@ class FCMAdapter:
 
 
 def _deactivate_token(token: str) -> None:
-    try:
+    with contextlib.suppress(Exception):
         db.execute("UPDATE devices SET is_active = 'false' WHERE token = ? AND platform = 'fcm'", (token,))
-    except Exception:
-        pass
 
 
-_FCM: Optional[FCMAdapter] = None
+_FCM: FCMAdapter | None = None
 
 
 def get_fcm_adapter() -> FCMAdapter:

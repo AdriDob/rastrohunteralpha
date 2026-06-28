@@ -1,5 +1,5 @@
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from dataclasses import dataclass
+from typing import Any
 
 from core_engines.evidence.store import EvidenceStore
 from core_engines.reporting.export_formats import ExportFormats
@@ -26,25 +26,25 @@ class FinalReport:
     bounty_estimate: str
     affected_endpoint: str
     attack_vector: str
-    reproduction_steps: List[str]
-    evidence: List[Dict[str, Any]]
+    reproduction_steps: list[str]
+    evidence: list[dict[str, Any]]
     poc_curl: str
     remediation: str
-    export_formats: Dict[str, str]
+    export_formats: dict[str, str]
 
 
 class ReportEngine:
-    def __init__(self, evidence_store: Optional[EvidenceStore] = None):
+    def __init__(self, evidence_store: EvidenceStore | None = None):
         self._evidence_store = evidence_store or EvidenceStore()
         self._exporters = ExportFormats()
 
     def build(
         self,
         verdict: Verdict,
-        program_data: Optional[ProgramData] = None,
-        endpoint_data: Optional[Dict[str, Any]] = None,
-        evidence_list: Optional[List[Dict[str, Any]]] = None,
-    ) -> Optional[FinalReport]:
+        program_data: ProgramData | None = None,
+        endpoint_data: dict[str, Any] | None = None,
+        evidence_list: list[dict[str, Any]] | None = None,
+    ) -> FinalReport | None:
         from core_engines.validation.gate import ReportGate
         if not ReportGate().admit(verdict):
             return None
@@ -97,7 +97,7 @@ class ReportEngine:
             ),
         )
 
-    def _build_title(self, verdict: Verdict, ep: Dict[str, Any]) -> str:
+    def _build_title(self, verdict: Verdict, ep: dict[str, Any]) -> str:
         path = ep.get("path", "/unknown")
         method = ep.get("method", "GET")
         rules = verdict.validation.passed_rules
@@ -111,7 +111,7 @@ class ReportEngine:
             return f"Cross-Session Data Mismatch in {method} {path}"
         return f"Security Finding in {method} {path}"
 
-    def _build_narrative(self, verdict: Verdict, ep: Dict[str, Any], severity: str) -> str:
+    def _build_narrative(self, verdict: Verdict, ep: dict[str, Any], severity: str) -> str:
         path = ep.get("path", "/unknown")
         method = ep.get("method", "GET")
         rules = ", ".join(verdict.validation.passed_rules) or "none"
@@ -125,10 +125,10 @@ class ReportEngine:
             f"comparing baseline (owner context) vs probe (modified context) responses."
         )
 
-    def _build_reproduction_steps(self, verdict: Verdict, evidence: List[Dict[str, Any]]) -> List[str]:
+    def _build_reproduction_steps(self, verdict: Verdict, evidence: list[dict[str, Any]]) -> list[str]:
         steps = [
-            f"1. Authenticate as user A (baseline context).",
-            f"2. Send the baseline request and record the response.",
+            "1. Authenticate as user A (baseline context).",
+            "2. Send the baseline request and record the response.",
         ]
         if evidence:
             for idx, ev in enumerate(evidence[:3]):
@@ -145,13 +145,13 @@ class ReportEngine:
         steps.append(f"{next_idx + 2}. If responses differ consistently, the finding is confirmed.")
         return steps
 
-    def _build_poc_curl(self, evidence: List[Dict[str, Any]]) -> str:
+    def _build_poc_curl(self, evidence: list[dict[str, Any]]) -> str:
         for ev in evidence:
             if ev.get("curl_command"):
                 return ev["curl_command"]
         return "curl -X GET '<affected_url>' -H 'Authorization: Bearer <token>'"
 
-    def _remediation(self, passed_rules: List[str]) -> str:
+    def _remediation(self, passed_rules: list[str]) -> str:
         if "privilege_boundary_break" in passed_rules:
             return (
                 "Implement proper access control checks on the server side. "

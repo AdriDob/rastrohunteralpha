@@ -1,5 +1,5 @@
-from dataclasses import dataclass, field
-from typing import Dict, List, Literal
+from dataclasses import dataclass
+from typing import Literal
 
 from core_engines.validation.confidence import ConfidenceScore
 from core_engines.validation.rules import ValidationReport
@@ -13,7 +13,7 @@ class Verdict:
     reproducibility_score: float
     validation: ValidationReport
     confidence_details: ConfidenceScore
-    evidence_links: List[str]
+    evidence_links: list[str]
     reason: str
     retry_count: int
     timestamp: str
@@ -27,7 +27,7 @@ class ReportGate:
         if verdict.status == "confirmed":
             return "Verdict is confirmed — no rejection reason."
         if verdict.status == "rejected":
-            reasons = [f"status=rejected", f"confidence={verdict.confidence:.2f}"]
+            reasons = ["status=rejected", f"confidence={verdict.confidence:.2f}"]
             if verdict.validation.failed_rules:
                 reasons.append(f"failed_rules={verdict.validation.failed_rules}")
             return " | ".join(reasons)

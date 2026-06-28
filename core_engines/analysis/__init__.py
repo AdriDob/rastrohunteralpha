@@ -2,16 +2,16 @@
 
 from core_engines.analysis.analyzer import EndpointAnalyzer
 from core_engines.analysis.investigation_graph import (
+    Cluster,
+    ClusterEngine,
+    HotPath,
+    HotPathDetector,
     InvestigationGraphBuilder,
+    InvestigationReport,
     NodeExtractor,
     RelationshipDetector,
-    ClusterEngine,
-    HotPathDetector,
-    InvestigationReport,
-    Cluster,
-    HotPath,
 )
-from core_engines.analysis.noise_reduction import NoiseReductionEngine, NoiseConfig, NoiseReport
+from core_engines.analysis.noise_reduction import NoiseConfig, NoiseReductionEngine, NoiseReport
 
 __all__ = [
     "EndpointAnalyzer",

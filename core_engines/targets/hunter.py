@@ -1,18 +1,17 @@
 import logging
-from typing import List, Dict, Optional
+from typing import Any
 
 import requests
 
-from database.db import SessionLocal, init_db
-from core_engines.targets import parser, filters
+from core_engines.engine.unified_scoring import score_target as unified_score_target
+from core_engines.targets import parser
+from core_engines.targets.models import Scope, TargetIntel
 from core_engines.targets.technology import (
-    fingerprint_program,
     classify_cms,
-    is_wordpress_ecosystem,
+    fingerprint_program,
     score_technology_relevance,
 )
-from core_engines.engine.unified_scoring import score_target as unified_score_target
-from core_engines.targets.models import TargetIntel, Scope
+from database.db import SessionLocal, init_db
 
 LOG = logging.getLogger("rastro.targets.hunter")
 
@@ -23,15 +22,15 @@ class Hunter:
     def __init__(self):
         init_db()
 
-    def fetch_public_programs(self, platform: str, limit: int = 50) -> List[Dict]:
+    def fetch_public_programs(self, platform: str, limit: int = 50) -> list[dict]:
         """
         Attempt to fetch public program lists for a given platform.
         Tries multiple known endpoints and fallback approaches.
         If all fail, returns empty list (no crash).
         """
         platform = platform.lower()
-        results: List[Dict] = []
-        urls: List[str] = []
+        results: list[dict] = []
+        urls: list[str] = []
 
         try:
             if platform == "hackerone":
@@ -107,7 +106,7 @@ class Hunter:
             LOG.debug("fetch_public_programs error for %s: %s", platform, exc)
         return results
 
-    def ingest_programs(self, programs: List[Dict]) -> List[Dict]:
+    def ingest_programs(self, programs: list[dict]) -> list[dict]:
         """Parse provided program dicts, score them and persist to DB."""
         saved = []
         session = SessionLocal()
@@ -115,7 +114,7 @@ class Hunter:
             for p in programs:
                 name = p.get("name") or p.get("title") or "unnamed"
                 source = p.get("source") or "imported"
-                
+
                 # Idempotent deduplication check
                 exists = session.query(TargetIntel).filter(
                     TargetIntel.name == name,
@@ -316,12 +315,12 @@ class Hunter:
             session.close()
 
     @staticmethod
-    def count_by_technology() -> List[Dict]:
+    def count_by_technology() -> list[dict]:
         """Return technology distribution across all programs."""
         session = SessionLocal()
         try:
             rows = session.query(TargetIntel).all()
-            tech_count: Dict[str, int] = {}
+            tech_count: dict[str, int] = {}
             for r in rows:
                 if not r.technology_tags:
                     continue

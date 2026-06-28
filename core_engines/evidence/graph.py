@@ -1,7 +1,5 @@
-import json
 import threading
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from core_engines.validation.gate import Verdict
 from core_engines.validation.replayer import ComparisonResult
@@ -10,8 +8,8 @@ from core_engines.validation.replayer import ComparisonResult
 class EvidenceGraph:
     def __init__(self):
         self._lock = threading.Lock()
-        self._nodes: Dict[str, Dict[str, Any]] = {}
-        self._edges: List[Dict[str, str]] = []
+        self._nodes: dict[str, dict[str, Any]] = {}
+        self._edges: list[dict[str, str]] = []
 
     def add_comparison(
         self,
@@ -66,11 +64,11 @@ class EvidenceGraph:
                 "relationship": relationship,
             })
 
-    def get_node(self, node_id: str) -> Optional[Dict[str, Any]]:
+    def get_node(self, node_id: str) -> dict[str, Any] | None:
         with self._lock:
             return self._nodes.get(node_id)
 
-    def get_edges(self, node_id: Optional[str] = None) -> List[Dict[str, str]]:
+    def get_edges(self, node_id: str | None = None) -> list[dict[str, str]]:
         with self._lock:
             if node_id is None:
                 return list(self._edges)
@@ -79,20 +77,20 @@ class EvidenceGraph:
                 if e["from"] == node_id or e["to"] == node_id
             ]
 
-    def get_nodes_by_type(self, node_type: str) -> List[Dict[str, Any]]:
+    def get_nodes_by_type(self, node_type: str) -> list[dict[str, Any]]:
         with self._lock:
             return [
                 n for n in self._nodes.values()
                 if n.get("type") == node_type
             ]
 
-    def get_verdicts(self) -> List[Dict[str, Any]]:
+    def get_verdicts(self) -> list[dict[str, Any]]:
         return self.get_nodes_by_type("verdict")
 
-    def get_comparisons(self) -> List[Dict[str, Any]]:
+    def get_comparisons(self) -> list[dict[str, Any]]:
         return self.get_nodes_by_type("comparison")
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         with self._lock:
             return {
                 "nodes": dict(self._nodes),
@@ -100,7 +98,7 @@ class EvidenceGraph:
             }
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> "EvidenceGraph":
+    def from_dict(cls, data: dict[str, Any]) -> "EvidenceGraph":
         g = cls()
         g._nodes = dict(data.get("nodes", {}))
         g._edges = list(data.get("edges", []))

@@ -6,7 +6,7 @@ import logging
 import os
 import smtplib
 from email.mime.text import MIMEText
-from typing import Any, Dict, Optional
+from typing import Any
 
 logger = logging.getLogger("rastro.notifications.email")
 
@@ -25,7 +25,7 @@ class EmailAdapter:
     def is_enabled(self) -> bool:
         return self._enabled
 
-    def send(self, title: str, message: str, priority: str = "medium", metadata: Optional[Dict[str, Any]] = None) -> bool:
+    def send(self, title: str, message: str, priority: str = "medium", metadata: dict[str, Any] | None = None) -> bool:
         if not self._enabled:
             logger.debug("Email disabled — set RASTRO_SMTP_HOST and RASTRO_NOTIFICATION_EMAIL")
             return False
@@ -55,7 +55,7 @@ class EmailAdapter:
             return False
 
 
-_EMAIL: Optional[EmailAdapter] = None
+_EMAIL: EmailAdapter | None = None
 
 
 def get_email_adapter() -> EmailAdapter:

@@ -9,8 +9,8 @@ from __future__ import annotations
 import pytest
 from fastapi.testclient import TestClient
 
-from database.db import SessionLocal, init_db
 from database import models
+from database.db import SessionLocal, init_db
 
 
 @pytest.fixture(scope="module")
@@ -78,7 +78,7 @@ class TestE2EFlow:
 
     def test_04_get_target_list(self, client):
         """Verify target appears in listing."""
-        resp = client.get(f"/api/targets?limit=300")
+        resp = client.get("/api/targets?limit=300")
         assert resp.status_code == 200
         data = resp.json()
         names = [item["name"] for item in data["items"]]

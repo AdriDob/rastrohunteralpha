@@ -1,9 +1,12 @@
 import json
+import logging
 import re
+from collections.abc import Iterable
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable
 from urllib.parse import urlparse
+
+logger = logging.getLogger("rastro.recon.parser")
 
 from core_engines.engine.unified_scoring import score as unified_score
 
@@ -235,7 +238,7 @@ class EndpointParser:
                     return payload["url"].get("raw", raw)
 
             except json.JSONDecodeError:
-                pass
+                logger.warning("Failed to decode JSON from payload", exc_info=True)
 
         return raw
 

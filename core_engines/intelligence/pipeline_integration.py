@@ -14,22 +14,22 @@ The pipeline itself is not modified.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from core_engines.artifacts import (
-    PipelineArtifact,
-    EvidenceGraphArtifact,
-    AttackSurfaceArtifact,
-    ROIArtifact,
-    HypothesisArtifact,
-    QuickWinsArtifact,
-    ScreenshotArtifact,
-    DifferentialArtifact,
     AIInsightArtifact,
+    AttackSurfaceArtifact,
+    DifferentialArtifact,
+    EvidenceGraphArtifact,
     ExecutionPlanArtifact,
+    HypothesisArtifact,
+    PipelineArtifact,
+    QuickWinsArtifact,
+    ROIArtifact,
+    ScreenshotArtifact,
 )
-from core_engines.intelligence.unified_orchestrator import get_orchestrator
 from core_engines.intelligence.event_system import get_event_system
+from core_engines.intelligence.unified_orchestrator import get_orchestrator
 
 LOG = logging.getLogger("rastro.intelligence.integration")
 
@@ -42,7 +42,7 @@ class PipelineIntegration:
     """
 
     @staticmethod
-    def register_pipeline(pipeline_result: Dict[str, Any]) -> PipelineArtifact:
+    def register_pipeline(pipeline_result: dict[str, Any]) -> PipelineArtifact:
         """Register the PipelineSnapshot as a canonical artifact."""
         snapshot = pipeline_result.get("snapshot")
         if snapshot is None:
@@ -58,14 +58,13 @@ class PipelineIntegration:
     @staticmethod
     def register_attack_surface(surface_map) -> AttackSurfaceArtifact:
         """Register the attack surface mapping as a canonical artifact."""
-        from core_engines.engine.risk_model import AttackSurfaceMap
         artifact = AttackSurfaceArtifact.from_surface_map(surface_map)
         orch = get_orchestrator()
         orch.compute("AttackSurfaceArtifact", "AttackSurfaceMapper", artifact)
         return artifact
 
     @staticmethod
-    def register_roi(roi_data: Dict[str, Any]) -> ROIArtifact:
+    def register_roi(roi_data: dict[str, Any]) -> ROIArtifact:
         """Register ROI data as a canonical artifact."""
         artifact = ROIArtifact(endpoint_rois=roi_data.get("by_endpoint", {}))
         orch = get_orchestrator()
@@ -128,16 +127,16 @@ class PipelineIntegration:
 
     @staticmethod
     def register_all_from_pipeline(
-        pipeline_result: Dict[str, Any],
+        pipeline_result: dict[str, Any],
         evidence_graph=None,
         surface_map=None,
         hypothesis_output=None,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Convenience method: register all possible artifacts from a pipeline result.
         Returns a dict of registered artifact types.
         """
-        registered: Dict[str, Any] = {}
+        registered: dict[str, Any] = {}
 
         pipeline_artifact = PipelineIntegration.register_pipeline(pipeline_result)
         registered["PipelineArtifact"] = pipeline_artifact

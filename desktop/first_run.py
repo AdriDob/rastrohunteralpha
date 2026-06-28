@@ -13,10 +13,9 @@ from __future__ import annotations
 
 import logging
 import platform
-import sys
 from pathlib import Path
 
-from desktop.autostart import is_autostart_enabled, enable_autostart
+from desktop.autostart import enable_autostart, is_autostart_enabled
 from desktop.settings import DesktopSettings
 
 logger = logging.getLogger("rastro.desktop.first_run")

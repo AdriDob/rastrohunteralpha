@@ -5,7 +5,6 @@ distribution analytics, and on-demand program fetching.
 """
 
 import logging
-from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
@@ -22,27 +21,27 @@ router = APIRouter(prefix="/api/discovery", tags=["discovery"])
 class ProgramItem(BaseModel):
     id: int
     name: str
-    domain: Optional[str] = None
-    source: Optional[str] = None
-    program_url: Optional[str] = None
-    quality_score: Optional[int] = None
-    roi_score: Optional[int] = None
-    opportunity_score: Optional[float] = None
-    technology_tags: List[str] = []
-    cms_detected: Optional[str] = None
-    framework_detected: Optional[str] = None
-    wordpress_plugins_detected: List[str] = []
-    saas_probability: Optional[float] = None
-    api_density: Optional[int] = None
-    graphql_detected: Optional[bool] = None
-    multi_tenant: Optional[bool] = None
-    admin_detected: Optional[bool] = None
-    tags: Optional[str] = None
-    created_at: Optional[str] = None
+    domain: str | None = None
+    source: str | None = None
+    program_url: str | None = None
+    quality_score: int | None = None
+    roi_score: int | None = None
+    opportunity_score: float | None = None
+    technology_tags: list[str] = []
+    cms_detected: str | None = None
+    framework_detected: str | None = None
+    wordpress_plugins_detected: list[str] = []
+    saas_probability: float | None = None
+    api_density: int | None = None
+    graphql_detected: bool | None = None
+    multi_tenant: bool | None = None
+    admin_detected: bool | None = None
+    tags: str | None = None
+    created_at: str | None = None
 
 
 class DiscoveryListResult(BaseModel):
-    items: List[ProgramItem]
+    items: list[ProgramItem]
     total: int
     skip: int = 0
     limit: int = 100
@@ -100,15 +99,15 @@ def get_program_detail(program_id: int):
     raise HTTPException(status_code=404, detail="Program not found")
 
 
-@router.get("/technologies", response_model=List[TechnologyDistribution])
+@router.get("/technologies", response_model=list[TechnologyDistribution])
 def get_technology_distribution():
     """Return aggregate technology counts across all programs."""
     h = Hunter()
     return [TechnologyDistribution(**d) for d in h.count_by_technology()]
 
 
-@router.post("/fetch", response_model=List[FetchResult])
-def fetch_public_programs(platforms: Optional[List[str]] = None):
+@router.post("/fetch", response_model=list[FetchResult])
+def fetch_public_programs(platforms: list[str] | None = None):
     """Fetch and import public programs from specified platforms.
 
     If no platforms specified, fetches from all supported platforms.

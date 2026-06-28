@@ -4,7 +4,7 @@ Pattern extractor: learn vulnerability patterns from confirmed findings.
 Converts findings + evidence into reusable patterns for cross-target learning.
 """
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class PatternExtractor:
@@ -29,7 +29,7 @@ class PatternExtractor:
     def normalize_endpoint_path(path: str) -> str:
         """
         Normalize endpoint path by replacing IDs with placeholders.
-        
+
         Examples:
         - /api/users/123 → /api/users/{numeric_id}
         - /api/orgs/uuid-here → /api/orgs/{uuid}
@@ -49,7 +49,7 @@ class PatternExtractor:
         return normalized
 
     @staticmethod
-    def detect_entity_type(path: str, params: Dict[str, Any]) -> Optional[str]:
+    def detect_entity_type(path: str, params: dict[str, Any]) -> str | None:
         """Detect entity type from path and params."""
         combined = f"{path} {str(params)}".lower()
 
@@ -60,11 +60,11 @@ class PatternExtractor:
         return None
 
     @staticmethod
-    def detect_auth_smells(params: Dict[str, Any], sensitive_fields: List[str]) -> List[str]:
+    def detect_auth_smells(params: dict[str, Any], sensitive_fields: list[str]) -> list[str]:
         """Detect auth-related smells from parameters and response fields."""
         smells = []
 
-        param_names = [str(k).lower() for k in params.keys()] if params else []
+        param_names = [str(k).lower() for k in params] if params else []
         param_str = " ".join(param_names)
 
         # Check for ownership params
@@ -84,12 +84,12 @@ class PatternExtractor:
 
     @staticmethod
     def extract_mutation_patterns(
-        attempts: List[Dict[str, Any]],
-        successful_mutations: Dict[str, str],
-    ) -> List[Dict[str, Any]]:
+        attempts: list[dict[str, Any]],
+        successful_mutations: dict[str, str],
+    ) -> list[dict[str, Any]]:
         """
         Extract successful mutation patterns from validation attempts.
-        
+
         Returns list of successful mutations with confidence scores.
         """
         patterns = []
@@ -116,15 +116,15 @@ class PatternExtractor:
         finding_title: str,
         endpoint_path: str,
         endpoint_method: str,
-        endpoint_params: Dict[str, Any],
-        passed_rules: List[str],
-        sensitive_fields: List[str],
-        auth_smells: List[str],
-        mutation_patterns: List[Dict[str, Any]],
-    ) -> Dict[str, Any]:
+        endpoint_params: dict[str, Any],
+        passed_rules: list[str],
+        sensitive_fields: list[str],
+        auth_smells: list[str],
+        mutation_patterns: list[dict[str, Any]],
+    ) -> dict[str, Any]:
         """
         Extract complete vulnerability pattern from finding.
-        
+
         Returns dict suitable for pattern library storage.
         """
         vuln_type = "unknown"
@@ -157,16 +157,16 @@ class PatternExtractor:
 
     @staticmethod
     def find_similar_patterns(
-        new_pattern: Dict[str, Any],
-        pattern_library: List[Dict[str, Any]],
-    ) -> List[Dict[str, Any]]:
+        new_pattern: dict[str, Any],
+        pattern_library: list[dict[str, Any]],
+    ) -> list[dict[str, Any]]:
         """
         Find similar patterns in library by comparing:
         - Normalized endpoint paths (regex match)
         - Entity type
         - Vulnerability type
         - Auth smells
-        
+
         Returns list of similar patterns (best matches first).
         """
         similar = []

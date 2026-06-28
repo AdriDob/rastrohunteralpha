@@ -1,9 +1,8 @@
-from typing import Optional
 
 from fastapi import APIRouter, Query, Request
 
-from core_engines.notifications.hub import get_hub, NOTIFICATION_TYPES
-from core_engines.gateway.schemas import ok, error
+from core_engines.gateway.schemas import error, ok
+from core_engines.notifications.hub import NOTIFICATION_TYPES, get_hub
 from database import db
 
 router = APIRouter(prefix="/api/notifications", tags=["notifications"])
@@ -12,7 +11,7 @@ router = APIRouter(prefix="/api/notifications", tags=["notifications"])
 @router.get("/hub")
 async def get_notifications(
     limit: int = Query(50, ge=1, le=200),
-    type_: Optional[str] = Query(None, alias="type"),
+    type_: str | None = Query(None, alias="type"),
 ):
     """Get recent notifications from the hub."""
     hub = get_hub()

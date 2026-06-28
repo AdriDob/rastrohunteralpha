@@ -8,7 +8,7 @@ Dependencies: PipelineArtifact, EvidenceGraphArtifact, QuickWinsArtifact
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from core_engines.contracts import Bundle
 
@@ -20,16 +20,16 @@ class ExecutionStep:
     method: str = "GET"
     priority: str = "medium"
     reason: str = ""
-    depends_on: List[str] = field(default_factory=list)
+    depends_on: list[str] = field(default_factory=list)
 
 
 @dataclass
 class ExecutionPlanArtifact(Bundle):
-    steps: List[ExecutionStep] = field(default_factory=list)
+    steps: list[ExecutionStep] = field(default_factory=list)
     total_steps: int = 0
     coverage_score: float = 0.0
     uncovered_count: int = 0
-    blind_spots: List[Dict[str, Any]] = field(default_factory=list)
+    blind_spots: list[dict[str, Any]] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         super().__post_init__()

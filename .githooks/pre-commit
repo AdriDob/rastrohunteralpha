@@ -1,0 +1,18 @@
+#!/bin/sh
+# Rastro pre-commit hook — run lint + quick test on staged Python files
+set -e
+
+echo "── Rastro pre-commit checks ──"
+
+# Check Python files with ruff
+STAGED_PY=$(git diff --cached --name-only --diff-filter=ACMR | grep '\.py$' || true)
+if [ -n "$STAGED_PY" ]; then
+    echo "  Checking $(echo "$STAGED_PY" | wc -l) Python files with ruff..."
+    python -m ruff check $STAGED_PY --quiet || {
+        echo "  ✗ ruff found issues. Run: make lint"
+        exit 1
+    }
+    echo "  ✓ ruff passed"
+fi
+
+echo "── Done ──"

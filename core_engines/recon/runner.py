@@ -1,8 +1,9 @@
 import asyncio
 import json
 import logging
+from collections.abc import Coroutine, Iterable
 from pathlib import Path
-from typing import Iterable, Any, Coroutine
+from typing import Any
 
 from .crtsh_runner import CrtshRunner
 from .ffuf_runner import FfufRunner
@@ -11,7 +12,6 @@ from .httpx_runner import HttpxRunner
 from .katana_runner import KatanaRunner
 from .nuclei_runner import NucleiRunner
 from .parser import EndpointParser
-from .seclists_profiles import WORDLISTS, get_recommended_profiles, available_wordlists
 from .subfinder_runner import SubfinderRunner
 from .wayback_runner import WaybackRunner
 from .whois_runner import WhoisRunner

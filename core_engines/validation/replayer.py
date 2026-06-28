@@ -4,7 +4,7 @@ import re
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 from urllib.parse import urlparse
 
 import requests
@@ -14,14 +14,13 @@ from core_engines.validation.hardening import (
     NetworkBehaviorDetector,
 )
 
-
 SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
 DEFAULT_TIMEOUT = 15
 MAX_BODY_SIZE = 10240
 PACING_DELAY = 0.5
 CIRCUIT_COOLDOWN = 30
 
-SENSITIVE_PATTERNS: Dict[str, str] = {
+SENSITIVE_PATTERNS: dict[str, str] = {
     "email": r"[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}",
     "ssn": r"\b\d{3}-\d{2}-\d{4}\b",
     "phone": r"\b\d{3}[-.]?\d{3}[-.]?\d{4}\b",
@@ -41,27 +40,27 @@ SENSITIVE_KEYWORDS = [
 class RequestSpec:
     url: str
     method: str = "GET"
-    headers: Dict[str, str] = field(default_factory=dict)
-    params: Dict[str, str] = field(default_factory=dict)
-    body: Optional[str] = None
+    headers: dict[str, str] = field(default_factory=dict)
+    params: dict[str, str] = field(default_factory=dict)
+    body: str | None = None
 
 
 @dataclass
 class AuthContext:
-    token: Optional[str] = None
-    cookies: Dict[str, str] = field(default_factory=dict)
-    headers: Dict[str, str] = field(default_factory=dict)
+    token: str | None = None
+    cookies: dict[str, str] = field(default_factory=dict)
+    headers: dict[str, str] = field(default_factory=dict)
     label: str = "anonymous"
 
 
 @dataclass
 class ResponseRecord:
     status_code: int
-    headers: Dict[str, str]
+    headers: dict[str, str]
     body: str
     body_hash: str
     elapsed_ms: int
-    error: Optional[str] = None
+    error: str | None = None
 
 
 @dataclass
@@ -71,8 +70,8 @@ class ComparisonResult:
     probe: ResponseRecord
     status_match: bool
     body_diff_ratio: float
-    headers_diff: Dict[str, Tuple[Any, Any]]
-    sensitive_fields_detected: List[str]
+    headers_diff: dict[str, tuple[Any, Any]]
+    sensitive_fields_detected: list[str]
     has_rate_limit: bool
     has_timeout: bool
     consistent: bool
@@ -83,7 +82,7 @@ class RequestReplayer:
     def __init__(self, timeout: int = DEFAULT_TIMEOUT, pacing: float = PACING_DELAY):
         self._timeout = timeout
         self._pacing = pacing
-        self._circuit_breakers: Dict[str, float] = {}
+        self._circuit_breakers: dict[str, float] = {}
         self._user_agents = [
             "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36",
             "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0",
@@ -152,30 +151,30 @@ class RequestReplayer:
         request_spec: RequestSpec,
         auth_baseline: AuthContext,
         auth_probe: AuthContext,
-        mutations: Dict[str, str],
+        mutations: dict[str, str],
         min_attempts: int = 3,
-    ) -> List[ComparisonResult]:
+    ) -> list[ComparisonResult]:
         """
         Revalidate with adaptive retry strategy (hardening layer).
-        
+
         NEW: Integrates network behavior detection and exponential backoff.
         """
-        results: List[ComparisonResult] = []
+        results: list[ComparisonResult] = []
         domain = urlparse(request_spec.url).netloc
         endpoint_pattern = self._infer_endpoint_pattern(request_spec.url)
         max_retries = self._retry_strategy.max_retries_for_endpoint({
             "path": request_spec.url,
             "method": request_spec.method,
         })
-        
+
         actual_max_attempts = max(min_attempts, max_retries)
         attempt = 1
-        
+
         while attempt <= actual_max_attempts:
             # Pacing before request
             if attempt > 1:
                 time.sleep(self._pacing)
-            
+
             mutated = RequestSpec(
                 url=request_spec.url,
                 method=request_spec.method,
@@ -185,11 +184,11 @@ class RequestReplayer:
             )
             for key, val in mutations.items():
                 mutated.params[key] = val
-            
+
             # Execute both baseline and probe
             baseline_resp = self.execute(request_spec, auth_baseline)
             probe_resp = self.execute(mutated, auth_probe)
-            
+
             # Analyze probe response for anomalies
             behavior = self._behavior_detector.analyze(
                 status_code=probe_resp.status_code,
@@ -199,14 +198,14 @@ class RequestReplayer:
                 error=probe_resp.error,
             )
             self._retry_strategy.record_response(domain, behavior)
-            
+
             # Create comparison result
             result = self._compare(attempt, baseline_resp, probe_resp)
-            
+
             # Add hardening metadata
             result.has_rate_limit = behavior.has_rate_limit
             result.has_timeout = behavior.has_timeout
-            
+
             # Check consistency with previous attempt
             if attempt > 1:
                 prev = results[-1]
@@ -216,9 +215,9 @@ class RequestReplayer:
                 )
             else:
                 result.consistent = True
-            
+
             results.append(result)
-            
+
             # Decision: continue, backoff, or abort?
             if behavior.recommendation == "abort":
                 # Strong WAF detected: stop retrying
@@ -240,9 +239,9 @@ class RequestReplayer:
             else:
                 # No anomaly: continue to next attempt normally
                 attempt += 1
-        
+
         return results
-    
+
     def _infer_endpoint_pattern(self, url: str) -> str:
         """Infer endpoint pattern (admin|auth|api|safe) from URL."""
         path = url.lower()
@@ -279,7 +278,7 @@ class RequestReplayer:
             shorter = min(len(baseline.body), len(probe.body))
             body_diff_ratio = 1.0 - (shorter / longer)
 
-        headers_diff: Dict[str, Tuple[Any, Any]] = {}
+        headers_diff: dict[str, tuple[Any, Any]] = {}
         all_keys = set(baseline.headers) | set(probe.headers)
         for k in all_keys:
             bv = baseline.headers.get(k)
@@ -309,8 +308,8 @@ class RequestReplayer:
             timestamp=datetime.now(timezone.utc).isoformat(),
         )
 
-    def _detect_sensitive_fields(self, body: str) -> List[str]:
-        found: List[str] = []
+    def _detect_sensitive_fields(self, body: str) -> list[str]:
+        found: list[str] = []
         body_lower = body.lower()
         for label, pattern in SENSITIVE_PATTERNS.items():
             if re.search(pattern, body):

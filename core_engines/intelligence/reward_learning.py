@@ -16,11 +16,11 @@ import logging
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
+from core_engines.engine.roi_model import BASE_HOURS, BASE_PAYOUT
 from database.db import SessionLocal
 from database.models import Report
-from core_engines.engine.roi_model import BASE_PAYOUT, BASE_HOURS
 
 LOG = logging.getLogger("rastro.intelligence.reward")
 
@@ -50,7 +50,7 @@ class ProgramRewardMetrics:
     avg_payout: float = 0.0
     highest_payout: float = 0.0
     avg_response_days: float = 0.0
-    vulnerability_types: List[str] = field(default_factory=list)
+    vulnerability_types: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -60,10 +60,10 @@ class RewardLearningReport:
     total_confirmed: int = 0
     total_confirmed_value: float = 0.0
     overall_acceptance_rate: float = 0.0
-    by_type: Dict[str, VulnTypeStats] = field(default_factory=dict)
-    by_program: Dict[str, ProgramRewardMetrics] = field(default_factory=dict)
-    top_programs_by_payout: List[Dict[str, Any]] = field(default_factory=list)
-    top_programs_by_acceptance: List[Dict[str, Any]] = field(default_factory=list)
+    by_type: dict[str, VulnTypeStats] = field(default_factory=dict)
+    by_program: dict[str, ProgramRewardMetrics] = field(default_factory=dict)
+    top_programs_by_payout: list[dict[str, Any]] = field(default_factory=list)
+    top_programs_by_acceptance: list[dict[str, Any]] = field(default_factory=list)
     prediction_accuracy: float = 0.0
     summary: str = ""
 
@@ -72,7 +72,7 @@ class RewardLearner:
     """Learns from report/payout history to improve ROI predictions."""
 
     def __init__(self):
-        self._adjustments: Dict[str, float] = {}
+        self._adjustments: dict[str, float] = {}
 
     def analyze(self) -> RewardLearningReport:
         now = datetime.now(timezone.utc).isoformat()
@@ -96,8 +96,8 @@ class RewardLearner:
             report.total_confirmed / report.total_reports * 100, 2
         ) if report.total_reports else 0.0
 
-        by_type: Dict[str, List[Report]] = defaultdict(list)
-        by_program: Dict[str, List[Report]] = defaultdict(list)
+        by_type: dict[str, list[Report]] = defaultdict(list)
+        by_program: dict[str, list[Report]] = defaultdict(list)
         for r in reports:
             vt = (r.vulnerability or "unknown").lower()
             by_type[vt].append(r)
@@ -130,10 +130,9 @@ class RewardLearner:
                     ).VulnerabilityType if e.value == vt
                 )
                 base = BASE_PAYOUT.get(vt_enum, 2000.0)
-                base_hours = BASE_HOURS.get(vt_enum, 5.0)
+                BASE_HOURS.get(vt_enum, 5.0)
             except (StopIteration, AttributeError):
                 base = 2000.0
-                base_hours = 5.0
 
             learned = base
             if confirmed_count >= 2 and avg_conf > 0:
@@ -218,7 +217,7 @@ class RewardLearner:
     def get_adjustment(self, vulnerability_type: str) -> float:
         return self._adjustments.get(vulnerability_type.lower(), 1.0)
 
-    def get_adjustments(self) -> Dict[str, float]:
+    def get_adjustments(self) -> dict[str, float]:
         return dict(self._adjustments)
 
     def _build_summary(self, report: RewardLearningReport) -> str:

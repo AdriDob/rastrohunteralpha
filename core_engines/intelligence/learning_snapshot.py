@@ -1,7 +1,7 @@
 import logging
-from dataclasses import dataclass, field, asdict
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from database.db import SessionLocal
 
@@ -30,22 +30,22 @@ class LearningSnapshot:
     new_findings_count: int = 0
     new_verdicts_count: int = 0
 
-    top_vulnerability_types: List[Dict[str, Any]] = field(default_factory=list)
-    top_platforms: List[Dict[str, Any]] = field(default_factory=list)
-    top_patterns: List[Dict[str, Any]] = field(default_factory=list)
-    top_targets: List[Dict[str, Any]] = field(default_factory=list)
+    top_vulnerability_types: list[dict[str, Any]] = field(default_factory=list)
+    top_platforms: list[dict[str, Any]] = field(default_factory=list)
+    top_patterns: list[dict[str, Any]] = field(default_factory=list)
+    top_targets: list[dict[str, Any]] = field(default_factory=list)
 
-    roi_metrics: Dict[str, float] = field(default_factory=lambda: {
+    roi_metrics: dict[str, float] = field(default_factory=lambda: {
         "total_roi": 0.0, "avg_roi": 0.0, "max_roi": 0.0, "high_value_targets": 0.0
     })
-    acceptance_metrics: Dict[str, float] = field(default_factory=lambda: {
+    acceptance_metrics: dict[str, float] = field(default_factory=lambda: {
         "overall": 0.0, "critical": 0.0, "high": 0.0, "medium": 0.0, "low": 0.0
     })
-    duplicate_metrics: Dict[str, float] = field(default_factory=lambda: {
+    duplicate_metrics: dict[str, float] = field(default_factory=lambda: {
         "overall": 0.0, "by_severity": 0.0
     })
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "snapshot_type": self.snapshot_type,
             "period_start": self.period_start,
@@ -78,8 +78,9 @@ class LearningSnapshot:
 def generate_snapshot(snapshot_type: str = "daily") -> LearningSnapshot:
     session = SessionLocal()
     try:
-        from database.models import Target, Endpoint, Finding, Verdict
         from datetime import timedelta
+
+        from database.models import Endpoint, Finding, Target, Verdict
 
         now = datetime.now(timezone.utc)
 
@@ -125,7 +126,7 @@ def generate_snapshot(snapshot_type: str = "daily") -> LearningSnapshot:
                     conf_sum += float(v.confidence)
                     conf_count += 1
                 except (ValueError, TypeError):
-                    pass
+                    LOG.warning("Failed to parse confidence value for snapshot", exc_info=True)
         avg_confidence = round(conf_sum / conf_count, 4) if conf_count else 0.0
 
         # Top vulnerability types
@@ -137,7 +138,7 @@ def generate_snapshot(snapshot_type: str = "daily") -> LearningSnapshot:
         top_types = [{"type": k, "count": v} for k, v in type_counter.most_common(10)]
 
         # Top targets
-        target_findings: Dict[int, int] = {}
+        target_findings: dict[int, int] = {}
         for f in all_findings:
             target_findings[f.target_id] = target_findings.get(f.target_id, 0) + 1
         target_map = {t.id: t.name for t in all_targets}
@@ -158,11 +159,11 @@ def generate_snapshot(snapshot_type: str = "daily") -> LearningSnapshot:
         top_patterns = [{"pattern": k, "count": v} for k, v in path_patterns.most_common(10)]
 
         # Acceptance by severity
-        severity_confirmed: Counter = Counter()
+        Counter()
         severity_total: Counter = Counter()
-        for v in confirmed:
+        for _ in confirmed:
             severity_total["confirmed"] += 1
-        for v in rejected:
+        for _ in rejected:
             severity_total["rejected"] += 1
 
         severity_acceptance = {}
@@ -216,11 +217,11 @@ def generate_snapshot(snapshot_type: str = "daily") -> LearningSnapshot:
 
 
 def _severity_payout(severity: str) -> float:
-    SEVERITY_PAYOUT = {
+    severity_payout = {
         "critical": 5000.0,
         "high": 2000.0,
         "medium": 500.0,
         "low": 100.0,
         "info": 0.0,
     }
-    return SEVERITY_PAYOUT.get(severity, 0.0)
+    return severity_payout.get(severity, 0.0)

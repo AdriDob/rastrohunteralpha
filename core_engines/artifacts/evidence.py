@@ -7,8 +7,7 @@ Dependencies: PipelineArtifact
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from dataclasses import dataclass
 
 from core_engines.contracts import Bundle
 from core_engines.evidence.graph import EvidenceGraph as _EvidenceGraph
@@ -16,7 +15,7 @@ from core_engines.evidence.graph import EvidenceGraph as _EvidenceGraph
 
 @dataclass
 class EvidenceGraphArtifact(Bundle):
-    graph: Optional[_EvidenceGraph] = None
+    graph: _EvidenceGraph | None = None
     verdict_count: int = 0
     comparison_count: int = 0
     confirmed_count: int = 0
@@ -46,5 +45,5 @@ class EvidenceGraphArtifact(Bundle):
         return _EvidenceGraph()
 
     @classmethod
-    def from_graph(cls, graph: _EvidenceGraph) -> "EvidenceGraphArtifact":
+    def from_graph(cls, graph: _EvidenceGraph) -> EvidenceGraphArtifact:
         return cls(graph=graph)

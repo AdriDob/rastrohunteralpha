@@ -5,7 +5,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger("rastro.actions.tracker")
 
@@ -17,14 +17,14 @@ class ExecutionRecord:
     label: str
     status: str  # executed | error | skipped
     duration_ms: float = 0.0
-    user_id: Optional[str] = None
-    payload: Dict[str, Any] = field(default_factory=dict)
-    result: Dict[str, Any] = field(default_factory=dict)
-    error: Optional[str] = None
+    user_id: str | None = None
+    payload: dict[str, Any] = field(default_factory=dict)
+    result: dict[str, Any] = field(default_factory=dict)
+    error: str | None = None
     outcome_score: float = 0.0
     timestamp: float = field(default_factory=time.time)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "action_id": self.action_id,
             "action_type": self.action_type,
@@ -49,8 +49,8 @@ class ExecutionTracker:
     BUFFER_SIZE = 200
 
     def __init__(self) -> None:
-        self._records: List[ExecutionRecord] = []
-        self._type_stats: Dict[str, Dict[str, float]] = {}
+        self._records: list[ExecutionRecord] = []
+        self._type_stats: dict[str, dict[str, float]] = {}
 
     def record_execution(
         self,
@@ -59,10 +59,10 @@ class ExecutionTracker:
         label: str,
         status: str = "executed",
         duration_ms: float = 0.0,
-        user_id: Optional[str] = None,
-        payload: Optional[Dict[str, Any]] = None,
-        result: Optional[Dict[str, Any]] = None,
-        error: Optional[str] = None,
+        user_id: str | None = None,
+        payload: dict[str, Any] | None = None,
+        result: dict[str, Any] | None = None,
+        error: str | None = None,
     ) -> ExecutionRecord:
         outcome_score = self._compute_outcome_score(status, error, duration_ms)
         record = ExecutionRecord(
@@ -87,7 +87,7 @@ class ExecutionTracker:
 
         return record
 
-    def _compute_outcome_score(self, status: str, error: Optional[str], duration_ms: float) -> float:
+    def _compute_outcome_score(self, status: str, error: str | None, duration_ms: float) -> float:
         if status == "error":
             return 0.0
         if status == "skipped":
@@ -118,8 +118,7 @@ class ExecutionTracker:
 
     def _archive_to_memory(self, record: ExecutionRecord) -> None:
         try:
-            from core_engines.memory.decision_memory import get_decision_memory
-            from core_engines.memory.decision_memory import Decision
+            from core_engines.memory.decision_memory import Decision, get_decision_memory
             memory = get_decision_memory()
             decision = Decision(
                 id=f"exec-{record.action_id}-{int(record.timestamp)}",
@@ -138,17 +137,17 @@ class ExecutionTracker:
         except Exception as exc:
             logger.debug("Failed to archive execution to memory: %s", exc)
 
-    def get_recent(self, limit: int = 20) -> List[Dict[str, Any]]:
+    def get_recent(self, limit: int = 20) -> list[dict[str, Any]]:
         return [r.to_dict() for r in self._records[-limit:]]
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         return {
             "total_executions": len(self._records),
             "by_type": self._type_stats,
             "recent": self.get_recent(5),
         }
 
-    def get_type_stats(self, action_type: str) -> Dict[str, float]:
+    def get_type_stats(self, action_type: str) -> dict[str, float]:
         return self._type_stats.get(action_type, {
             "count": 0, "avg_score": 0.0, "avg_duration": 0.0,
             "errors": 0,
@@ -159,7 +158,7 @@ class ExecutionTracker:
         self._type_stats.clear()
 
 
-_TRACKER: Optional[ExecutionTracker] = None
+_TRACKER: ExecutionTracker | None = None
 
 
 def get_execution_tracker() -> ExecutionTracker:

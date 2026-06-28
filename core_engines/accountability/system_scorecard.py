@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger("rastro.accountability.scorecard")
 
@@ -26,12 +26,12 @@ class ScorecardMetrics:
     success_rate: float = 0.0
     avg_outcome_score: float = 0.0
     total_value_delivered: float = 0.0
-    by_type: Dict[str, Any] = field(default_factory=dict)
+    by_type: dict[str, Any] = field(default_factory=dict)
     system_health: str = "healthy"
     active_decisions: int = 0
     memory_usage: int = 0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "period_start": self.period_start,
             "period_end": self.period_end,
@@ -50,7 +50,7 @@ class SystemScorecard:
     """Aggregate scorecard of system performance and effectiveness."""
 
     def __init__(self) -> None:
-        self._history: List[ScorecardMetrics] = []
+        self._history: list[ScorecardMetrics] = []
 
     def generate(self) -> ScorecardMetrics:
         now = time.time()
@@ -65,7 +65,7 @@ class SystemScorecard:
             stats = tracker.get_stats()
             by_type = stats.get("by_type", {})
             metrics.total_actions = stats.get("total_executions", 0)
-            type_summary: Dict[str, Any] = {}
+            type_summary: dict[str, Any] = {}
             total_score = 0.0
             total_val = 0.0
             score_count = 0
@@ -83,7 +83,7 @@ class SystemScorecard:
             metrics.avg_outcome_score = total_score / score_count if score_count > 0 else 0.0
             metrics.total_value_delivered = total_val
         except Exception as exc:
-            logger.debug("Failed to collect execution stats: %s", exc)
+            logger.warning("Failed to collect execution stats: %s", exc)
 
         try:
             from core_engines.accountability.outcome_tracker import get_outcome_tracker
@@ -91,21 +91,21 @@ class SystemScorecard:
             summary = o_tracker.get_summary()
             metrics.success_rate = summary.get("success_rate", 0.5)
         except Exception as exc:
-            logger.debug("Failed to collect outcome stats: %s", exc)
+            logger.warning("Failed to collect outcome stats: %s", exc)
 
         try:
             from core_engines.intelligence.priority_engine import get_priority_engine
             engine = get_priority_engine()
             metrics.active_decisions = engine.count()
         except Exception as exc:
-            logger.debug("Failed to collect priority stats: %s", exc)
+            logger.warning("Failed to collect priority stats: %s", exc)
 
         try:
             from core_engines.memory.insight_archive import get_insight_archive
             archive = get_insight_archive()
             metrics.memory_usage = archive.total_count()
         except Exception as exc:
-            logger.debug("Failed to collect memory stats: %s", exc)
+            logger.warning("Failed to collect memory stats: %s", exc)
 
         metrics.system_health = self._compute_health(metrics)
         self._history.append(metrics)
@@ -123,15 +123,15 @@ class SystemScorecard:
             return "warning"
         return "healthy"
 
-    def get_latest(self) -> Optional[Dict[str, Any]]:
+    def get_latest(self) -> dict[str, Any] | None:
         if not self._history:
             return None
         return self._history[-1].to_dict()
 
-    def get_history(self, limit: int = 10) -> List[Dict[str, Any]]:
+    def get_history(self, limit: int = 10) -> list[dict[str, Any]]:
         return [m.to_dict() for m in self._history[-limit:]]
 
-    def get_trend(self) -> Dict[str, Any]:
+    def get_trend(self) -> dict[str, Any]:
         if len(self._history) < 2:
             return {"trend": "insufficient_data"}
         recent = self._history[-5:]
@@ -146,7 +146,7 @@ class SystemScorecard:
         }
 
 
-_SCORECARD: Optional[SystemScorecard] = None
+_SCORECARD: SystemScorecard | None = None
 
 
 def get_system_scorecard() -> SystemScorecard:

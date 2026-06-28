@@ -123,7 +123,7 @@ def assemble_package(dest: Path, include_portable: bool = True) -> Path:
             shutil.copy2(src, dst)
         files_added.append(dst_rel)
 
-    add(VERSION_FILE := ROOT / "VERSION", "VERSION")
+    add(ROOT / "VERSION", "VERSION")
     add(LINUX_SRC, "Linux")
     add(ANDROID_SRC, f"Android/{ANDROID_SRC.name}")
     if include_portable and PORTABLE_ZIP.exists():
@@ -286,7 +286,7 @@ def main() -> None:
     if verification["valid"]:
         print(f"  ZIP valid: {verification['entries']} entries, {fmt_size(verification['total_size'])}")
     else:
-        print(f"  ZIP issues found:")
+        print("  ZIP issues found:")
         for m in verification["missing"]:
             print(f"    - {m}")
 

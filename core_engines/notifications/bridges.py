@@ -3,15 +3,15 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict
+from typing import Any
 
 logger = logging.getLogger("rastro.notifications.bridges")
 
 
 def register_db_bridge() -> None:
     """Connect NotificationHub -> SQL database persistence."""
-    from core_engines.notifications.hub import get_hub
     from core_engines.notifications.db_bridge import persist_notification
+    from core_engines.notifications.hub import get_hub
 
     hub = get_hub()
     hub.register_db_bridge(persist_notification)
@@ -22,7 +22,7 @@ def register_desktop_channel() -> None:
     """Register the desktop notification handler on the hub."""
     from core_engines.notifications.hub import get_hub
 
-    def _desktop_handler(type_: str, payload: Dict[str, Any]) -> None:
+    def _desktop_handler(type_: str, payload: dict[str, Any]) -> None:
         try:
             from desktop.notifications import send_notification
             priority = payload.get("priority", "medium")
@@ -46,15 +46,15 @@ def register_desktop_channel() -> None:
 
 def register_email_channel() -> None:
     """Register the email notification handler on the hub."""
-    from core_engines.notifications.hub import get_hub
     from core_engines.notifications.email import get_email_adapter
+    from core_engines.notifications.hub import get_hub
 
     adapter = get_email_adapter()
     if not adapter.is_enabled:
         logger.info("Email channel skipped — not configured")
         return
 
-    def _email_handler(type_: str, payload: Dict[str, Any]) -> None:
+    def _email_handler(type_: str, payload: dict[str, Any]) -> None:
         ok = adapter.send(
             title=payload.get("title", ""),
             message=payload.get("message", ""),
@@ -73,15 +73,15 @@ def register_email_channel() -> None:
 
 def register_fcm_channel() -> None:
     """Register the FCM push notification handler on the hub."""
-    from core_engines.notifications.hub import get_hub
     from core_engines.notifications.fcm import get_fcm_adapter
+    from core_engines.notifications.hub import get_hub
 
     adapter = get_fcm_adapter()
     if not adapter.is_enabled:
         logger.info("FCM channel skipped — not configured")
         return
 
-    def _fcm_handler(type_: str, payload: Dict[str, Any]) -> None:
+    def _fcm_handler(type_: str, payload: dict[str, Any]) -> None:
         count = adapter.send(
             title=payload.get("title", ""),
             message=payload.get("message", ""),
@@ -167,7 +167,7 @@ def register_ws_forwarder() -> None:
                 loop,
             )
         except RuntimeError:
-            pass
+            logger.warning("Failed to forward notification via WS", exc_info=True)
 
     hub.add_listener(_forward)
     logger.info("WS forwarder registered on NotificationHub")

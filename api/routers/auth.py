@@ -1,11 +1,10 @@
-from typing import Optional
 
-from fastapi import APIRouter, Request, Query, Header
+from fastapi import APIRouter, Header, Query, Request
 
 from core_engines.auth.auth_manager import get_auth_manager
 from core_engines.auth.session_validator import get_session_validator
 from core_engines.gateway.rate_limit import get_rate_limiter
-from core_engines.gateway.schemas import ok, error
+from core_engines.gateway.schemas import error, ok
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 limiter = get_rate_limiter()
@@ -56,7 +55,7 @@ async def logout(request: Request):
 
 
 @router.get("/me")
-async def get_me(authorization: Optional[str] = Header(None)):
+async def get_me(authorization: str | None = Header(None)):
     if not authorization:
         return error("Authorization header required", version="1.0")
 

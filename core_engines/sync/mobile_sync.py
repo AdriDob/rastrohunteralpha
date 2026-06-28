@@ -11,11 +11,10 @@ No raw pipeline data, no full tables, no heavy joins.
 
 from __future__ import annotations
 
-import json
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger("rastro.sync.mobile")
 
@@ -46,9 +45,9 @@ CONTINUITY_KEYS = {
 class MobileSyncSnapshot:
     device_id: str
     timestamp: float = field(default_factory=time.time)
-    state: Dict[str, Any] = field(default_factory=dict)
+    state: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "device_id": self.device_id,
             "timestamp": self.timestamp,
@@ -60,11 +59,11 @@ class MobileSyncManager:
     """Thin sync manager for mobile state — delegates full device sync to SyncManager."""
 
     def __init__(self) -> None:
-        self._snapshots: Dict[str, MobileSyncSnapshot] = {}
-        self._merged: Dict[str, Any] = {}
+        self._snapshots: dict[str, MobileSyncSnapshot] = {}
+        self._merged: dict[str, Any] = {}
         self._last_cleanup = time.time()
 
-    def push(self, device_id: str, state: Dict[str, Any]) -> Dict[str, Any]:
+    def push(self, device_id: str, state: dict[str, Any]) -> dict[str, Any]:
         now = time.time()
         filtered = {k: v for k, v in state.items() if k in MOBILE_SYNC_KEYS}
         self._snapshots[device_id] = MobileSyncSnapshot(
@@ -77,7 +76,7 @@ class MobileSyncManager:
         self._cleanup()
         return self.pull(device_id)
 
-    def pull(self, device_id: str) -> Dict[str, Any]:
+    def pull(self, device_id: str) -> dict[str, Any]:
         device_state = self._snapshots.get(device_id)
         return {
             "global": {k: v.get("value") for k, v in self._merged.items()},
@@ -98,10 +97,10 @@ class MobileSyncManager:
             return a.state.get(key) if a else None
         return b.state.get(key) if b else None
 
-    def get_all_keys(self) -> Dict[str, Any]:
+    def get_all_keys(self) -> dict[str, Any]:
         return {k: v.get("value") for k, v in self._merged.items()}
 
-    def get_continuity_context(self, device_id: str) -> Dict[str, Any]:
+    def get_continuity_context(self, device_id: str) -> dict[str, Any]:
         context = {}
         for key in CONTINUITY_KEYS:
             entry = self._merged.get(key)
@@ -127,7 +126,7 @@ class MobileSyncManager:
         }
 
 
-_MOBILE_SYNC: Optional[MobileSyncManager] = None
+_MOBILE_SYNC: MobileSyncManager | None = None
 
 
 def get_mobile_sync() -> MobileSyncManager:

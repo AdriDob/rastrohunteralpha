@@ -1,7 +1,8 @@
 import logging
-from dataclasses import dataclass, field, asdict
+from collections import defaultdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
 from database.db import SessionLocal
 
@@ -20,7 +21,7 @@ class VulnerabilityTypeSummary:
     avg_validation_hours: float = 0.0
     acceptance_rate: float = 0.0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -37,7 +38,7 @@ class TargetEfficiency:
     endpoint_count: int = 0
     surface_count: int = 0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
@@ -51,18 +52,18 @@ class PlatformEfficiency:
     acceptance_rate: float = 0.0
     avg_days_to_report: float = 0.0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
 @dataclass
 class ExploitChain:
-    chain: List[str]
+    chain: list[str]
     frequency: int = 0
     avg_payout: float = 0.0
     success_rate: float = 0.0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {"chain": " → ".join(self.chain), "frequency": self.frequency,
                 "avg_payout": self.avg_payout, "success_rate": self.success_rate}
 
@@ -79,13 +80,13 @@ class HistoricalSummary:
     avg_payout_per_finding: float = 0.0
     avg_days_to_validate: float = 0.0
     avg_days_to_report: float = 0.0
-    top_vulnerability_types: List[VulnerabilityTypeSummary] = field(default_factory=list)
-    top_targets: List[TargetEfficiency] = field(default_factory=list)
-    top_platforms: List[PlatformEfficiency] = field(default_factory=list)
-    common_exploit_chains: List[ExploitChain] = field(default_factory=list)
+    top_vulnerability_types: list[VulnerabilityTypeSummary] = field(default_factory=list)
+    top_targets: list[TargetEfficiency] = field(default_factory=list)
+    top_platforms: list[PlatformEfficiency] = field(default_factory=list)
+    common_exploit_chains: list[ExploitChain] = field(default_factory=list)
     analyzed_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "total_investigations": self.total_investigations,
             "total_confirmed": self.total_confirmed,
@@ -110,7 +111,7 @@ def analyze_historical_data(
 ) -> HistoricalSummary:
     session = SessionLocal()
     try:
-        from database.models import Finding, Verdict, Evidence, Target
+        from database.models import Evidence, Finding, Target, Verdict
 
         all_findings = session.query(Finding).all()
         total_findings = len(all_findings)
@@ -141,7 +142,7 @@ def analyze_historical_data(
         from collections import Counter
         type_counter: Counter = Counter()
         type_confirmed: Counter = Counter()
-        type_payout: Dict[str, float] = {}
+        type_payout: dict[str, float] = {}
         for f in all_findings:
             vtype = f.title.split(":")[0] if ":" in f.title else f.title.split()[0] if f.title else "unknown"
             type_counter[vtype] += 1
@@ -164,7 +165,7 @@ def analyze_historical_data(
         # target analysis
         targets = session.query(Target).all()
         target_map = {t.id: t for t in targets}
-        target_findings: Dict[int, List[Finding]] = defaultdict(list)
+        target_findings: dict[int, list[Finding]] = defaultdict(list)
         for f in all_findings:
             target_findings[f.target_id].append(f)
 
@@ -218,14 +219,11 @@ def analyze_historical_data(
 
 
 def _severity_payout(severity: str) -> float:
-    SEVERITY_PAYOUT = {
+    severity_payout = {
         "critical": 5000.0,
         "high": 2000.0,
         "medium": 500.0,
         "low": 100.0,
         "info": 0.0,
     }
-    return SEVERITY_PAYOUT.get(severity, 0.0)
-
-
-from collections import defaultdict
+    return severity_payout.get(severity, 0.0)

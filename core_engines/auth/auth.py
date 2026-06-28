@@ -10,10 +10,10 @@ import hmac
 import json
 import os
 import time
-from typing import Any, Dict, Optional, Tuple
+from typing import Any
 
 # Secret key — auto-generated on first import, persisted to env variable
-_SECRET_KEY: Optional[str] = None
+_SECRET_KEY: str | None = None
 
 TOKEN_TTL = 86400       # 24 hours
 REFRESH_TTL = 2592000   # 30 days
@@ -34,7 +34,7 @@ def _sign(payload: str) -> str:
     return hmac.new(secret, payload.encode("utf-8"), hashlib.sha256).hexdigest()
 
 
-def create_token(data: Dict[str, Any], ttl: int = TOKEN_TTL) -> str:
+def create_token(data: dict[str, Any], ttl: int = TOKEN_TTL) -> str:
     """Create a signed token with the given data payload."""
     payload = {
         "data": data,
@@ -46,7 +46,7 @@ def create_token(data: Dict[str, Any], ttl: int = TOKEN_TTL) -> str:
     return f"{_b64(body)}.{sig}"
 
 
-def verify_token(token: str) -> Optional[Dict[str, Any]]:
+def verify_token(token: str) -> dict[str, Any] | None:
     """Verify and decode a token. Returns the data payload or None."""
     try:
         encoded_body, sig = token.split(".")
@@ -62,7 +62,7 @@ def verify_token(token: str) -> Optional[Dict[str, Any]]:
         return None
 
 
-def decode_token(token: str) -> Optional[Dict[str, Any]]:
+def decode_token(token: str) -> dict[str, Any] | None:
     """Decode a token without verifying signature (for reading only)."""
     try:
         encoded_body = token.split(".")[0]
@@ -71,7 +71,7 @@ def decode_token(token: str) -> Optional[Dict[str, Any]]:
         return None
 
 
-def create_session_token(user_id: str = "local", meta: Optional[Dict[str, Any]] = None) -> str:
+def create_session_token(user_id: str = "local", meta: dict[str, Any] | None = None) -> str:
     """Create a session token for a user/device."""
     data = {"sub": user_id, "meta": meta or {}}
     return create_token(data, ttl=TOKEN_TTL)
@@ -82,7 +82,7 @@ def create_refresh_token(user_id: str = "local") -> str:
     return create_token({"sub": user_id, "type": "refresh"}, ttl=REFRESH_TTL)
 
 
-def verify_session(token: str) -> Tuple[bool, Optional[Dict[str, Any]]]:
+def verify_session(token: str) -> tuple[bool, dict[str, Any] | None]:
     """Verify a session token. Returns (is_valid, payload)."""
     data = verify_token(token)
     if data is None:

@@ -8,15 +8,13 @@ Every component knows only its direct dependencies.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional, Set
-
-from core_engines.contracts import DependencyGraphProtocol
+from typing import Any
 
 LOG = logging.getLogger("rastro.intelligence.dependency_graph")
 
 # Canonical dependency chain
 # Each entry: (artifact_type, [list_of_dependencies])
-CANONICAL_ORDER: List[str] = [
+CANONICAL_ORDER: list[str] = [
     "PipelineArtifact",
     "AttackSurfaceArtifact",
     "ROIArtifact",
@@ -29,7 +27,7 @@ CANONICAL_ORDER: List[str] = [
     "AIInsightArtifact",
 ]
 
-CANONICAL_DEPENDENCIES: Dict[str, List[str]] = {
+CANONICAL_DEPENDENCIES: dict[str, list[str]] = {
     "PipelineArtifact": [],
     "AttackSurfaceArtifact": ["PipelineArtifact"],
     "ROIArtifact": ["PipelineArtifact", "AttackSurfaceArtifact"],
@@ -58,9 +56,9 @@ class DependencyGraph:
     """
 
     def __init__(self) -> None:
-        self._dependencies: Dict[str, List[str]] = {}
-        self._dependents: Dict[str, List[str]] = {}
-        self._order: List[str] = []
+        self._dependencies: dict[str, list[str]] = {}
+        self._dependents: dict[str, list[str]] = {}
+        self._order: list[str] = []
         self._initialize()
 
     def _initialize(self) -> None:
@@ -74,10 +72,10 @@ class DependencyGraph:
         self._order = list(CANONICAL_ORDER)
         self._validate()
 
-    def get_dependencies(self, artifact_type: str) -> List[str]:
+    def get_dependencies(self, artifact_type: str) -> list[str]:
         return list(self._dependencies.get(artifact_type, []))
 
-    def get_dependents(self, artifact_type: str) -> List[str]:
+    def get_dependents(self, artifact_type: str) -> list[str]:
         return list(self._dependents.get(artifact_type, []))
 
     def add_dependency(self, artifact_type: str, depends_on: str) -> None:
@@ -95,8 +93,8 @@ class DependencyGraph:
         return self._validate()
 
     def _validate(self) -> bool:
-        visited: Set[str] = set()
-        path: Set[str] = set()
+        visited: set[str] = set()
+        path: set[str] = set()
 
         def _dfs(node: str) -> bool:
             if node in path:
@@ -112,22 +110,19 @@ class DependencyGraph:
             path.remove(node)
             return True
 
-        for node in self._dependencies:
-            if not _dfs(node):
-                return False
-        return True
+        return all(_dfs(node) for node in self._dependencies)
 
-    def execution_order(self) -> List[str]:
+    def execution_order(self) -> list[str]:
         return list(self._order)
 
-    def affected_by(self, changed_artifact: str) -> List[str]:
+    def affected_by(self, changed_artifact: str) -> list[str]:
         """
         Returns all artifact types that are affected when changed_artifact is updated.
         Uses BFS through the dependency graph.
         """
-        affected: List[str] = []
+        affected: list[str] = []
         queue = [changed_artifact]
-        visited: Set[str] = {changed_artifact}
+        visited: set[str] = {changed_artifact}
         while queue:
             current = queue.pop(0)
             for dependent in self._dependents.get(current, []):
@@ -137,7 +132,7 @@ class DependencyGraph:
                     queue.append(dependent)
         return affected
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "dependencies": dict(self._dependencies),
             "dependents": dict(self._dependents),
@@ -146,8 +141,8 @@ class DependencyGraph:
         }
 
     @staticmethod
-    def validate_execution_order(order: List[str]) -> bool:
-        seen: Set[str] = set()
+    def validate_execution_order(order: list[str]) -> bool:
+        seen: set[str] = set()
         for artifact in order:
             deps = CANONICAL_DEPENDENCIES.get(artifact, [])
             for dep in deps:

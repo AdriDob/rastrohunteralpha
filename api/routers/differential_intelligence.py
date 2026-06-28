@@ -4,29 +4,25 @@ Differential Intelligence API — expose interesting differences and anomalies.
 
 from __future__ import annotations
 
-from dataclasses import asdict
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
-from core_engines.engine.snapshot import (
-    EndpointSnapshot,
-    HotPathSnapshot,
-    PipelineSnapshot,
-    ReportSnapshot,
-    TargetSnapshot,
-    VerdictSnapshot,
-    AttackSurfaceSnapshot,
-)
 from core_engines.differential_intelligence import DifferentialIntelligenceEngine
-from core_engines.evidence.graph import EvidenceGraph
+from core_engines.engine.snapshot import (
+    AttackSurfaceSnapshot,
+    EndpointSnapshot,
+    PipelineSnapshot,
+    TargetSnapshot,
+)
 from core_engines.engine.unified_scoring import score as unified_score
+from core_engines.evidence.graph import EvidenceGraph
 from database import db, models
 
 router = APIRouter(prefix="/api/differential-intelligence", tags=["differential_intelligence"])
 
 
-def _build_snapshot(target_id: Optional[int] = None) -> PipelineSnapshot:
+def _build_snapshot(target_id: int | None = None) -> PipelineSnapshot:
     """Build a PipelineSnapshot from database for differential analysis."""
     session = db.SessionLocal()
     try:
@@ -107,7 +103,7 @@ def _build_snapshot(target_id: Optional[int] = None) -> PipelineSnapshot:
         session.close()
 
 
-def _finding_to_dict(f) -> Dict[str, Any]:
+def _finding_to_dict(f) -> dict[str, Any]:
     return {
         "title": f.title,
         "category": f.category,
@@ -124,7 +120,7 @@ def _finding_to_dict(f) -> Dict[str, Any]:
     }
 
 
-def _bundle_to_dict(bundle) -> Dict[str, Any]:
+def _bundle_to_dict(bundle) -> dict[str, Any]:
     return {
         "target_differences": [_finding_to_dict(f) for f in bundle.target_differences],
         "endpoint_differences": [_finding_to_dict(f) for f in bundle.endpoint_differences],
@@ -138,7 +134,7 @@ def _bundle_to_dict(bundle) -> Dict[str, Any]:
 
 
 @router.get("/analyze")
-def analyze_target(target_id: Optional[int] = None):
+def analyze_target(target_id: int | None = None):
     """Run differential intelligence analysis for a target."""
     snapshot = _build_snapshot(target_id)
     evidence_graph = EvidenceGraph()
@@ -151,7 +147,7 @@ def analyze_target(target_id: Optional[int] = None):
 
 
 @router.get("/analyze/endpoints")
-def analyze_endpoints(target_id: Optional[int] = None):
+def analyze_endpoints(target_id: int | None = None):
     """Analyze endpoint-level differences for a target."""
     snapshot = _build_snapshot(target_id)
     evidence_graph = EvidenceGraph()
@@ -168,7 +164,7 @@ def analyze_endpoints(target_id: Optional[int] = None):
 
 
 @router.get("/analyze/web3")
-def analyze_web3(target_id: Optional[int] = None):
+def analyze_web3(target_id: int | None = None):
     """Analyze Web3-specific differences for a target."""
     snapshot = _build_snapshot(target_id)
     evidence_graph = EvidenceGraph()

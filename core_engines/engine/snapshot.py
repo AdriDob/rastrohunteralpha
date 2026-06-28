@@ -6,7 +6,7 @@ No recomputation of scores or classification is allowed downstream.
 """
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -15,9 +15,9 @@ class EndpointSnapshot:
     method: str
     risk_score: float
     confidence: float
-    labels: List[str] = field(default_factory=list)
-    attack_surface: List[str] = field(default_factory=list)
-    signals: List[str] = field(default_factory=list)
+    labels: list[str] = field(default_factory=list)
+    attack_surface: list[str] = field(default_factory=list)
+    signals: list[str] = field(default_factory=list)
     vector: str = ""
     actionable: bool = False
     potential_idor: bool = False
@@ -30,7 +30,7 @@ class HotPathSnapshot:
     method: str
     risk_score: float
     vector: str
-    cluster_type: Optional[str] = None
+    cluster_type: str | None = None
 
 
 @dataclass(frozen=True)
@@ -55,22 +55,22 @@ class NoiseReductionSnapshot:
     discarded_count: int
     clean_count: int
     noise_ratio: float
-    reasoning: Dict[str, List[str]] = field(default_factory=dict)
+    reasoning: dict[str, list[str]] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
 class AttackSurfaceSnapshot:
-    idor_clusters: List[Dict[str, Any]] = field(default_factory=list)
-    auth_boundaries: List[Dict[str, Any]] = field(default_factory=list)
-    multi_tenant_zones: List[Dict[str, Any]] = field(default_factory=list)
-    graphql_surfaces: List[Dict[str, Any]] = field(default_factory=list)
+    idor_clusters: list[dict[str, Any]] = field(default_factory=list)
+    auth_boundaries: list[dict[str, Any]] = field(default_factory=list)
+    multi_tenant_zones: list[dict[str, Any]] = field(default_factory=list)
+    graphql_surfaces: list[dict[str, Any]] = field(default_factory=list)
 
 
 @dataclass(frozen=True)
 class TargetSnapshot:
     target_id: int
     name: str
-    domain: Optional[str] = None
+    domain: str | None = None
     endpoint_count: int = 0
     risk_score: float = 0.0
 
@@ -84,19 +84,19 @@ class PipelineSnapshot:
     consumers should read. No recomputation allowed.
     """
     status: str
-    target: Optional[TargetSnapshot] = None
-    endpoints: List[EndpointSnapshot] = field(default_factory=list)
-    hot_paths: List[HotPathSnapshot] = field(default_factory=list)
-    verdicts: List[VerdictSnapshot] = field(default_factory=list)
-    reports: List[ReportSnapshot] = field(default_factory=list)
-    noise_reduction: Optional[NoiseReductionSnapshot] = None
-    attack_surface: Optional[AttackSurfaceSnapshot] = None
+    target: TargetSnapshot | None = None
+    endpoints: list[EndpointSnapshot] = field(default_factory=list)
+    hot_paths: list[HotPathSnapshot] = field(default_factory=list)
+    verdicts: list[VerdictSnapshot] = field(default_factory=list)
+    reports: list[ReportSnapshot] = field(default_factory=list)
+    noise_reduction: NoiseReductionSnapshot | None = None
+    attack_surface: AttackSurfaceSnapshot | None = None
     coverage_score: float = 0.0
-    timestamp: Optional[str] = None
+    timestamp: str | None = None
     summary: str = ""
 
 
-def from_pipeline_output(pipeline_result: Dict[str, Any], target_info: Optional[Dict[str, Any]] = None) -> PipelineSnapshot:
+def from_pipeline_output(pipeline_result: dict[str, Any], target_info: dict[str, Any] | None = None) -> PipelineSnapshot:
     endpoints = [
         EndpointSnapshot(
             path=ep.get("path", "/"),

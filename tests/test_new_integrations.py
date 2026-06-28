@@ -1,11 +1,7 @@
 """Tests for new integrations: gau, ffuf, SecLists, Burp, ZAP, correlation, hypothesis."""
 
 import json
-import xml.etree.ElementTree as ET
 from pathlib import Path
-
-import pytest
-
 
 # ─── SecLists Profiles ───────────────────────────────────────────────────────
 
@@ -133,7 +129,7 @@ class TestGauRunner:
 
     def test_gau_timeout_output(self, tmp_path):
         from core_engines.recon.gau_runner import GauRunner
-        runner = GauRunner(tmp_path)
+        GauRunner(tmp_path)
         # Simulate a timeout by writing the timeout marker
         timeout_file = tmp_path / "gau_timeout.txt"
         timeout_file.write_text("GAU TIMED OUT")
@@ -292,7 +288,9 @@ class TestZapImport:
 
     def test_filter_high_risk(self, tmp_path):
         from core_engines.recon.zap_import import (
-            ZapSite, ZapAlert, filter_high_risk,
+            ZapAlert,
+            ZapSite,
+            filter_high_risk,
         )
         site = ZapSite(name="example.com")
         site.alerts = [
@@ -338,7 +336,8 @@ class TestBountyIntelligence:
 
     def test_bounty_intel_summary_generation(self):
         from core_engines.intelligence.bounty_intel import (
-            BountyIntelReport, ProgramMetrics,
+            BountyIntelReport,
+            ProgramMetrics,
         )
         report = BountyIntelReport(generated_at="2025-01-01")
         report.total_programs = 50
@@ -479,7 +478,9 @@ class TestRewardLearning:
 
     def test_reward_learning_dataclasses(self):
         from core_engines.intelligence.reward_learning import (
-            VulnTypeStats, ProgramRewardMetrics, RewardLearningReport,
+            ProgramRewardMetrics,
+            RewardLearningReport,
+            VulnTypeStats,
         )
         v = VulnTypeStats(vulnerability_type="idor")
         assert v.vulnerability_type == "idor"

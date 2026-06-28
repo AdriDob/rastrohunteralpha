@@ -1,7 +1,12 @@
+import logging
 import re
-from typing import Any, Dict, Iterable, List
+from collections.abc import Iterable
+from typing import Any
 
-from core_engines.engine.unified_scoring import score as unified_score, generate_suggestions as unified_suggestions
+logger = logging.getLogger("rastro.attack.engine")
+
+from core_engines.engine.unified_scoring import generate_suggestions as unified_suggestions
+from core_engines.engine.unified_scoring import score as unified_score
 
 OBJECT_REFERENCE_TOKENS = [
     "user_id",
@@ -71,34 +76,29 @@ PATH_PARAM_PATTERN = re.compile(r"\{?[A-Za-z0-9_]+\}?")
 
 class AttackDecisionEngine:
     def __init__(self):
-        pass
+        logger.debug("AttackDecisionEngine initialized")
 
     def is_low_value(self, path: str) -> bool:
         lower = path.lower()
-        for pattern in LOW_VALUE_PATTERNS:
-            if re.search(pattern, lower):
-                return True
-        return False
+        return any(re.search(pattern, lower) for pattern in LOW_VALUE_PATTERNS)
 
-    def detect_object_reference(self, path: str, params: Dict[str, Any]) -> bool:
+    def detect_object_reference(self, path: str, params: dict[str, Any]) -> bool:
         if ID_PATTERN.search(path):
             return True
-        for key in params.keys():
+        for key in params:
             if any(token == key.lower() or token in key.lower() for token in OBJECT_REFERENCE_TOKENS):
                 return True
         return False
 
-    def detect_ownership_risk(self, path: str, params: Dict[str, Any]) -> bool:
+    def detect_ownership_risk(self, path: str, params: dict[str, Any]) -> bool:
         candidate = any(token in path.lower() for token in OWNERSHIP_HINTS)
-        if candidate and self.detect_object_reference(path, params):
-            return True
-        return False
+        return bool(candidate and self.detect_object_reference(path, params))
 
-    def detect_sensitive(self, path: str, params: Dict[str, Any]) -> bool:
+    def detect_sensitive(self, path: str, params: dict[str, Any]) -> bool:
         lower = path.lower()
         return any(token in lower for token in SENSITIVE_PATHS) or "graphql" in lower
 
-    def rank_attack_vector(self, path: str, params: Dict[str, Any]) -> str:
+    def rank_attack_vector(self, path: str, params: dict[str, Any]) -> str:
         lower = path.lower()
         if self.detect_ownership_risk(path, params):
             return "IDOR"
@@ -112,7 +112,7 @@ class AttackDecisionEngine:
             return "Privilege escalation"
         return "Business logic"
 
-    def normalize_params(self, params: Any) -> Dict[str, Any]:
+    def normalize_params(self, params: Any) -> dict[str, Any]:
         if isinstance(params, dict):
             return params
         if isinstance(params, str):
@@ -123,10 +123,10 @@ class AttackDecisionEngine:
                 if isinstance(parsed, dict):
                     return parsed
             except Exception:
-                pass
+                logger.warning("Failed to normalize query params via ast.literal_eval", exc_info=True)
         return {}
 
-    def score_endpoint(self, path: str, method: str, params: Any) -> Dict[str, Any]:
+    def score_endpoint(self, path: str, method: str, params: Any) -> dict[str, Any]:
         params = self.normalize_params(params)
         if self.is_low_value(path):
             return {
@@ -148,7 +148,7 @@ class AttackDecisionEngine:
 
         sc = us["risk_score"]
 
-        reasons: List[str] = []
+        reasons: list[str] = []
         if graphql:
             reasons.append("GraphQL expone lógica compleja y potencial cantidad variable de data.")
         if object_ref:
@@ -182,9 +182,9 @@ class AttackDecisionEngine:
             "actionable": us["actionable"],
         }
 
-    def evaluate_endpoints(self, endpoints: Iterable[Dict[str, Any]]) -> Dict[str, Any]:
-        entries: List[Dict[str, Any]] = []
-        by_vector: Dict[str, List[Dict[str, Any]]] = {}
+    def evaluate_endpoints(self, endpoints: Iterable[dict[str, Any]]) -> dict[str, Any]:
+        entries: list[dict[str, Any]] = []
+        by_vector: dict[str, list[dict[str, Any]]] = {}
 
         for ep in endpoints:
             path = ep.get("path", "")
@@ -217,7 +217,7 @@ class AttackDecisionEngine:
             for vector, items in by_vector.items()
         ]
 
-        suggested_manual_tests: List[str] = []
+        suggested_manual_tests: list[str] = []
         for item in top:
             suggested_manual_tests.extend([
                 f"[{item['vector']}] {item['path']} -> {suggestion}" for suggestion in item["suggestions"]

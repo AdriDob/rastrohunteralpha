@@ -13,15 +13,15 @@ returns the canonical shape:
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 def wrap_paginated(
-    items: List[Any],
+    items: list[Any],
     total: int,
     skip: int = 0,
     limit: int = 100,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Wrap items into the canonical paginated response shape."""
     return {
         "items": items,
@@ -34,9 +34,9 @@ def wrap_paginated(
 
 
 def wrap_list(
-    items: List[Any],
-    total: Optional[int] = None,
-) -> Dict[str, Any]:
+    items: list[Any],
+    total: int | None = None,
+) -> dict[str, Any]:
     """Wrap a non-paginated list into canonical shape."""
     return {
         "items": items,
@@ -50,12 +50,12 @@ def wrap_list(
 
 def wrap_single(
     item: Any,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Wrap a single item into canonical shape (list of one)."""
     return wrap_paginated([item], 1, 0, 1)
 
 
-def unwrap_items(data: Dict[str, Any]) -> List[Any]:
+def unwrap_items(data: dict[str, Any]) -> list[Any]:
     """Safely extract items list from any response shape.
 
     Handles both old {items, total, skip, limit} and
@@ -69,7 +69,7 @@ def unwrap_items(data: Dict[str, Any]) -> List[Any]:
     return []
 
 
-def unwrap_meta(data: Dict[str, Any]) -> Dict[str, int]:
+def unwrap_meta(data: dict[str, Any]) -> dict[str, int]:
     """Safely extract meta from any response shape."""
     if not isinstance(data, dict):
         return {"total": 0, "skip": 0, "limit": 0}

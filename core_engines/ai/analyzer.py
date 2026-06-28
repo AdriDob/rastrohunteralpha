@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any
 
 from core_engines.engine.unified_classifier import classify as unified_classify
 
@@ -15,7 +15,7 @@ class AIAnalyzer:
         self,
         path: str,
         method: str,
-        params: Optional[dict[str, Any]] = None,
+        params: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         classification = unified_classify(path, method, params or {})
         return {

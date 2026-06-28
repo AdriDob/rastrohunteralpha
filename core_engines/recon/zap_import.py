@@ -3,7 +3,6 @@ import logging
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
 
 LOG = logging.getLogger("rastro.recon.zap")
 
@@ -27,13 +26,13 @@ class ZapAlert:
 @dataclass
 class ZapSite:
     name: str
-    urls: List[str] = field(default_factory=list)
-    alerts: List[ZapAlert] = field(default_factory=list)
+    urls: list[str] = field(default_factory=list)
+    alerts: list[ZapAlert] = field(default_factory=list)
 
 
-def parse_zap_xml(path: Path) -> List[ZapSite]:
+def parse_zap_xml(path: Path) -> list[ZapSite]:
     """Parse OWASP ZAP XML report into structured alerts."""
-    sites_map: Dict[str, ZapSite] = {}
+    sites_map: dict[str, ZapSite] = {}
 
     try:
         tree = ET.parse(path)
@@ -42,7 +41,6 @@ def parse_zap_xml(path: Path) -> List[ZapSite]:
         LOG.error("Failed to parse ZAP XML %s: %s", path, e)
         return []
 
-    ns = {"zap": "http://www.zap.com"}
 
     for alertitem in root.iter("alertitem"):
         try:
@@ -118,10 +116,9 @@ def parse_zap_xml(path: Path) -> List[ZapSite]:
     return sites
 
 
-def parse_zap_json(path: Path) -> List[ZapSite]:
+def parse_zap_json(path: Path) -> list[ZapSite]:
     """Parse OWASP ZAP JSON report."""
-    sites_map: Dict[str, ZapSite] = {}
-    from urllib.parse import urlparse
+    sites_map: dict[str, ZapSite] = {}
 
     try:
         data = json.loads(path.read_text())
@@ -169,7 +166,7 @@ def parse_zap_json(path: Path) -> List[ZapSite]:
     return sites
 
 
-def import_zap(path: Path) -> List[ZapSite]:
+def import_zap(path: Path) -> list[ZapSite]:
     """Auto-detect format and import OWASP ZAP report."""
     if not path.exists():
         LOG.error("ZAP import file not found: %s", path)
@@ -191,7 +188,7 @@ def risk_score(risk: str) -> int:
     return mapping.get(risk.lower(), 0)
 
 
-def filter_high_risk(sites: List[ZapSite], min_risk: str = "medium") -> List[ZapSite]:
+def filter_high_risk(sites: list[ZapSite], min_risk: str = "medium") -> list[ZapSite]:
     """Filter alerts by minimum risk level."""
     min_score = risk_score(min_risk)
     filtered = []

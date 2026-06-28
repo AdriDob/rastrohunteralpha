@@ -7,13 +7,13 @@ expected frontend schemas and actual backend responses.
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 logger = logging.getLogger("rastro.contracts.validator")
 
 # ── Expected field sets for each contract ─────────────────────────────
 
-EXPECTED_FIELDS: Dict[str, Set[str]] = {
+EXPECTED_FIELDS: dict[str, set[str]] = {
     "target": {
         "id", "name", "domain", "payout", "score", "risk",
         "roi", "endpoints", "findings", "confirmedFindings",
@@ -41,9 +41,9 @@ EXPECTED_FIELDS: Dict[str, Set[str]] = {
 
 def validate_contract(
     contract_name: str,
-    data: Dict[str, Any],
+    data: dict[str, Any],
     strict: bool = False,
-) -> Tuple[bool, List[str]]:
+) -> tuple[bool, list[str]]:
     """Validate a dict against the expected contract.
 
     Returns (is_valid, list_of_issues).
@@ -54,7 +54,7 @@ def validate_contract(
     if expected is None:
         return False, [f"Unknown contract: {contract_name}"]
 
-    issues: List[str] = []
+    issues: list[str] = []
     actual_keys = set(data.keys())
 
     # Missing fields
@@ -78,18 +78,17 @@ def validate_contract(
     return is_valid, issues
 
 
-def _check_type(field: str, data: Dict, expected_type, issues: List[str]) -> None:
-    if field in data and data[field] is not None:
-        if not isinstance(data[field], expected_type):
-            issues.append(
-                f"Type mismatch for '{field}': expected {expected_type.__name__}, "
-                f"got {type(data[field]).__name__} ({data[field]!r})"
-            )
+def _check_type(field: str, data: dict, expected_type, issues: list[str]) -> None:
+    if field in data and data[field] is not None and not isinstance(data[field], expected_type):
+        issues.append(
+            f"Type mismatch for '{field}': expected {expected_type.__name__}, "
+            f"got {type(data[field]).__name__} ({data[field]!r})"
+        )
 
 
 def assert_contract_compliance(
     contract_name: str,
-    data: Dict[str, Any],
+    data: dict[str, Any],
     logger_instance=None,
 ) -> bool:
     """Check contract compliance, log warnings, return True if compliant."""
@@ -102,9 +101,9 @@ def assert_contract_compliance(
 
 
 def validate_paginated_response(
-    data: Dict[str, Any],
+    data: dict[str, Any],
     contract_name: str,
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     """Validate a paginated response.
 
     Returns a dict with:
@@ -127,8 +126,8 @@ def validate_paginated_response(
     expected = EXPECTED_FIELDS.get(contract_name, set())
     total = len(items)
     valid = 0
-    field_hits: Dict[str, int] = {f: 0 for f in expected}
-    all_issues: List[str] = []
+    field_hits: dict[str, int] = {f: 0 for f in expected}
+    all_issues: list[str] = []
 
     for i, item in enumerate(items):
         if not isinstance(item, dict):
@@ -157,7 +156,7 @@ def validate_paginated_response(
     }
 
 
-def build_debug_report() -> Dict[str, Any]:
+def build_debug_report() -> dict[str, Any]:
     """Build a full debug report showing expected schemas and current state."""
     return {
         "contracts": {

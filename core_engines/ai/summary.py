@@ -6,15 +6,15 @@ Used for daily digests, system status reports, and quick overviews.
 
 from __future__ import annotations
 
-from typing import Any, Dict
+from typing import Any
 
 from core_engines.ai.context_builder import build_full_context
 from core_engines.ai.insights import generate_insights, get_top_insight
-from core_engines.ai.recommendations import get_best_recommendation
 from core_engines.ai.provider import get_provider
+from core_engines.ai.recommendations import get_best_recommendation
 
 
-def daily_summary() -> Dict[str, Any]:
+def daily_summary() -> dict[str, Any]:
     ctx = build_full_context()
     insights = generate_insights()
     rec = get_best_recommendation()
@@ -94,7 +94,7 @@ def daily_summary() -> Dict[str, Any]:
     }
 
 
-def system_status() -> Dict[str, Any]:
+def system_status() -> dict[str, Any]:
     ctx = build_full_context()
     return {
         "system": ctx.get("health", {}),

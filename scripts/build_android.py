@@ -156,10 +156,10 @@ def main() -> None:
     apk = _build_apk(release=args.release, clean=args.clean)
     dest = _copy_artifact(apk, release=args.release)
 
-    print(f"\n=== Build complete ===")
+    print("\n=== Build complete ===")
     print(f"  APK: {dest}")
     if args.release:
-        print(f"  Ready for distribution")
+        print("  Ready for distribution")
     else:
         print(f"  Install on device: adb install {dest}")
 

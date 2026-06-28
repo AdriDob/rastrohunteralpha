@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, HTTPException
 
-from api.schemas.models import ROIDetailOut, TargetROIOut
+from api.schemas.models import TargetROIOut
 from api.services.data_service import _get_session, _score_endpoint
-from database import models
 from core_engines.engine.hypothesis import HypothesisEngine
-from core_engines.engine.hypothesis.models import Hypothesis, HypothesisScore, VulnerabilityType
+from database import models
 
 router = APIRouter(prefix="/api/roi", tags=["roi"])
 
@@ -17,7 +16,7 @@ def _build_roi_detail(
     hypothesis: Any,
     endpoint_path: str = "",
     endpoint_method: str = "GET",
-) -> Dict[str, Any]:
+) -> dict[str, Any]:
     score = hypothesis.score
     breakdown = dict(score.breakdown) if hasattr(score, "breakdown") else {}
     return {
@@ -89,7 +88,7 @@ def get_target_roi(target_id: int):
                 endpoint_method=ep.get("method", "GET") if ep else "GET",
             ))
 
-        profitable = [r for r in roi_details if r["is_profitable"]]
+        [r for r in roi_details if r["is_profitable"]]
         total_return = sum(r["expected_return"] for r in roi_details)
         total_cost = sum(r["expected_cost"] for r in roi_details)
         highest_payout = max((r["payout_estimate"] for r in roi_details), default=0.0)

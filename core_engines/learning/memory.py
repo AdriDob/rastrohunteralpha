@@ -6,7 +6,7 @@ without exposing sensitive information externally.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .profile import ProfileService, get_profile_service
 
@@ -14,10 +14,10 @@ from .profile import ProfileService, get_profile_service
 class MemoryBuilder:
     """Builds contextual prompts for the AI assistant."""
 
-    def __init__(self, profile_service: Optional[ProfileService] = None):
+    def __init__(self, profile_service: ProfileService | None = None):
         self._profile = profile_service or get_profile_service()
 
-    def build_context(self, user_id: str, target_context: Optional[Dict[str, Any]] = None) -> str:
+    def build_context(self, user_id: str, target_context: dict[str, Any] | None = None) -> str:
         """Build a context string for AI assistant prompts."""
         profile = self._profile.get(user_id)
         if not profile:
@@ -56,7 +56,7 @@ class MemoryBuilder:
         parts.append("[END PROFILE]")
         return "\n".join(parts)
 
-    def find_similar_findings(self, user_id: str, bug_class: str, limit: int = 3) -> List[Dict[str, Any]]:
+    def find_similar_findings(self, user_id: str, bug_class: str, limit: int = 3) -> list[dict[str, Any]]:
         """Find past successful findings similar to a given bug class."""
         profile = self._profile.get(user_id)
         if not profile:
@@ -72,7 +72,7 @@ class MemoryBuilder:
                 }]
         return []
 
-    def investigation_tip(self, user_id: str, target: Dict[str, Any]) -> Optional[str]:
+    def investigation_tip(self, user_id: str, target: dict[str, Any]) -> str | None:
         """Generate a personalised tip based on the target and profile."""
         profile = self._profile.get(user_id)
         if not profile or not profile.adaptive_mode:
@@ -94,7 +94,7 @@ class MemoryBuilder:
         return "Tip: " + ", ".join(reasons) + "."
 
 
-_memory_builder: Optional[MemoryBuilder] = None
+_memory_builder: MemoryBuilder | None = None
 
 
 def get_memory_builder() -> MemoryBuilder:

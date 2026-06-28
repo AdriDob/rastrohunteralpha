@@ -1,7 +1,7 @@
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
-def extract_endpoints(snapshot) -> List[Dict[str, Any]]:
+def extract_endpoints(snapshot) -> list[dict[str, Any]]:
     if snapshot is None:
         return []
     out = []
@@ -21,7 +21,7 @@ def extract_endpoints(snapshot) -> List[Dict[str, Any]]:
     return out
 
 
-def extract_hot_paths(snapshot, hot_paths: Optional[List] = None, investigation_graph=None) -> List[Dict[str, Any]]:
+def extract_hot_paths(snapshot, hot_paths: list | None = None, investigation_graph=None) -> list[dict[str, Any]]:
     out = []
     src = investigation_graph or hot_paths
     if src is not None:
@@ -48,8 +48,8 @@ def extract_hot_paths(snapshot, hot_paths: Optional[List] = None, investigation_
     return out
 
 
-def extract_verdict_map(snapshot, verdicts: Optional[List] = None, evidence_graph=None) -> Dict[str, Dict[str, Any]]:
-    vd_map: Dict[str, Dict[str, Any]] = {}
+def extract_verdict_map(snapshot, verdicts: list | None = None, evidence_graph=None) -> dict[str, dict[str, Any]]:
+    vd_map: dict[str, dict[str, Any]] = {}
 
     if verdicts:
         for v in verdicts:
@@ -88,8 +88,8 @@ def extract_verdict_map(snapshot, verdicts: Optional[List] = None, evidence_grap
     return vd_map
 
 
-def extract_surface(attack_surface, snapshot) -> Dict[str, List[Dict[str, Any]]]:
-    out: Dict[str, List[Dict[str, Any]]] = {
+def extract_surface(attack_surface, snapshot) -> dict[str, list[dict[str, Any]]]:
+    out: dict[str, list[dict[str, Any]]] = {
         "idor_clusters": [], "auth_boundaries": [],
         "multi_tenant_zones": [], "graphql_surfaces": [],
     }
@@ -106,10 +106,10 @@ def extract_surface(attack_surface, snapshot) -> Dict[str, List[Dict[str, Any]]]
     return out
 
 
-def extract_quick_wins(quick_wins) -> Dict[str, Any]:
+def extract_quick_wins(quick_wins) -> dict[str, Any]:
     if quick_wins is None:
         return {}
-    out: Dict[str, Any] = {
+    out: dict[str, Any] = {
         "top_quick_wins": [], "fast_exploit_paths": [],
         "low_effort_high_roi": [], "total_estimated_value": 0.0,
         "avg_quick_win_score": 0.0,

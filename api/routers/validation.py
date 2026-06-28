@@ -1,7 +1,6 @@
 from __future__ import annotations
 
-import json
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
@@ -10,7 +9,7 @@ router = APIRouter(prefix="/api/validation", tags=["validation"])
 
 
 class AuthContextModel(BaseModel):
-    token: Optional[str] = None
+    token: str | None = None
     label: str = "baseline"
 
 
@@ -20,26 +19,26 @@ class ValidateHotPathRequest(BaseModel):
     target_id: int
     url: str
     method: str = "GET"
-    headers: Optional[dict[str, str]] = None
-    params: Optional[dict[str, Any]] = None
-    body: Optional[str] = None
+    headers: dict[str, str] | None = None
+    params: dict[str, Any] | None = None
+    body: str | None = None
     # Legacy: raw token strings
-    auth_baseline_token: Optional[str] = None
+    auth_baseline_token: str | None = None
     auth_baseline_label: str = "baseline"
-    auth_probe_token: Optional[str] = None
+    auth_probe_token: str | None = None
     auth_probe_label: str = "probe"
     # Phase 2: identity-based auth (preferred)
-    identity_baseline_id: Optional[int] = None
-    identity_probe_id: Optional[int] = None
-    mutations: Optional[dict[str, Any]] = None
+    identity_baseline_id: int | None = None
+    identity_probe_id: int | None = None
+    mutations: dict[str, Any] | None = None
     min_attempts: int = 3
 
 
 def _resolve_auth(
-    identity_id: Optional[int],
-    raw_token: Optional[str],
+    identity_id: int | None,
+    raw_token: str | None,
     fallback_label: str,
-) -> Optional[dict]:
+) -> dict | None:
     """Resolve auth context from identity_id or raw token.
 
     Returns AuthContext-compatible dict or None.
@@ -57,14 +56,14 @@ def _resolve_auth(
 
 @router.post("/validate")
 def validate_and_report(request: ValidateHotPathRequest):
-    from database import db, models
+    import logging
+
+    from core_engines.pipeline.report_service import generate_and_save_report
+    from core_engines.validation.evidence_builder import EvidenceBuilder
     from core_engines.validation.loop_engine import ValidationLoopEngine
     from core_engines.validation.replayer import AuthContext, RequestSpec
     from core_engines.validation.verdict_handler import VerdictHandler
-    from core_engines.validation.evidence_builder import EvidenceBuilder
-    from core_engines.pipeline.report_service import generate_and_save_report
-
-    import logging
+    from database import db, models
     logger = logging.getLogger("rastro.api.validation")
 
     session = db.SessionLocal()
@@ -78,7 +77,7 @@ def validate_and_report(request: ValidateHotPathRequest):
             raise HTTPException(status_code=404, detail="Endpoint not found")
 
         validation_engine = ValidationLoopEngine()
-        request_spec = RequestSpec(
+        RequestSpec(
             url=request.url,
             method=request.method,
             headers=request.headers or {},
@@ -201,7 +200,7 @@ def validate_and_report(request: ValidateHotPathRequest):
         raise
     except Exception as e:
         logger.error(f"Validation failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Validation failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Validation failed: {str(e)}") from e
     finally:
         session.close()
 
@@ -209,7 +208,7 @@ def validate_and_report(request: ValidateHotPathRequest):
 class BatchValidateRequest(BaseModel):
     target_id: int
     identity_baseline_id: int
-    identity_probe_id: Optional[int] = None
+    identity_probe_id: int | None = None
     limit: int = 10
     min_risk_score: float = 25.0
 
@@ -221,15 +220,14 @@ def batch_validate(request: BatchValidateRequest):
     Uses the identity-based auth (Phase 2). Falls back to anonymous for probe.
     Only processes endpoints with risk_score >= min_risk_score.
     """
-    from database import db, models
-    from core_engines.validation.loop_engine import ValidationLoopEngine
-    from core_engines.validation.replayer import AuthContext, RequestSpec
-    from core_engines.validation.verdict_handler import VerdictHandler
-    from core_engines.validation.evidence_builder import EvidenceBuilder
-    from core_engines.target_auth.session_resolver import get_session_resolver
-    from core_engines.engine.unified_scoring import score as unified_score
-
     import logging
+
+    from core_engines.engine.unified_scoring import score as unified_score
+    from core_engines.target_auth.session_resolver import get_session_resolver
+    from core_engines.validation.loop_engine import ValidationLoopEngine
+    from core_engines.validation.replayer import AuthContext
+    from core_engines.validation.verdict_handler import VerdictHandler
+    from database import db, models
     logger = logging.getLogger("rastro.api.validation.batch")
     session_db = db.SessionLocal()
 
@@ -309,6 +307,6 @@ def batch_validate(request: BatchValidateRequest):
         raise
     except Exception as e:
         logger.error(f"Batch validation failed: {e}")
-        raise HTTPException(status_code=500, detail=f"Batch validation failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Batch validation failed: {str(e)}") from e
     finally:
         session_db.close()

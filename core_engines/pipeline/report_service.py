@@ -3,9 +3,9 @@ from __future__ import annotations
 import json
 import logging
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from sqlalchemy import desc, asc
+from sqlalchemy import asc, desc
 from sqlalchemy.orm import Session
 
 from core_engines.intelligence.reward_learning import RewardLearner
@@ -26,7 +26,7 @@ def generate_and_save_report(
     ctx: PipelineContext,
     verdict: Verdict,
     endpoint: Any,
-    findings_data: Optional[Dict[str, Any]] = None,
+    findings_data: dict[str, Any] | None = None,
 ) -> PipelineContext:
     from core_engines.reporting.reporting import ReportGenerator
 
@@ -64,7 +64,7 @@ def generate_and_save_report(
     return ctx
 
 
-def _report_to_dict(r: models.Report) -> Dict[str, Any]:
+def _report_to_dict(r: models.Report) -> dict[str, Any]:
     content = json.loads(r.content) if r.content else {}
     return {
         "id": r.id,
@@ -92,9 +92,9 @@ def _report_to_dict(r: models.Report) -> Dict[str, Any]:
 
 def create_report_from_findings(
     session: Session,
-    finding_ids: List[int],
-    extra: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
+    finding_ids: list[int],
+    extra: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     findings = session.query(models.Finding).filter(models.Finding.id.in_(finding_ids)).all()
     if not findings:
         raise ValueError("No findings found for the given IDs")
@@ -152,7 +152,7 @@ def create_report_from_findings(
     return _report_to_dict(db_report)
 
 
-def get_report(session: Session, report_id: int) -> Optional[Dict[str, Any]]:
+def get_report(session: Session, report_id: int) -> dict[str, Any] | None:
     db_report = session.query(models.Report).filter(models.Report.id == report_id).first()
     if not db_report:
         return None
@@ -163,13 +163,13 @@ def list_reports(
     session: Session,
     limit: int = 20,
     offset: int = 0,
-    status_filter: Optional[str] = None,
-    search: Optional[str] = None,
+    status_filter: str | None = None,
+    search: str | None = None,
     sort_by: str = "created_at",
     sort_order: str = "desc",
-    date_from: Optional[str] = None,
-    date_to: Optional[str] = None,
-) -> tuple[List[Dict[str, Any]], int]:
+    date_from: str | None = None,
+    date_to: str | None = None,
+) -> tuple[list[dict[str, Any]], int]:
     query = session.query(models.Report)
 
     if status_filter and status_filter != "all":
@@ -189,14 +189,14 @@ def list_reports(
             dt = datetime.fromisoformat(date_from)
             query = query.filter(models.Report.created_at >= dt)
         except (ValueError, TypeError):
-            pass
+            logger.warning("Failed to parse date_from filter", exc_info=True)
 
     if date_to:
         try:
             dt = datetime.fromisoformat(date_to)
             query = query.filter(models.Report.created_at <= dt)
         except (ValueError, TypeError):
-            pass
+            logger.warning("Failed to parse date_to filter", exc_info=True)
 
     total = query.count()
 
@@ -217,8 +217,8 @@ def list_reports(
 def update_report(
     session: Session,
     report_id: int,
-    updates: Dict[str, Any],
-) -> Optional[Dict[str, Any]]:
+    updates: dict[str, Any],
+) -> dict[str, Any] | None:
     db_report = session.query(models.Report).filter(models.Report.id == report_id).first()
     if not db_report:
         return None
@@ -256,9 +256,9 @@ def update_report(
     return _report_to_dict(db_report)
 
 
-def report_stats(session: Session) -> Dict[str, Any]:
+def report_stats(session: Session) -> dict[str, Any]:
     total = session.query(models.Report).count()
-    status_counts: Dict[str, int] = {}
+    status_counts: dict[str, int] = {}
     for s in REPORT_STATUSES:
         status_counts[s] = session.query(models.Report).filter(models.Report.status == s).count()
 

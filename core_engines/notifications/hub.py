@@ -21,13 +21,13 @@ Features:
 
 from __future__ import annotations
 
-import json
 import logging
 import threading
 import time
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any
 
 logger = logging.getLogger("rastro.notifications.hub")
 
@@ -49,7 +49,7 @@ class Priority(Enum):
     CRITICAL = "critical"
 
 
-ChannelHandler = Callable[[str, Dict[str, Any]], None]
+ChannelHandler = Callable[[str, dict[str, Any]], None]
 
 
 @dataclass
@@ -62,10 +62,10 @@ class Notification:
     severity: str = "info"
     priority: str = "medium"
     timestamp: float = field(default_factory=time.time)
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    channels: List[str] = field(default_factory=lambda: ["web"])
-    dedup_key: Optional[str] = None
-    db_id: Optional[int] = None  # set after persistence
+    metadata: dict[str, Any] = field(default_factory=dict)
+    channels: list[str] = field(default_factory=lambda: ["web"])
+    dedup_key: str | None = None
+    db_id: int | None = None  # set after persistence
 
 
 class NotificationHub:
@@ -73,20 +73,20 @@ class NotificationHub:
 
     def __init__(self) -> None:
         self._lock = threading.Lock()
-        self._channels: Dict[str, List[ChannelHandler]] = {
+        self._channels: dict[str, list[ChannelHandler]] = {
             "desktop": [],
             "web": [],
             "mobile": [],
         }
-        self._history: List[Notification] = []
+        self._history: list[Notification] = []
         self._max_history = 200
         self._digest_mode: bool = False
-        self._digest_buffer: List[Notification] = []
-        self._dedup_tracker: Dict[Tuple[str, Optional[str]], float] = {}
+        self._digest_buffer: list[Notification] = []
+        self._dedup_tracker: dict[tuple[str, str | None], float] = {}
         self._dedup_window: float = DEDUP_WINDOW
         self._dedup_max_entries = 10000
-        self._db_bridge: Optional[Callable[[Notification], None]] = None
-        self._listeners: List[Callable[[Notification], None]] = []
+        self._db_bridge: Callable[[Notification], None] | None = None
+        self._listeners: list[Callable[[Notification], None]] = []
 
     def set_digest_mode(self, enabled: bool) -> None:
         """Toggle digest mode. When on, notifications are batched instead of routed live."""
@@ -141,7 +141,7 @@ class NotificationHub:
             self._dedup_tracker[key] = now
         return False
 
-    def send(self, notif: Notification) -> Optional[Notification]:
+    def send(self, notif: Notification) -> Notification | None:
         """Route a notification to all its target channels.
         Returns the notification if sent, None if deduplicated.
         """
@@ -198,7 +198,7 @@ class NotificationHub:
                 except Exception as exc:
                     logger.warning("Notification handler error on %s: %s", channel, exc)
 
-    def flush_digest(self) -> List[Dict[str, Any]]:
+    def flush_digest(self) -> list[dict[str, Any]]:
         """Flush buffered notifications and return a digest summary."""
         with self._lock:
             if not self._digest_buffer:
@@ -206,7 +206,7 @@ class NotificationHub:
             buffer = self._digest_buffer[:]
             self._digest_buffer.clear()
 
-        groups: Dict[str, List[Notification]] = {}
+        groups: dict[str, list[Notification]] = {}
         for n in buffer:
             groups.setdefault(n.type, []).append(n)
 
@@ -236,10 +236,10 @@ class NotificationHub:
         message: str,
         severity: str = "info",
         priority: str = "medium",
-        channels: Optional[List[str]] = None,
-        metadata: Optional[Dict[str, Any]] = None,
-        dedup_key: Optional[str] = None,
-    ) -> Optional[Notification]:
+        channels: list[str] | None = None,
+        metadata: dict[str, Any] | None = None,
+        dedup_key: str | None = None,
+    ) -> Notification | None:
         """Convenience: create and send a notification in one call."""
         notif = Notification(
             id=f"{type_}-{int(time.time() * 1000)}",
@@ -254,11 +254,11 @@ class NotificationHub:
         )
         return self.send(notif)
 
-    def get_history(self, limit: int = 50) -> List[Notification]:
+    def get_history(self, limit: int = 50) -> list[Notification]:
         with self._lock:
             return self._history[-limit:]
 
-    def get_history_by_type(self, type_: str, limit: int = 20) -> List[Notification]:
+    def get_history_by_type(self, type_: str, limit: int = 20) -> list[Notification]:
         with self._lock:
             return [n for n in self._history if n.type == type_][-limit:]
 
@@ -271,7 +271,7 @@ class NotificationHub:
             return len(self._digest_buffer)
 
 
-_HUB: Optional[NotificationHub] = None
+_HUB: NotificationHub | None = None
 
 
 def get_hub() -> NotificationHub:

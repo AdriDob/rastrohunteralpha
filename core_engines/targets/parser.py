@@ -1,11 +1,13 @@
+import logging
 import re
-from typing import List, Dict
 from urllib.parse import urlparse
+
+logger = logging.getLogger("rastro.targets.parser")
 
 DOMAIN_RE = re.compile(r"(?:\*\.)?([A-Za-z0-9.-]+\.[A-Za-z]{2,})")
 
 
-def extract_domains_from_scope(scope: str) -> List[str]:
+def extract_domains_from_scope(scope: str) -> list[str]:
     domains = []
     # try url parse
     try:
@@ -14,7 +16,7 @@ def extract_domains_from_scope(scope: str) -> List[str]:
         if host:
             domains.append(host.lower())
     except Exception:
-        pass
+        logger.warning("Failed to parse scope as URL", exc_info=True)
 
     # fallback regex
     for m in DOMAIN_RE.finditer(scope):
@@ -39,7 +41,7 @@ def is_graphql_scope(scope: str) -> bool:
     return "graphql" in s or "gql" in s
 
 
-def parse_scope(scope_text: str) -> Dict:
+def parse_scope(scope_text: str) -> dict:
     domains = extract_domains_from_scope(scope_text)
     return {
         "scope_text": scope_text,
@@ -50,5 +52,5 @@ def parse_scope(scope_text: str) -> Dict:
     }
 
 
-def parse_program_scopes(scopes: List[str]) -> List[Dict]:
+def parse_program_scopes(scopes: list[str]) -> list[dict]:
     return [parse_scope(s) for s in scopes if s and s.strip()]

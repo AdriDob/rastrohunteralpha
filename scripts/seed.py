@@ -13,9 +13,8 @@ from pathlib import Path
 root = Path(__file__).resolve().parents[1]
 sys.path.append(str(root))
 
-from database import db, models
-from database.db import SessionLocal
-
+from database import db, models  # noqa: E402
+from database.db import SessionLocal  # noqa: E402
 
 DEMO_TARGETS = [
     {"name": "Airbyte", "domain": "api.airbyte.com"},

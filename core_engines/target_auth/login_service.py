@@ -1,10 +1,9 @@
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
-import time
 from typing import Any
-from urllib.parse import urlparse
 
 logger = logging.getLogger("rastro.target_auth.login")
 
@@ -77,10 +76,8 @@ class TargetLoginService:
         if not cookies_raw:
             return {"token": None, "cookies": None, "expires_at": None, "error": "No cookies provided"}
         if isinstance(cookies_raw, str):
-            try:
+            with contextlib.suppress(json.JSONDecodeError):
                 cookies_raw = json.loads(cookies_raw)
-            except json.JSONDecodeError:
-                pass
         if isinstance(cookies_raw, dict):
             return {"token": None, "cookies": cookies_raw, "expires_at": None, "error": None}
         return {"token": None, "cookies": None, "expires_at": None, "error": "Invalid cookie format"}
@@ -150,7 +147,7 @@ class TargetLoginService:
                     or body.get("id_token")
                 )
         except Exception:
-            pass
+            logger.warning("Failed to extract token from login response body", exc_info=True)
 
         # Try Authorization header
         if not token:

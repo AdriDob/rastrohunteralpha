@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, List, Optional
 
 from sqlalchemy.orm import Session
 
@@ -15,7 +14,7 @@ def collect_evidence(
     session: Session,
     ctx: PipelineContext,
     request_spec: RequestSpec,
-    comparisons: List[ComparisonResult],
+    comparisons: list[ComparisonResult],
     verdict_id: int,
     auth_label: str = "baseline",
 ) -> PipelineContext:

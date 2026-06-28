@@ -9,7 +9,6 @@ import logging
 import shutil
 import urllib.parse
 import webbrowser
-from typing import Optional
 
 logger = logging.getLogger("rastro.desktop.browser_opener")
 
@@ -31,15 +30,15 @@ BROWSER_NAMES = [
 ]
 
 
-def detect_default_browser() -> Optional[str]:
+def detect_default_browser() -> str | None:
     """Detect the default system browser name, or None if unknown."""
     # Try webbrowser's own detection first
     try:
         controller = webbrowser.get()
         if controller and controller.name:
             return controller.name
-    except Exception:
-        pass
+    except Exception as exc:
+        logger.warning("Browser detection failed: %s", exc)
 
     # Fallback: scan PATH for common browser binaries
     for name in BROWSER_NAMES:
@@ -70,10 +69,10 @@ def open_system_browser(url: str) -> bool:
 def build_dashboard_url(
     port: int = 8000,
     path: str = "/",
-    token: Optional[str] = None,
-    device_id: Optional[str] = None,
-    tab: Optional[str] = None,
-    target_id: Optional[int] = None,
+    token: str | None = None,
+    device_id: str | None = None,
+    tab: str | None = None,
+    target_id: int | None = None,
     onboarding: bool = False,
 ) -> str:
     """Build a dashboard URL with optional auth and context params."""
@@ -99,10 +98,10 @@ def build_dashboard_url(
 def open_dashboard(
     port: int = 8000,
     path: str = "/",
-    token: Optional[str] = None,
-    device_id: Optional[str] = None,
-    tab: Optional[str] = None,
-    target_id: Optional[int] = None,
+    token: str | None = None,
+    device_id: str | None = None,
+    tab: str | None = None,
+    target_id: int | None = None,
     onboarding: bool = False,
 ) -> bool:
     """Open the dashboard with optional auth/session context."""

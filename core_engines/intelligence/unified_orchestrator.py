@@ -12,13 +12,13 @@ Coordinates:
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from core_engines.contracts import ArtifactProtocol, InvalidationPolicy
+from core_engines.contracts import ArtifactProtocol
+from core_engines.intelligence.anti_drift import AntiDriftEnforcer, get_enforcer
 from core_engines.intelligence.cache import ArtifactCache, get_cache
 from core_engines.intelligence.dependency_graph import DependencyGraph
 from core_engines.intelligence.event_system import EventSystem, get_event_system
-from core_engines.intelligence.anti_drift import AntiDriftEnforcer, get_enforcer
 from core_engines.intelligence.observability import ObservabilityCollector, get_observability
 
 LOG = logging.getLogger("rastro.intelligence.orchestrator")
@@ -37,11 +37,11 @@ class UnifiedOrchestrator:
 
     def __init__(
         self,
-        cache: Optional[ArtifactCache] = None,
-        event_system: Optional[EventSystem] = None,
-        dependency_graph: Optional[DependencyGraph] = None,
-        enforcer: Optional[AntiDriftEnforcer] = None,
-        observability: Optional[ObservabilityCollector] = None,
+        cache: ArtifactCache | None = None,
+        event_system: EventSystem | None = None,
+        dependency_graph: DependencyGraph | None = None,
+        enforcer: AntiDriftEnforcer | None = None,
+        observability: ObservabilityCollector | None = None,
     ) -> None:
         self.cache = cache or get_cache()
         self.events = event_system or get_event_system()
@@ -55,7 +55,7 @@ class UnifiedOrchestrator:
         artifact_type: str,
         engine_name: str,
         artifact: ArtifactProtocol,
-        source_ids: Optional[List[str]] = None,
+        source_ids: list[str] | None = None,
     ) -> ArtifactProtocol:
         """Register a computed artifact. Enforces ownership, caches, and emits events."""
         self.enforcer.check_write(engine_name, artifact_type)
@@ -84,7 +84,7 @@ class UnifiedOrchestrator:
             self._last_pipeline_run = datetime.now(timezone.utc).isoformat()
         return artifact
 
-    def get(self, artifact_type: str) -> Optional[ArtifactProtocol]:
+    def get(self, artifact_type: str) -> ArtifactProtocol | None:
         """Get a cached artifact by type name."""
         artifact = self.cache.get(artifact_type)
         if artifact:
@@ -93,7 +93,7 @@ class UnifiedOrchestrator:
             self.observability.record_cache_miss(artifact_type)
         return artifact
 
-    def invalidate(self, artifact_type: str) -> List[str]:
+    def invalidate(self, artifact_type: str) -> list[str]:
         """Invalidate an artifact and all its dependents. Returns affected types."""
         self.cache.invalidate(artifact_type)
         affected = self.dep_graph.affected_by(artifact_type)
@@ -111,7 +111,7 @@ class UnifiedOrchestrator:
         engine_name: str,
         compute_fn,
         force: bool = False,
-        source_ids: Optional[List[str]] = None,
+        source_ids: list[str] | None = None,
     ) -> ArtifactProtocol:
         """Get from cache or compute if missing/invalidated."""
         if not force:
@@ -121,7 +121,7 @@ class UnifiedOrchestrator:
         artifact = compute_fn()
         return self.compute(artifact_type, engine_name, artifact, source_ids)
 
-    def stats(self) -> Dict[str, Any]:
+    def stats(self) -> dict[str, Any]:
         """Get system-wide statistics."""
         cache_stats = self.cache.stats()
         event_stats = self.events.stats()
@@ -145,17 +145,17 @@ class UnifiedOrchestrator:
             "artifacts_available": list(self.cache._store.keys()) if hasattr(self.cache, '_store') else [],
         }
 
-    def get_execution_order(self) -> List[str]:
+    def get_execution_order(self) -> list[str]:
         return self.dep_graph.execution_order()
 
-    def get_affected_by(self, artifact_type: str) -> List[str]:
+    def get_affected_by(self, artifact_type: str) -> list[str]:
         return self.dep_graph.affected_by(artifact_type)
 
     def emit_event(self, event_type: str, payload: Any = None) -> None:
         self.events.emit(event_type, payload)
 
 
-_global_orchestrator: Optional[UnifiedOrchestrator] = None
+_global_orchestrator: UnifiedOrchestrator | None = None
 
 
 def get_orchestrator() -> UnifiedOrchestrator:

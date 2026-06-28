@@ -1,7 +1,13 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+
+// PrimeReact theme — must be imported before app CSS
+import 'primereact/resources/themes/lara-dark-blue/theme.css'
+import 'primeicons/primeicons.css'
+
 import './index.css'
 import App from './App.tsx'
+import { RastroDesignSystemProvider } from './design-system/provider'
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
@@ -13,6 +19,8 @@ if ('serviceWorker' in navigator) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <RastroDesignSystemProvider>
+      <App />
+    </RastroDesignSystemProvider>
   </StrictMode>,
 )

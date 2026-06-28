@@ -15,7 +15,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 LOG = logging.getLogger("rastro.intelligence.observability")
 
@@ -47,11 +47,11 @@ class SystemMetrics:
     total_cache_invalidations: int = 0
     anti_drift_violations: int = 0
     events_emitted: int = 0
-    artifacts: Dict[str, ArtifactMetrics] = field(default_factory=dict)
+    artifacts: dict[str, ArtifactMetrics] = field(default_factory=dict)
     last_pipeline_run: str = ""
     system_uptime: str = ""
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "active_artifacts": self.active_artifacts,
             "total_recomputes": self.total_recomputes,
@@ -83,8 +83,8 @@ class ObservabilityCollector:
 
     def __init__(self) -> None:
         self._start_time = time.time()
-        self._metrics: Dict[str, ArtifactMetrics] = {}
-        self._current_recompute: Dict[str, float] = {}
+        self._metrics: dict[str, ArtifactMetrics] = {}
+        self._current_recompute: dict[str, float] = {}
 
     def start_recompute(self, artifact_type: str) -> None:
         if artifact_type not in self._metrics:
@@ -117,9 +117,9 @@ class ObservabilityCollector:
 
     def get_system_metrics(
         self,
-        cache_stats: Optional[Dict[str, Any]] = None,
-        event_stats: Optional[Dict[str, Any]] = None,
-        drift_report: Optional[Dict[str, Any]] = None,
+        cache_stats: dict[str, Any] | None = None,
+        event_stats: dict[str, Any] | None = None,
+        drift_report: dict[str, Any] | None = None,
         last_run: str = "",
     ) -> SystemMetrics:
         metrics = SystemMetrics()
@@ -152,7 +152,7 @@ class ObservabilityCollector:
         return f"{hours}h {minutes}m {secs}s"
 
 
-_global_observability: Optional[ObservabilityCollector] = None
+_global_observability: ObservabilityCollector | None = None
 
 
 def get_observability() -> ObservabilityCollector:

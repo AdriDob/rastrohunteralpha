@@ -8,6 +8,7 @@ import pytest
 @pytest.fixture(scope="module")
 def client():
     from fastapi.testclient import TestClient
+
     from api.main import app
     from core_engines.license.validator import generate_license
     c = TestClient(app)
@@ -233,8 +234,9 @@ class TestWebSocket:
     def test_websocket_rejects_no_token(self):
         """WebSocket without token should close with code 4001."""
         from fastapi.testclient import TestClient
-        from api.main import app
         from starlette.websockets import WebSocketDisconnect
+
+        from api.main import app
 
         c = TestClient(app)
         with pytest.raises(WebSocketDisconnect) as excinfo:

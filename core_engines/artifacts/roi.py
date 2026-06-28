@@ -8,17 +8,17 @@ Dependencies: PipelineArtifact, AttackSurfaceArtifact
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from core_engines.contracts import Bundle
 
 
 @dataclass
 class ROIArtifact(Bundle):
-    endpoint_rois: Dict[str, float] = field(default_factory=dict)
+    endpoint_rois: dict[str, float] = field(default_factory=dict)
     total_estimated_value: float = 0.0
     avg_roi_score: float = 0.0
-    top_roi_endpoints: List[Dict[str, Any]] = field(default_factory=list)
+    top_roi_endpoints: list[dict[str, Any]] = field(default_factory=list)
 
     def __post_init__(self) -> None:
         super().__post_init__()

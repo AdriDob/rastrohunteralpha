@@ -11,8 +11,9 @@ import asyncio
 import logging
 import threading
 import time
+from collections.abc import Callable
 from enum import Enum
-from typing import Any, Callable, Dict, List, Optional, Set, Tuple
+from typing import Any
 
 logger = logging.getLogger("rastro.events")
 
@@ -27,13 +28,21 @@ class EventPriority(Enum):
     IGNORE = "ignore"
 
 
-EVENT_PRIORITY_MAP: Dict[str, str] = {
+EVENT_PRIORITY_MAP: dict[str, str] = {
     "system:error": "critical",
     "system:degraded": "critical",
+    "system:alert": "critical",
+    "recovery:started": "critical",
+    "recovery:failed": "critical",
+    "anomaly_detected": "critical",
+    "failure_predicted": "critical",
     "opportunity:found": "high",
     "quick_win:detected": "high",
     "contract:warning": "high",
     "system:ready": "medium",
+    "recovery:success": "medium",
+    "health_score_updated": "medium",
+    "auto_optimization_applied": "medium",
     "report:generated": "medium",
     "opportunity:updated": "medium",
     "assistant:recommendation": "medium",
@@ -59,9 +68,9 @@ class EventBus:
 
     def __init__(self) -> None:
         self._lock = threading.Lock()
-        self._handlers: Dict[str, List[EventHandler]] = {}
-        self._async_handlers: Dict[str, List[EventHandler]] = {}
-        self._history: List[Dict[str, Any]] = []
+        self._handlers: dict[str, list[EventHandler]] = {}
+        self._async_handlers: dict[str, list[EventHandler]] = {}
+        self._history: list[dict[str, Any]] = []
         self._max_history = 500
 
     def subscribe(self, event_type: str, handler: EventHandler) -> None:
@@ -150,7 +159,7 @@ class EventBus:
                     except Exception as exc:
                         logger.warning("Async event handler error on %s: %s", event_type, exc)
 
-    def get_history(self, event_type: Optional[str] = None, limit: int = 50) -> List[Dict[str, Any]]:
+    def get_history(self, event_type: str | None = None, limit: int = 50) -> list[dict[str, Any]]:
         """Get recent events, optionally filtered by type."""
         with self._lock:
             if event_type:
@@ -161,14 +170,14 @@ class EventBus:
         with self._lock:
             self._history.clear()
 
-    def handler_count(self, event_type: Optional[str] = None) -> int:
+    def handler_count(self, event_type: str | None = None) -> int:
         with self._lock:
             if event_type:
                 return len(self._handlers.get(event_type, [])) + len(self._async_handlers.get(event_type, []))
             return sum(len(v) for v in self._handlers.values()) + sum(len(v) for v in self._async_handlers.values())
 
 
-def _record_event(history: List[Dict[str, Any]], max_history: int, event_type: str, priority: str, payload: Dict[str, Any]) -> None:
+def _record_event(history: list[dict[str, Any]], max_history: int, event_type: str, priority: str, payload: dict[str, Any]) -> None:
     history.append({
         "type": event_type,
         "priority": priority,
@@ -179,14 +188,14 @@ def _record_event(history: List[Dict[str, Any]], max_history: int, event_type: s
         history[:] = history[-max_history:]
 
 
-def _get_loop() -> Optional[asyncio.AbstractEventLoop]:
+def _get_loop() -> asyncio.AbstractEventLoop | None:
     try:
         return asyncio.get_running_loop()
     except RuntimeError:
         return None
 
 
-_BUS: Optional[EventBus] = None
+_BUS: EventBus | None = None
 
 
 def get_event_bus() -> EventBus:

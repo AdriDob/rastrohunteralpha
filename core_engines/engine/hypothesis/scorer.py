@@ -6,12 +6,8 @@ Produces a composite priority_score and roi_score used for attack queue ordering
 
 from __future__ import annotations
 
-import math
-from typing import Dict, List, Optional
-
-from core_engines.engine.hypothesis.models import Hypothesis, HypothesisScore, VulnerabilityType
-from core_engines.engine.roi_model import ROIScore, calculate_roi, apply_roi_to_priority
-
+from core_engines.engine.hypothesis.models import Hypothesis, HypothesisScore
+from core_engines.engine.roi_model import apply_roi_to_priority, calculate_roi
 
 LIKELIHOOD_WEIGHTS = {
     "signal_strength": 0.35,
@@ -35,7 +31,7 @@ EXPLOITABILITY_WEIGHTS = {
     "tool_availability": 0.20,
 }
 
-VULN_IMPACT_BASE: Dict[str, float] = {
+VULN_IMPACT_BASE: dict[str, float] = {
     "idor": 0.70,
     "auth_bypass": 0.85,
     "ssrf": 0.75,
@@ -52,7 +48,7 @@ VULN_IMPACT_BASE: Dict[str, float] = {
     "ssti": 0.75,
 }
 
-VULN_LIKELIHOOD_BASE: Dict[str, float] = {
+VULN_LIKELIHOOD_BASE: dict[str, float] = {
     "idor": 0.55,
     "auth_bypass": 0.40,
     "ssrf": 0.35,
@@ -69,7 +65,7 @@ VULN_LIKELIHOOD_BASE: Dict[str, float] = {
     "ssti": 0.25,
 }
 
-VULN_EXPLOITABILITY_BASE: Dict[str, float] = {
+VULN_EXPLOITABILITY_BASE: dict[str, float] = {
     "idor": 0.65,
     "auth_bypass": 0.45,
     "ssrf": 0.50,
@@ -152,7 +148,7 @@ def compute_impact(h: Hypothesis) -> float:
     data_sensitivity = 0.3
     if any(s in signals for s in {"billing", "identity", "export", "admin"}):
         data_sensitivity = 0.8
-    elif any(l in labels for l in {"sensitive", "admin", "billing"}):
+    elif any(lab in labels for lab in {"sensitive", "admin", "billing"}):
         data_sensitivity = 0.7
     elif "auth" in labels:
         data_sensitivity = 0.6
@@ -320,9 +316,9 @@ def score_hypothesis(
 
 
 def reorder_attack_queue(
-    hypotheses: List[Hypothesis],
+    hypotheses: list[Hypothesis],
     roi_weight: float = 0.3,
-) -> List[Hypothesis]:
+) -> list[Hypothesis]:
     """
     Order hypotheses by composite score blending risk+confidence priority with ROI.
 
@@ -339,6 +335,6 @@ def reorder_attack_queue(
     return sorted(hypotheses, key=_composite, reverse=True)
 
 
-def reorder_by_roi(hypotheses: List[Hypothesis]) -> List[Hypothesis]:
+def reorder_by_roi(hypotheses: list[Hypothesis]) -> list[Hypothesis]:
     """Order hypotheses purely by ROI score — used when the user wants financial-first ranking."""
     return sorted(hypotheses, key=lambda h: h.roi_score, reverse=True)

@@ -4,7 +4,7 @@ from pathlib import Path
 root = Path(__file__).resolve().parents[1]
 sys.path.append(str(root))
 
-from database import db
+from database import db  # noqa: E402
 
 
 def main():

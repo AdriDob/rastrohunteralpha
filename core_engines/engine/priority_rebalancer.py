@@ -1,6 +1,5 @@
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Set
-
+from dataclasses import dataclass
+from typing import Any
 
 WEB3_RISK_WEIGHTS = {
     "rpc_method": 1.30,
@@ -17,7 +16,7 @@ class RebalancedScore:
     original_score: float
     adjusted_score: float
     drift: float
-    reasons: List[str]
+    reasons: list[str]
 
 
 @dataclass
@@ -31,19 +30,19 @@ class RebalancerConfig:
 
 
 class PriorityRebalancer:
-    def __init__(self, config: Optional[RebalancerConfig] = None):
+    def __init__(self, config: RebalancerConfig | None = None):
         self._config = config or RebalancerConfig()
 
     def rebalance(
         self,
-        priorities: Dict[str, float],
-        evidence_stats: Optional[Dict[str, Dict[str, Any]]] = None,
-        historical_data: Optional[Dict[str, Any]] = None,
-        cross_target_correlations: Optional[Dict[str, List[str]]] = None,
-        web3_targets: Optional[Dict[str, str]] = None,
-        coverage_report: Optional[Dict[str, Any]] = None,
-        time_to_exploit: Optional[Dict[str, float]] = None,
-    ) -> List[RebalancedScore]:
+        priorities: dict[str, float],
+        evidence_stats: dict[str, dict[str, Any]] | None = None,
+        historical_data: dict[str, Any] | None = None,
+        cross_target_correlations: dict[str, list[str]] | None = None,
+        web3_targets: dict[str, str] | None = None,
+        coverage_report: dict[str, Any] | None = None,
+        time_to_exploit: dict[str, float] | None = None,
+    ) -> list[RebalancedScore]:
         evidence_stats = evidence_stats or {}
         historical_data = historical_data or {}
         cross_target_correlations = cross_target_correlations or {}
@@ -51,10 +50,10 @@ class PriorityRebalancer:
         coverage_report = coverage_report or {}
         time_to_exploit = time_to_exploit or {}
 
-        rebalanced: List[RebalancedScore] = []
+        rebalanced: list[RebalancedScore] = []
 
         for hot_path_id, score in priorities.items():
-            adjustments: List[str] = []
+            adjustments: list[str] = []
             adjusted = score
 
             ev_factor = self._evidence_success_factor(hot_path_id, evidence_stats)
@@ -101,8 +100,8 @@ class PriorityRebalancer:
         rebalanced.sort(key=lambda r: r.adjusted_score, reverse=True)
         return rebalanced
 
-    def reorder_hot_paths(self, hot_paths: List[Any], rebalanced: List[RebalancedScore]) -> List[Any]:
-        score_map: Dict[str, float] = {r.hot_path_id: r.adjusted_score for r in rebalanced}
+    def reorder_hot_paths(self, hot_paths: list[Any], rebalanced: list[RebalancedScore]) -> list[Any]:
+        score_map: dict[str, float] = {r.hot_path_id: r.adjusted_score for r in rebalanced}
         def _key(hp: Any) -> float:
             if hasattr(hp, 'nodes') and hp.nodes:
                 return score_map.get(hp.nodes[0], 0.0)
@@ -113,7 +112,7 @@ class PriorityRebalancer:
         sorted_hot_paths = sorted(hot_paths, key=_key, reverse=True)
         return sorted_hot_paths
 
-    def _evidence_success_factor(self, hot_path_id: str, evidence_stats: Dict[str, Dict[str, Any]]) -> float:
+    def _evidence_success_factor(self, hot_path_id: str, evidence_stats: dict[str, dict[str, Any]]) -> float:
         stats = evidence_stats.get(hot_path_id)
         if not stats:
             return 0.0
@@ -126,7 +125,7 @@ class PriorityRebalancer:
             return 5.0
         return -5.0
 
-    def _historical_exploit_factor(self, hot_path_id: str, historical_data: Dict[str, Any]) -> float:
+    def _historical_exploit_factor(self, hot_path_id: str, historical_data: dict[str, Any]) -> float:
         records = historical_data.get(hot_path_id, [])
         if not isinstance(records, list) or not records:
             return 0.0
@@ -138,7 +137,7 @@ class PriorityRebalancer:
             return 8.0
         return -3.0
 
-    def _cross_target_factor(self, hot_path_id: str, correlations: Dict[str, List[str]]) -> float:
+    def _cross_target_factor(self, hot_path_id: str, correlations: dict[str, list[str]]) -> float:
         related = correlations.get(hot_path_id, [])
         if len(related) >= 5:
             return 12.0
@@ -148,14 +147,14 @@ class PriorityRebalancer:
             return 4.0
         return 0.0
 
-    def _web3_risk_factor(self, hot_path_id: str, web3_targets: Dict[str, str]) -> float:
+    def _web3_risk_factor(self, hot_path_id: str, web3_targets: dict[str, str]) -> float:
         target_type = web3_targets.get(hot_path_id)
         if not target_type:
             return 0.0
         weight = WEB3_RISK_WEIGHTS.get(target_type, 1.0)
         return (weight - 1.0) * 50.0
 
-    def _time_decay_factor(self, hot_path_id: str, time_to_exploit: Dict[str, float]) -> float:
+    def _time_decay_factor(self, hot_path_id: str, time_to_exploit: dict[str, float]) -> float:
         tte = time_to_exploit.get(hot_path_id)
         if tte is None:
             return 0.0
@@ -167,7 +166,7 @@ class PriorityRebalancer:
             return 5.0
         return 2.0
 
-    def _coverage_penalty(self, hot_path_id: str, coverage_report: Dict[str, Any]) -> float:
+    def _coverage_penalty(self, hot_path_id: str, coverage_report: dict[str, Any]) -> float:
         uncovered = coverage_report.get("uncovered_endpoints", [])
         if not uncovered:
             return 0.0

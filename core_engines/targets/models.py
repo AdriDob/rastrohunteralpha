@@ -1,12 +1,12 @@
 from sqlalchemy import (
+    Boolean,
     Column,
+    DateTime,
+    Float,
+    ForeignKey,
     Integer,
     String,
-    Float,
-    Boolean,
-    DateTime,
     Text,
-    ForeignKey,
 )
 from sqlalchemy.sql import func
 

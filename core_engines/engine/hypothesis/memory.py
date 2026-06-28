@@ -9,18 +9,21 @@ Uses past confirmed findings from MemoryPatternLibrary to:
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+import logging
+from typing import Any
+
+LOG = logging.getLogger("rastro.hypothesis.memory")
 
 from core_engines.engine.hypothesis.models import Hypothesis, VulnerabilityType
-from core_engines.memory.pattern_extractor import PatternExtractor
 from core_engines.memory.memory import MemoryPatternLibrary
+from core_engines.memory.pattern_extractor import PatternExtractor
 
 
 class HypothesisMemory:
-    def __init__(self, memory: Optional[MemoryPatternLibrary] = None):
+    def __init__(self, memory: MemoryPatternLibrary | None = None):
         self.memory = memory or MemoryPatternLibrary()
         self.pattern_extractor = PatternExtractor()
-        self._success_cache: Dict[str, float] = {}
+        self._success_cache: dict[str, float] = {}
 
     def compute_success_rate(self, vt: VulnerabilityType) -> float:
         key = vt.value
@@ -33,7 +36,7 @@ class HypothesisMemory:
         self._success_cache[key] = rate
         return rate
 
-    def compute_all_success_rates(self) -> Dict[str, float]:
+    def compute_all_success_rates(self) -> dict[str, float]:
         rates = {}
         for vt in VulnerabilityType:
             rates[vt.value] = self.compute_success_rate(vt)
@@ -41,7 +44,7 @@ class HypothesisMemory:
 
     def find_similar_pattern(
         self, h: Hypothesis, threshold: float = 0.4,
-    ) -> Optional[Dict[str, Any]]:
+    ) -> dict[str, Any] | None:
         path = str(h.endpoint.get("path", ""))
         labels = h.endpoint.get("labels", [])
         signals = h.endpoint.get("signals", [])
@@ -52,12 +55,12 @@ class HypothesisMemory:
                 if isinstance(best, dict) and best.get("similarity", 0) >= threshold:
                     return best
         except Exception:
-            pass
+            LOG.warning("Failed to find similar endpoints in memory", exc_info=True)
         return None
 
     def refine(
-        self, hypotheses: List[Hypothesis],
-    ) -> List[Hypothesis]:
+        self, hypotheses: list[Hypothesis],
+    ) -> list[Hypothesis]:
         refined = []
         success_rates = self.compute_all_success_rates()
 

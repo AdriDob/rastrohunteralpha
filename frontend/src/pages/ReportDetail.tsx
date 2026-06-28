@@ -1,10 +1,12 @@
+import { useCallback, useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useReportById, useUpdateReport } from '../lib/query';
+import { getMode, exportReport, getReportVersions, createReportVersion } from '../lib/api';
 import Badge from '../components/ui/Badge';
 import Panel from '../components/ui/Panel';
 import LoadingState from '../components/ui/LoadingState';
+import { useI18n } from '../lib/i18n';
 import { REPORT_STATUSES } from '../types';
-import { useState } from 'react';
 
 const STATUS_STYLES: Record<string, { color: string; bg: string }> = {
   draft: { color: '#6b7280', bg: '#6b728018' },
@@ -17,6 +19,36 @@ const STATUS_STYLES: Record<string, { color: string; bg: string }> = {
   duplicate: { color: '#ef4444', bg: '#ef444418' },
   informative: { color: '#eab308', bg: '#eab30818' },
   na: { color: '#6b7280', bg: '#6b728018' },
+};
+
+const sectionStyle: React.CSSProperties = {
+  background: '#1a1d29', borderRadius: 8, border: '1px solid #2a2e3d',
+  padding: 16, marginBottom: 12,
+};
+
+const labelStyle: React.CSSProperties = {
+  fontSize: 10, color: '#7c8299', textTransform: 'uppercase',
+  letterSpacing: 0.5, marginBottom: 4,
+};
+
+const valueStyle: React.CSSProperties = {
+  fontSize: 14, color: '#e2e4e9', fontWeight: 500,
+};
+
+const btnStyle: React.CSSProperties = {
+  padding: '6px 14px', borderRadius: 6, border: '1px solid #2a2e3d',
+  background: 'transparent', color: '#e2e4e9', fontSize: 12, fontWeight: 600,
+  cursor: 'pointer', transition: 'all 0.12s',
+};
+
+const btnPrimaryStyle: React.CSSProperties = {
+  ...btnStyle,
+  background: '#7c3aed', border: '1px solid #7c3aed', color: '#fff',
+};
+
+const btnDangerStyle: React.CSSProperties = {
+  ...btnStyle,
+  border: '1px solid #ef4444', color: '#ef4444',
 };
 
 function formatCurrency(amount: number, currency: string): string {
@@ -33,27 +65,29 @@ function elapsedDays(dateStr: string | null): string {
   return diff === 0 ? 'Today' : diff === 1 ? '1d' : `${diff}d`;
 }
 
-const sectionStyle: React.CSSProperties = {
-  background: '#1a1d29', borderRadius: 8, border: '1px solid #2a2e3d',
-  padding: 16, marginBottom: 12,
-};
-
-const labelStyle: React.CSSProperties = {
-  fontSize: 10, color: '#7c8299', textTransform: 'uppercase',
-  letterSpacing: 0.5, marginBottom: 4,
-};
-
-const valueStyle: React.CSSProperties = {
-  fontSize: 14, color: '#e2e4e9', fontWeight: 500,
-};
-
 export default function ReportDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const { t } = useI18n();
   const reportId = id ? parseInt(id, 10) : null;
   const { data: report, isLoading, isError } = useReportById(reportId);
   const updateMutation = useUpdateReport();
   const [newStatus, setNewStatus] = useState('');
+  const [mode, setMode] = useState<'manual' | 'automatic'>('manual');
+  const [copied, setCopied] = useState(false);
+  const [versions, setVersions] = useState<any[]>([]);
+  const [showVersions, setShowVersions] = useState(false);
+  const [versionMsg, setVersionMsg] = useState('');
+
+  useEffect(() => {
+    getMode().then(r => setMode(r.mode as 'manual' | 'automatic')).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (reportId && showVersions) {
+      getReportVersions(reportId).then(r => setVersions(r.versions)).catch(() => {});
+    }
+  }, [reportId, showVersions]);
 
   const handleStatusChange = (status: string) => {
     if (reportId === null) return;
@@ -63,6 +97,58 @@ export default function ReportDetail() {
       { onError: (err) => { console.warn('Status change failed:', err); } },
     );
   };
+
+  const handleExport = useCallback(async (format: 'markdown' | 'html' | 'pdf' | 'txt') => {
+    if (!reportId) return;
+    try {
+      const resp = await exportReport(reportId, format);
+      const blob = await resp.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `report_${reportId}.${format === 'markdown' ? 'md' : format}`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error('Export failed:', err);
+    }
+  }, [reportId]);
+
+  const handleCopyClipboard = useCallback(async () => {
+    if (!report || !report.content) return;
+    try {
+      const text = typeof report.content === 'string'
+        ? report.content
+        : JSON.stringify(report.content, null, 2);
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Copy failed:', err);
+    }
+  }, [report]);
+
+  const handleSaveVersion = useCallback(async () => {
+    if (!reportId) return;
+    try {
+      const v = await createReportVersion(reportId);
+      setVersionMsg(`${t.export_version_created} (v${v.version})`);
+      setTimeout(() => setVersionMsg(''), 3000);
+      if (showVersions) {
+        const r = await getReportVersions(reportId);
+        setVersions(r.versions);
+      }
+    } catch (err) {
+      console.error('Version save failed:', err);
+    }
+  }, [reportId, t, showVersions]);
+
+  const handleApprove = useCallback(() => {
+    if (reportId === null) return;
+    handleStatusChange('submitted');
+  }, [reportId]);
 
   if (!reportId) {
     return (
@@ -87,16 +173,15 @@ export default function ReportDetail() {
   const timeline = report.timeline || [];
   const attachments = report.attachments || [];
   const content = report.content || {};
+  const isReady = report.status === 'ready' || report.status === 'draft';
 
   return (
     <div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
+      {/* Header */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
         <button
           onClick={() => navigate('/reports/history')}
-          style={{
-            background: '#1e2230', border: '1px solid #2a2e3d', borderRadius: 6,
-            color: '#e2e4e9', padding: '6px 12px', cursor: 'pointer', fontSize: 12,
-          }}
+          style={btnStyle}
         >
           &larr; Back
         </button>
@@ -113,8 +198,38 @@ export default function ReportDetail() {
         }}>
           {report.status.replace(/_/g, ' ')}
         </span>
+        {mode === 'manual' && (
+          <span style={{ fontSize: 10, color: '#f59e0b', padding: '2px 8px', background: '#f59e0b18', borderRadius: 4 }}>
+            {t.mode_manual}
+          </span>
+        )}
       </div>
 
+      {/* Mode-aware actions */}
+      {isReady && mode === 'manual' && (
+        <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+          <button onClick={handleApprove} style={btnPrimaryStyle}>
+            Approve & Submit
+          </button>
+          <button onClick={() => navigate(`/reports/edit/${report.id}`)} style={btnStyle}>
+            Edit Report
+          </button>
+          <button
+            onClick={() => handleStatusChange('draft')}
+            style={btnDangerStyle}
+          >
+            Discard
+          </button>
+        </div>
+      )}
+
+      {report.status === 'submitted' && (
+        <div style={{ fontSize: 12, color: '#8b5cf6', padding: '8px 12px', background: '#8b5cf618', borderRadius: 6, marginBottom: 16 }}>
+          {t.report_submit}
+        </div>
+      )}
+
+      {/* Metadata grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12, marginBottom: 16 }}>
         <div style={sectionStyle}>
           <div style={labelStyle}>Program</div>
@@ -176,6 +291,7 @@ export default function ReportDetail() {
         </div>
       </div>
 
+      {/* Financial grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12, marginBottom: 16 }}>
         <div style={sectionStyle}>
           <div style={labelStyle}>Estimated Reward</div>
@@ -199,6 +315,60 @@ export default function ReportDetail() {
         </div>
       </div>
 
+      {/* Export & Actions */}
+      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center', ...sectionStyle, padding: '8px 12px' }}>
+          <span style={{ fontSize: 11, color: '#7c8299', marginRight: 4 }}>{t.export_title}:</span>
+          <button onClick={() => handleExport('markdown')} style={{ ...btnStyle, fontSize: 11 }}>MD</button>
+          <button onClick={() => handleExport('html')} style={{ ...btnStyle, fontSize: 11 }}>HTML</button>
+          <button onClick={() => handleExport('pdf')} style={{ ...btnStyle, fontSize: 11 }}>PDF</button>
+          <button onClick={() => handleExport('txt')} style={{ ...btnStyle, fontSize: 11 }}>TXT</button>
+          <button onClick={handleCopyClipboard} style={{ ...btnStyle, fontSize: 11 }}>
+            {copied ? t.export_copied : t.export_copy}
+          </button>
+        </div>
+
+        <button onClick={handleSaveVersion} style={{ ...btnStyle, fontSize: 11, ...sectionStyle, padding: '8px 12px' }}>
+          {t.export_version_create}
+        </button>
+
+        <button
+          onClick={() => setShowVersions(!showVersions)}
+          style={{ ...btnStyle, fontSize: 11, ...sectionStyle, padding: '8px 12px' }}
+        >
+          {t.export_versions} ({versions.length})
+        </button>
+
+        {versionMsg && (
+          <span style={{ fontSize: 11, color: '#22c55e', alignSelf: 'center' }}>{versionMsg}</span>
+        )}
+      </div>
+
+      {/* Versions panel */}
+      {showVersions && (
+        <div style={{ ...sectionStyle, marginBottom: 16 }}>
+          <div style={labelStyle}>{t.export_versions}</div>
+          {versions.length === 0 ? (
+            <div style={{ fontSize: 12, color: '#7c8299', padding: '8px 0' }}>{t.export_no_versions}</div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {versions.map((v: any) => (
+                <div key={v.id} style={{
+                  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+                  padding: '6px 0', borderBottom: '1px solid #2a2e3d', fontSize: 12,
+                }}>
+                  <span style={{ color: '#e2e4e9' }}>v{v.version} — {v.summary || ''}</span>
+                  <span style={{ color: '#7c8299' }}>
+                    {v.created_at ? new Date(v.created_at).toLocaleString() : ''}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Notes */}
       {report.notes ? (
         <div style={sectionStyle}>
           <div style={labelStyle}>Internal Notes</div>
@@ -206,6 +376,7 @@ export default function ReportDetail() {
         </div>
       ) : null}
 
+      {/* Timeline */}
       {timeline.length > 0 && (
         <Panel title="Timeline" accent="#8b5cf6">
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -237,6 +408,7 @@ export default function ReportDetail() {
         </Panel>
       )}
 
+      {/* Attachments */}
       {attachments.length > 0 && (
         <Panel title={`Attachments (${attachments.length})`} accent="#f97316">
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
@@ -252,6 +424,7 @@ export default function ReportDetail() {
         </Panel>
       )}
 
+      {/* Linked findings */}
       {report.finding_ids && report.finding_ids.length > 0 && (
         <Panel title={`Linked Findings (${report.finding_ids.length})`} accent="#22c55e">
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
@@ -267,6 +440,7 @@ export default function ReportDetail() {
         </Panel>
       )}
 
+      {/* Report content */}
       {report.content && (
         <Panel title="Report Content" accent="#3b82f6">
           <pre style={{

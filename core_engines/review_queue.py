@@ -1,8 +1,9 @@
+import contextlib
 import logging
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from enum import Enum
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 LOG = logging.getLogger("rastro.review_queue")
 
@@ -29,20 +30,20 @@ class ReviewItem:
     tier: str
     confidence_score: float
     reason: str
-    factors: List[Dict[str, Any]] = field(default_factory=list)
-    target_id: Optional[int] = None
-    target_name: Optional[str] = None
-    created_at: Optional[str] = None
+    factors: list[dict[str, Any]] = field(default_factory=list)
+    target_id: int | None = None
+    target_name: str | None = None
+    created_at: str | None = None
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
 @dataclass
 class ReviewQueue:
-    high_confidence: List[ReviewItem] = field(default_factory=list)
-    medium_confidence: List[ReviewItem] = field(default_factory=list)
-    low_confidence: List[ReviewItem] = field(default_factory=list)
+    high_confidence: list[ReviewItem] = field(default_factory=list)
+    medium_confidence: list[ReviewItem] = field(default_factory=list)
+    low_confidence: list[ReviewItem] = field(default_factory=list)
     total_items: int = 0
     generated_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
 
@@ -55,7 +56,7 @@ class ReviewQueue:
             self.low_confidence.append(item)
         self.total_items += 1
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "high_confidence": [i.to_dict() for i in self.high_confidence],
             "medium_confidence": [i.to_dict() for i in self.medium_confidence],
@@ -74,7 +75,7 @@ def _classify_tier(score: float) -> str:
     return ConfidenceTier.from_score(score).value
 
 
-def _build_reason(tier: str, score: float, factors: List[Dict[str, Any]]) -> str:
+def _build_reason(tier: str, score: float, factors: list[dict[str, Any]]) -> str:
     if tier == "HIGH_CONFIDENCE":
         return f"Strong confidence ({score:.2f}) — reliable signal, ready for human review"
     elif tier == "MEDIUM_CONFIDENCE":
@@ -86,7 +87,7 @@ def build_review_queue(limit: int = 100) -> ReviewQueue:
     from database.db import SessionLocal
     session = SessionLocal()
     try:
-        from database.models import Verdict, Finding, Target
+        from database.models import Finding, Target, Verdict
 
         queue = ReviewQueue()
 
@@ -95,10 +96,8 @@ def build_review_queue(limit: int = 100) -> ReviewQueue:
         for v in verdicts:
             raw_conf = 0.0
             if v.confidence:
-                try:
+                with contextlib.suppress(ValueError, TypeError):
                     raw_conf = float(v.confidence)
-                except (ValueError, TypeError):
-                    pass
 
             status = v.status or "inconclusive"
             status_bonus = {"confirmed": 0.2, "inconclusive": 0.0, "rejected": -0.1}

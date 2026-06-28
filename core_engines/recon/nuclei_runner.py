@@ -2,7 +2,6 @@ import asyncio
 import json
 import logging
 from pathlib import Path
-from typing import List, Optional
 
 from .tools import _resolve_tool
 
@@ -21,8 +20,8 @@ class NucleiRunner:
         input_file: Path,
         out_file: str = "nuclei.json",
         severity: str = "medium,high,critical",
-        tags: Optional[List[str]] = None,
-        exclude_tags: Optional[List[str]] = None,
+        tags: list[str] | None = None,
+        exclude_tags: list[str] | None = None,
     ) -> Path:
         path = self.output_dir / out_file
         cmd = [
@@ -67,7 +66,7 @@ class NucleiRunner:
         )
         return path
 
-    async def load_findings(self, path: Path) -> List[dict]:
+    async def load_findings(self, path: Path) -> list[dict]:
         if not path.exists():
             return []
         findings = []
@@ -80,7 +79,7 @@ class NucleiRunner:
                     continue
         return findings
 
-    def _count_findings(self, path: Path) -> List[str]:
+    def _count_findings(self, path: Path) -> list[str]:
         findings = []
         sev_counts: dict = {}
         for line in path.read_text().splitlines():

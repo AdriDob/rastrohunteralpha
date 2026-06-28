@@ -9,17 +9,15 @@ from __future__ import annotations
 
 import csv
 import io
-import json
 import logging
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import PlainTextResponse
-from pydantic import BaseModel
 
-from core_engines.opportunity import get_engine
 from core_engines.identity_vault import get_identity_vault
+from core_engines.opportunity import get_engine
 
 logger = logging.getLogger("rastro.opportunity.api")
 
@@ -32,7 +30,7 @@ _EXPORT_FIELDS = [
 ]
 
 
-def _format_opps(opps: List[Any], fmt: str = "json") -> Any:
+def _format_opps(opps: list[Any], fmt: str = "json") -> Any:
     """Format opportunity list as JSON, CSV, or Markdown."""
     if fmt == "json":
         return {"opportunities": [_opp_to_dict(o) for o in opps], "count": len(opps)}
@@ -72,7 +70,7 @@ def _format_opps(opps: List[Any], fmt: str = "json") -> Any:
     return {"opportunities": [], "count": 0}
 
 
-def _opp_to_dict(opp: Any) -> Dict[str, Any]:
+def _opp_to_dict(opp: Any) -> dict[str, Any]:
     score = opp.score
     evh_data = {}
     if score and score.evh:
@@ -141,7 +139,7 @@ def refresh_opportunities():
         engine.take_snapshot("daily")
         return {"status": "ok", "count": len(engine.get_all()), "refreshed_at": datetime.now(timezone.utc).isoformat()}
     except Exception as exc:
-        raise HTTPException(status_code=500, detail=str(exc))
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
 @router.get("/overview")
@@ -227,7 +225,7 @@ def list_categories():
     if not engine.get_all():
         engine.discover_all()
     all_opps = engine.get_all()
-    categories: Dict[str, int] = {}
+    categories: dict[str, int] = {}
     for o in all_opps:
         categories[o.category] = categories.get(o.category, 0) + 1
     return {
@@ -249,7 +247,7 @@ def list_identity_accounts():
 
 
 @router.post("/identity/store")
-def store_identity(data: Dict[str, Any]):
+def store_identity(data: dict[str, Any]):
     """Store encrypted credentials for a provider."""
     provider = data.get("provider", "")
     email = data.get("email", "")
@@ -332,7 +330,7 @@ def opportunities_by_category(
 
 
 @router.get("/history")
-def opportunity_history(period: Optional[str] = Query(None), limit: int = Query(30, ge=1, le=365)):
+def opportunity_history(period: str | None = Query(None), limit: int = Query(30, ge=1, le=365)):
     """Historical snapshots for trend analysis."""
     engine = get_engine()
     snaps = engine.get_history(period, limit)

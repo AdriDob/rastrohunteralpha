@@ -3,11 +3,11 @@ import time
 from collections import defaultdict
 from contextlib import contextmanager
 from threading import Lock
-from typing import Any, Dict, List
+from typing import Any
 
 LOG = logging.getLogger("rastro.observability")
 
-_metrics: Dict[str, List[float]] = defaultdict(list)
+_metrics: dict[str, list[float]] = defaultdict(list)
 _metrics_lock = Lock()
 
 
@@ -28,9 +28,9 @@ def record(name: str, value: float) -> None:
         _metrics[name].append(value)
 
 
-def get_metrics() -> Dict[str, Any]:
+def get_metrics() -> dict[str, Any]:
     """Return aggregated timing metrics."""
-    result: Dict[str, Any] = {}
+    result: dict[str, Any] = {}
     with _metrics_lock:
         for name, vals in dict(_metrics).items():
             if not vals:

@@ -67,6 +67,7 @@ class TestRunnerIntegration:
 
     def test_runner_instantiation(self):
         from pathlib import Path
+
         from core_engines.recon.runner import ReconRunner
         runner = ReconRunner(Path("/tmp/test-runner"))
         assert runner.subfinder._binary is not None
@@ -78,9 +79,7 @@ class TestRunnerIntegration:
 
     def test_tools_module_import(self):
         from core_engines.recon.tools import (
-            TOOL_CHECKS, CRITICAL_TOOLS, OPTIONAL_TOOLS,
-            check_tool_available, verify_recon_tools, validate_mode_compatibility,
-            _resolve_tool,
+            CRITICAL_TOOLS,
         )
         assert "subfinder" in CRITICAL_TOOLS
         assert "katana" in CRITICAL_TOOLS

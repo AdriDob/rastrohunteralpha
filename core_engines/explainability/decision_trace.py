@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger("rastro.explainability.trace")
 
@@ -24,9 +24,9 @@ class TraceStep:
     input: Any = None
     output: Any = None
     duration_ms: float = 0.0
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "name": self.name,
             "input": self.input,
@@ -41,13 +41,13 @@ class DecisionTrace:
     trace_id: str
     decision_id: str
     action: str
-    steps: List[TraceStep] = field(default_factory=list)
-    context: Dict[str, Any] = field(default_factory=dict)
-    outcome: Optional[str] = None
+    steps: list[TraceStep] = field(default_factory=list)
+    context: dict[str, Any] = field(default_factory=dict)
+    outcome: str | None = None
     started_at: float = field(default_factory=time.time)
-    completed_at: Optional[float] = None
+    completed_at: float | None = None
 
-    def add_step(self, name: str, input: Any = None, output: Any = None, duration_ms: float = 0.0, metadata: Optional[Dict[str, Any]] = None) -> None:
+    def add_step(self, name: str, input: Any = None, output: Any = None, duration_ms: float = 0.0, metadata: dict[str, Any] | None = None) -> None:
         self.steps.append(TraceStep(
             name=name,
             input=input,
@@ -64,7 +64,7 @@ class DecisionTrace:
     def total_duration_ms(self) -> float:
         return sum(s.duration_ms for s in self.steps)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "trace_id": self.trace_id,
             "decision_id": self.decision_id,
@@ -84,9 +84,9 @@ class TraceCollector:
     MAX_TRACES = 500
 
     def __init__(self) -> None:
-        self._traces: Dict[str, DecisionTrace] = {}
+        self._traces: dict[str, DecisionTrace] = {}
 
-    def start_trace(self, decision_id: str, action: str, context: Optional[Dict[str, Any]] = None) -> DecisionTrace:
+    def start_trace(self, decision_id: str, action: str, context: dict[str, Any] | None = None) -> DecisionTrace:
         trace = DecisionTrace(
             trace_id=f"trace-{decision_id}",
             decision_id=decision_id,
@@ -99,16 +99,16 @@ class TraceCollector:
             del self._traces[oldest]
         return trace
 
-    def get_trace(self, trace_id: str) -> Optional[DecisionTrace]:
+    def get_trace(self, trace_id: str) -> DecisionTrace | None:
         return self._traces.get(trace_id)
 
-    def get_trace_by_decision(self, decision_id: str) -> Optional[DecisionTrace]:
+    def get_trace_by_decision(self, decision_id: str) -> DecisionTrace | None:
         for trace in self._traces.values():
             if trace.decision_id == decision_id:
                 return trace
         return None
 
-    def list_recent(self, limit: int = 20) -> List[Dict[str, Any]]:
+    def list_recent(self, limit: int = 20) -> list[dict[str, Any]]:
         sorted_traces = sorted(
             self._traces.values(),
             key=lambda t: t.started_at,
@@ -116,7 +116,7 @@ class TraceCollector:
         )
         return [t.to_dict() for t in sorted_traces[:limit]]
 
-    def list_by_action(self, action: str, limit: int = 10) -> List[Dict[str, Any]]:
+    def list_by_action(self, action: str, limit: int = 10) -> list[dict[str, Any]]:
         matching = [t for t in self._traces.values() if t.action == action]
         matching.sort(key=lambda t: t.started_at, reverse=True)
         return [t.to_dict() for t in matching[:limit]]
@@ -125,7 +125,7 @@ class TraceCollector:
         return len(self._traces)
 
 
-_TRACE_COLLECTOR: Optional[TraceCollector] = None
+_TRACE_COLLECTOR: TraceCollector | None = None
 
 
 def get_decision_trace() -> TraceCollector:

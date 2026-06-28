@@ -1,14 +1,13 @@
 import re
 from collections import defaultdict
-from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Set, Tuple
-
+from dataclasses import dataclass
+from typing import Any
 
 UUID_PATTERN = re.compile(
     r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
 )
 
-ENTITY_PATTERNS: Dict[str, List[str]] = {
+ENTITY_PATTERNS: dict[str, list[str]] = {
     "user": ["user", "users", "profile", "member", "members"],
     "account": ["account", "accounts"],
     "organization": ["org", "organization", "organizations", "company"],
@@ -32,7 +31,7 @@ ENTITY_PATTERNS: Dict[str, List[str]] = {
     ],
 }
 
-ENTITY_SIGNAL_MAP: Dict[str, str] = {
+ENTITY_SIGNAL_MAP: dict[str, str] = {
     "user": "idor",
     "account": "idor",
     "organization": "multi_tenant",
@@ -47,7 +46,7 @@ ENTITY_SIGNAL_MAP: Dict[str, str] = {
     "web3_entity": "web3",
 }
 
-CLUSTER_DEFINITIONS: List[Dict[str, Any]] = [
+CLUSTER_DEFINITIONS: list[dict[str, Any]] = [
     {
         "name": "IDOR",
         "labels": ["id_parameter"],
@@ -114,7 +113,7 @@ CLUSTER_DEFINITIONS: List[Dict[str, Any]] = [
     },
 ]
 
-HOT_PATH_TEMPLATES: List[Dict[str, Any]] = [
+HOT_PATH_TEMPLATES: list[dict[str, Any]] = [
     {
         "name": "idor_from_auth",
         "start_cluster": "Auth",
@@ -201,23 +200,23 @@ HOT_PATH_TEMPLATES: List[Dict[str, Any]] = [
 @dataclass
 class Cluster:
     name: str
-    endpoints: List[Dict[str, Any]]
+    endpoints: list[dict[str, Any]]
     confidence: float
-    reasoning: List[str]
+    reasoning: list[str]
 
 
 @dataclass
 class HotPath:
-    nodes: List[str]
+    nodes: list[str]
     why_it_matters: str
     estimated_reward: str
 
 
 @dataclass
 class InvestigationReport:
-    graph: Dict[str, List[Any]]
-    clusters: List[Cluster]
-    hot_paths: List[HotPath]
+    graph: dict[str, list[Any]]
+    clusters: list[Cluster]
+    hot_paths: list[HotPath]
 
 
 class NodeExtractor:
@@ -229,16 +228,16 @@ class NodeExtractor:
     """
 
     def extract(
-        self, scored_endpoints: List[Dict[str, Any]]
-    ) -> Tuple[List[Dict[str, Any]], Dict[str, List[str]]]:
-        nodes: List[Dict[str, Any]] = []
-        endpoint_ids: List[str] = []
-        entity_endpoints: Dict[str, List[str]] = defaultdict(list)
+        self, scored_endpoints: list[dict[str, Any]]
+    ) -> tuple[list[dict[str, Any]], dict[str, list[str]]]:
+        nodes: list[dict[str, Any]] = []
+        endpoint_ids: list[str] = []
+        entity_endpoints: dict[str, list[str]] = defaultdict(list)
 
-        seen_entities: Set[str] = set()
-        seen_signals: Set[str] = set()
+        seen_entities: set[str] = set()
+        seen_signals: set[str] = set()
 
-        for idx, ep in enumerate(scored_endpoints):
+        for _idx, ep in enumerate(scored_endpoints):
             path = str(ep.get("path", "/"))
             method = str(ep.get("method", "GET")).upper()
             node_id = f"endpoint:{method}:{path}"
@@ -278,7 +277,7 @@ class NodeExtractor:
             # Entities from parameter names
             params = ep.get("params", {})
             if isinstance(params, dict):
-                for param_key in params.keys():
+                for param_key in params:
                     lower_key = param_key.lower()
                     for entity_name, patterns in ENTITY_PATTERNS.items():
                         for pattern in patterns:
@@ -379,11 +378,11 @@ class RelationshipDetector:
 
     def detect(
         self,
-        nodes: List[Dict[str, Any]],
-        scored_endpoints: List[Dict[str, Any]],
-        entity_endpoints: Dict[str, List[str]],
-    ) -> List[Dict[str, Any]]:
-        edges: List[Dict[str, Any]] = []
+        nodes: list[dict[str, Any]],
+        scored_endpoints: list[dict[str, Any]],
+        entity_endpoints: dict[str, list[str]],
+    ) -> list[dict[str, Any]]:
+        edges: list[dict[str, Any]] = []
         node_map = {n["node_id"]: n for n in nodes}
 
         endpoint_nodes = {nid: n for nid, n in node_map.items() if n["type"] == "endpoint"}
@@ -425,20 +424,18 @@ class RelationshipDetector:
             for surface in ep.get("attack_surface", []):
                 surface_key = surface.replace("_surface", "").replace("_", " ")
                 sid = f"signal:{surface_key}"
-                if sid in signal_nodes:
-                    edge_key = (eid, sid, "has_signal")
-                    if not any(
-                        e["from"] == eid and e["to"] == sid and e["relationship"] == "has_signal"
-                        for e in edges
-                    ):
-                        edges.append({
-                            "from": eid,
-                            "to": sid,
-                            "relationship": "has_signal",
-                        })
+                if sid in signal_nodes and not any(
+                    e["from"] == eid and e["to"] == sid and e["relationship"] == "has_signal"
+                    for e in edges
+                ):
+                    edges.append({
+                        "from": eid,
+                        "to": sid,
+                        "relationship": "has_signal",
+                    })
 
         # Entity → Entity: shared endpoints bridge
-        entity_pairs_seen: Set[Tuple[str, str]] = set()
+        entity_pairs_seen: set[tuple[str, str]] = set()
         entity_list = list(entity_endpoints.items())
         for i, (name_a, eps_a) in enumerate(entity_list):
             for j in range(i + 1, len(entity_list)):
@@ -475,8 +472,8 @@ class RelationshipDetector:
                 })
 
         # Endpoint → Endpoint: shared entity bridge
-        ep_pairs_seen: Set[Tuple[str, str]] = set()
-        for entity_name, ep_ids in entity_endpoints.items():
+        ep_pairs_seen: set[tuple[str, str]] = set()
+        for _, ep_ids in entity_endpoints.items():
             unique_eps = sorted(set(ep_ids))
             for i, eid_a in enumerate(unique_eps):
                 for j in range(i + 1, len(unique_eps)):
@@ -501,21 +498,21 @@ class ClusterEngine:
     """
 
     def build(
-        self, scored_endpoints: List[Dict[str, Any]], entity_endpoints: Dict[str, List[str]]
-    ) -> List[Cluster]:
-        clusters: List[Cluster] = []
-        endpoint_map = {
+        self, scored_endpoints: list[dict[str, Any]], entity_endpoints: dict[str, list[str]]
+    ) -> list[Cluster]:
+        clusters: list[Cluster] = []
+        {
             f"endpoint:{e.get('method','GET')}:{e.get('path','/')}": e
             for e in scored_endpoints
         }
 
         for definition in CLUSTER_DEFINITIONS:
             name = definition["name"]
-            matched: List[Dict[str, Any]] = []
-            reasons: List[str] = []
+            matched: list[dict[str, Any]] = []
+            reasons: list[str] = []
 
             for ep in scored_endpoints:
-                eid = f"endpoint:{ep.get('method','GET')}:{ep.get('path','/')}"
+                f"endpoint:{ep.get('method','GET')}:{ep.get('path','/')}"
                 labels = ep.get("labels", [])
                 surfaces = ep.get("attack_surface", [])
                 signals = ep.get("signals", [])
@@ -573,7 +570,7 @@ class ClusterEngine:
                 surfaces = ep.get("attack_surface", [])
                 signals = ep.get("signals", [])
                 has_direct = (
-                    any(l in definition["labels"] for l in labels)
+                    any(lab in definition["labels"] for lab in labels)
                     or any(s in definition["surfaces"] for s in surfaces)
                     or any(s in definition["signals"] for s in signals)
                 )
@@ -600,13 +597,13 @@ class HotPathDetector:
 
     def detect(
         self,
-        clusters: List[Cluster],
-        scored_endpoints: List[Dict[str, Any]],
-        entity_endpoints: Dict[str, List[str]],
-    ) -> List[HotPath]:
-        cluster_map: Dict[str, Cluster] = {c.name: c for c in clusters}
-        hot_paths: List[HotPath] = []
-        seen: Set[str] = set()
+        clusters: list[Cluster],
+        scored_endpoints: list[dict[str, Any]],
+        entity_endpoints: dict[str, list[str]],
+    ) -> list[HotPath]:
+        cluster_map: dict[str, Cluster] = {c.name: c for c in clusters}
+        hot_paths: list[HotPath] = []
+        seen: set[str] = set()
 
         for template in HOT_PATH_TEMPLATES:
             start = cluster_map.get(template["start_cluster"])
@@ -638,7 +635,7 @@ class HotPathDetector:
                     end_with_entity.append(ep)
 
             # If either side lacks the bridge, try relaxing: any endpoint in the cluster
-            path_nodes: List[str] = []
+            path_nodes: list[str] = []
             if start_with_entity:
                 best = max(start_with_entity, key=lambda x: float(x.get("risk_score", 0)))
                 path_nodes.append(f"endpoint:{best.get('method','GET')}:{best.get('path','/')}")
@@ -668,9 +665,8 @@ class HotPathDetector:
                 avg_score = sum(float(e.get("risk_score", 0)) for e in scoring_check) / len(scoring_check)
                 if avg_score >= 80:
                     reward = "high"
-                elif avg_score >= 50:
-                    if reward == "low":
-                        reward = "medium"
+                elif avg_score >= 50 and reward == "low":
+                    reward = "medium"
 
             hot_paths.append(HotPath(
                 nodes=path_nodes,
@@ -704,7 +700,7 @@ class InvestigationGraphBuilder:
 
     def build(
         self,
-        scored_endpoints: List[Dict[str, Any]],
+        scored_endpoints: list[dict[str, Any]],
     ) -> InvestigationReport:
         if not scored_endpoints:
             return InvestigationReport(

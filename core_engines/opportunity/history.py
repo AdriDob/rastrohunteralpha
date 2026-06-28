@@ -9,29 +9,29 @@ from __future__ import annotations
 import logging
 import uuid
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from core_engines.opportunity.models import Opportunity, OpportunitySnapshot
 
 logger = logging.getLogger("rastro.opportunity.history")
 
-_GLOBAL_HISTORY: Optional["HistoryManager"] = None
+_GLOBAL_HISTORY: HistoryManager | None = None
 
 # In-memory snapshot store. In production this could be backed by the DB.
-_snapshots: List[OpportunitySnapshot] = []
+_snapshots: list[OpportunitySnapshot] = []
 
 
 class HistoryManager:
     """Manages opportunity snapshots for trend analysis."""
 
     def __init__(self) -> None:
-        self._snapshots: List[OpportunitySnapshot] = _snapshots
+        self._snapshots: list[OpportunitySnapshot] = _snapshots
 
     def store_snapshot(
         self,
-        opportunities: List[Opportunity],
+        opportunities: list[Opportunity],
         period: str = "daily",
-        metrics: Optional[Dict[str, Any]] = None,
+        metrics: dict[str, Any] | None = None,
     ) -> OpportunitySnapshot:
         """Create and store a point-in-time snapshot.
 
@@ -54,9 +54,9 @@ class HistoryManager:
 
     def get_snapshots(
         self,
-        period: Optional[str] = None,
+        period: str | None = None,
         limit: int = 30,
-    ) -> List[OpportunitySnapshot]:
+    ) -> list[OpportunitySnapshot]:
         """Return snapshots, newest first."""
         result = list(self._snapshots)
         if period:
@@ -64,12 +64,12 @@ class HistoryManager:
         result.sort(key=lambda s: s.timestamp, reverse=True)
         return result[:limit]
 
-    def get_latest(self) -> Optional[OpportunitySnapshot]:
+    def get_latest(self) -> OpportunitySnapshot | None:
         if not self._snapshots:
             return None
         return max(self._snapshots, key=lambda s: s.timestamp)
 
-    def get_trends(self) -> Dict[str, Any]:
+    def get_trends(self) -> dict[str, Any]:
         """Compute trend data from historical snapshots."""
         if len(self._snapshots) < 2:
             return {"status": "insufficient_data"}

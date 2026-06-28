@@ -1,10 +1,9 @@
-from typing import List, Dict
 
 
 class Clusterer:
     def cluster_endpoints(
-        self, endpoints: List[Dict[str, str]]
-    ) -> List[Dict[str, str]]:
+        self, endpoints: list[dict[str, str]]
+    ) -> list[dict[str, str]]:
         grouped = {}
         for endpoint in endpoints:
             key = endpoint.get("path", "").split("/")[1:3]

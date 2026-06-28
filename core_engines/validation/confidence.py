@@ -1,9 +1,8 @@
-from dataclasses import dataclass, field
-from typing import Any, Dict, List
+from dataclasses import dataclass
+from typing import Any
 
 from core_engines.validation.replayer import ComparisonResult
 from core_engines.validation.rules import ValidationReport
-
 
 WEIGHTS = {
     "consistency": 0.40,
@@ -16,16 +15,16 @@ WEIGHTS = {
 @dataclass
 class ConfidenceScore:
     score: float
-    breakdown: Dict[str, float]
+    breakdown: dict[str, float]
     level: str
 
 
 class ConfidenceScorer:
     def calculate(
         self,
-        results: List[ComparisonResult],
+        results: list[ComparisonResult],
         validation: ValidationReport,
-        endpoint_signals: Dict[str, Any],
+        endpoint_signals: dict[str, Any],
     ) -> ConfidenceScore:
         total = len(results)
         if total == 0:

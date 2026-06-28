@@ -1,48 +1,50 @@
 import json
 import logging
-from dataclasses import dataclass, field, asdict
+from dataclasses import asdict, dataclass
 from datetime import datetime, timezone
 from threading import Lock
-from typing import Any, Dict, List, Optional
+from typing import Any
 
+from core_engines.intelligence.historical_analyzer import (
+    HistoricalSummary,
+    analyze_historical_data,
+)
+from core_engines.intelligence.learning_snapshot import (
+    LearningSnapshot,
+    generate_snapshot,
+)
+from core_engines.intelligence.pattern_registry import PatternRegistry, get_registry
+from core_engines.intelligence.recommendation_engine import (
+    RecommendationBundle,
+    generate_recommendations,
+)
+from core_engines.intelligence.trend_detector import TrendReport, detect_trends
 from database.db import SessionLocal
 
 LOG = logging.getLogger("rastro.intelligence.memory")
 
-from core_engines.intelligence.pattern_registry import PatternRegistry, get_registry
-from core_engines.intelligence.historical_analyzer import (
-    HistoricalSummary, analyze_historical_data,
-)
-from core_engines.intelligence.trend_detector import TrendReport, detect_trends
-from core_engines.intelligence.recommendation_engine import (
-    RecommendationBundle, generate_recommendations,
-)
-from core_engines.intelligence.learning_snapshot import (
-    LearningSnapshot, generate_snapshot,
-)
-
 
 @dataclass
 class AdaptiveMemoryState:
-    last_analysis: Optional[str] = None
-    last_snapshot_daily: Optional[str] = None
-    last_snapshot_weekly: Optional[str] = None
-    last_snapshot_monthly: Optional[str] = None
+    last_analysis: str | None = None
+    last_snapshot_daily: str | None = None
+    last_snapshot_weekly: str | None = None
+    last_snapshot_monthly: str | None = None
     total_patterns_learned: int = 0
     total_recommendations_generated: int = 0
     total_snapshots_created: int = 0
     total_analysis_time_ms: float = 0.0
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return asdict(self)
 
 
 class AdaptiveMemory:
-    def __init__(self, registry: Optional[PatternRegistry] = None) -> None:
+    def __init__(self, registry: PatternRegistry | None = None) -> None:
         self._registry = registry or get_registry()
         self._state = AdaptiveMemoryState()
         self._lock = Lock()
-        self._history_cache: Optional[HistoricalSummary] = None
+        self._history_cache: HistoricalSummary | None = None
 
     @property
     def registry(self) -> PatternRegistry:
@@ -100,14 +102,14 @@ class AdaptiveMemory:
         self._persist_snapshot(snap)
         return snap
 
-    def get_history(self) -> Optional[HistoricalSummary]:
+    def get_history(self) -> HistoricalSummary | None:
         if self._history_cache is None:
             return self.analyze()
         return self._history_cache
 
     def get_snapshots(
         self, limit: int = 10, offset: int = 0
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         session = SessionLocal()
         try:
             from database.models import MemoryRecord
@@ -154,7 +156,7 @@ class AdaptiveMemory:
         finally:
             session.close()
 
-    def get_state(self) -> Dict[str, Any]:
+    def get_state(self) -> dict[str, Any]:
         return self._state.to_dict()
 
     def clear(self) -> None:
@@ -163,7 +165,7 @@ class AdaptiveMemory:
         self._history_cache = None
 
 
-_memory: Optional[AdaptiveMemory] = None
+_memory: AdaptiveMemory | None = None
 _memory_lock = Lock()
 
 

@@ -17,7 +17,7 @@ import logging
 import os
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Set
+from typing import Any
 
 logger = logging.getLogger("rastro.intelligence.noise")
 
@@ -42,9 +42,9 @@ class CleanSignal:
     confidence: float
     timestamp: float = field(default_factory=time.time)
     source: str = ""
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "signal_type": self.signal_type,
@@ -60,14 +60,14 @@ class NoiseFilter:
     """Filters raw signals into a clean signal set."""
 
     def __init__(self) -> None:
-        self._seen_hashes: Dict[str, float] = {}
-        self._suppressed_ids: Set[str] = set()
+        self._seen_hashes: dict[str, float] = {}
+        self._suppressed_ids: set[str] = set()
         self._filter_count: int = 0
         self._pass_count: int = 0
         os.makedirs(DATA_DIR, exist_ok=True)
         self._load()
 
-    def filter_opportunity(self, opp: Dict[str, Any]) -> Optional[CleanSignal]:
+    def filter_opportunity(self, opp: dict[str, Any]) -> CleanSignal | None:
         evh = opp.get("evh_score") or opp.get("score", 0)
         if evh < MIN_EVH:
             self._filter_count += 1
@@ -92,7 +92,7 @@ class NoiseFilter:
         self._pass_count += 1
         return signal
 
-    def filter_quick_win(self, qw: Dict[str, Any]) -> Optional[CleanSignal]:
+    def filter_quick_win(self, qw: dict[str, Any]) -> CleanSignal | None:
         confidence = qw.get("confidence", 0)
         if confidence < MIN_CONFIDENCE:
             self._filter_count += 1
@@ -116,7 +116,7 @@ class NoiseFilter:
         self._pass_count += 1
         return signal
 
-    def filter_recommendation(self, rec: Dict[str, Any]) -> Optional[CleanSignal]:
+    def filter_recommendation(self, rec: dict[str, Any]) -> CleanSignal | None:
         confidence = rec.get("confidence", 0)
         priority = rec.get("priority", "low")
         if confidence < MIN_CONFIDENCE and priority not in ("critical", "high"):
@@ -141,7 +141,7 @@ class NoiseFilter:
         self._pass_count += 1
         return signal
 
-    def filter_system_alert(self, alert: Dict[str, Any]) -> Optional[CleanSignal]:
+    def filter_system_alert(self, alert: dict[str, Any]) -> CleanSignal | None:
         severity = alert.get("severity", "low")
         if severity == "low":
             self._filter_count += 1
@@ -171,13 +171,13 @@ class NoiseFilter:
     def is_suppressed(self, signal_id: str) -> bool:
         return signal_id in self._suppressed_ids
 
-    def get_suppressed(self) -> List[str]:
+    def get_suppressed(self) -> list[str]:
         return list(self._suppressed_ids)
 
     def clear_suppressed(self) -> None:
         self._suppressed_ids.clear()
 
-    def get_stats(self) -> Dict[str, Any]:
+    def get_stats(self) -> dict[str, Any]:
         return {
             "filtered": self._filter_count,
             "passed": self._pass_count,
@@ -214,17 +214,17 @@ class NoiseFilter:
                     data = json.load(f)
                     self._suppressed_ids = set(data.get("suppressed", []))
         except (json.JSONDecodeError, OSError):
-            pass
+            logger.warning("Failed to load suppressed IDs from disk", exc_info=True)
 
     def _save(self) -> None:
         try:
             with open(self._path(), "w") as f:
                 json.dump({"suppressed": list(self._suppressed_ids)}, f)
         except OSError:
-            pass
+            logger.warning("Failed to save suppressed IDs to disk", exc_info=True)
 
 
-_NOISE_FILTER: Optional[NoiseFilter] = None
+_NOISE_FILTER: NoiseFilter | None = None
 
 
 def get_noise_filter() -> NoiseFilter:

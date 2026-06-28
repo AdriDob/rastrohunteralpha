@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import json
+import logging
 import os
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any
+
+logger = logging.getLogger("rastro.auth.token")
 
 TOKEN_STORE_DIR = os.path.join(
     os.environ.get("XDG_DATA_HOME", os.path.expanduser("~/.local/share")),
@@ -18,7 +21,7 @@ class TokenService:
     """Persistent secure token store with device binding and automatic expiry."""
 
     def __init__(self, persist: bool = True) -> None:
-        self._tokens: Dict[str, Dict[str, Any]] = {}
+        self._tokens: dict[str, dict[str, Any]] = {}
         self._persist = persist
         if persist:
             os.makedirs(TOKEN_STORE_DIR, exist_ok=True)
@@ -35,7 +38,7 @@ class TokenService:
                     data = json.load(f)
                     self._tokens = data.get("tokens", {})
             except (json.JSONDecodeError, OSError):
-                pass
+                logger.warning("Failed to load tokens from disk", exc_info=True)
 
     def _save(self) -> None:
         if not self._persist:
@@ -44,7 +47,7 @@ class TokenService:
             with open(self._path(), "w") as f:
                 json.dump({"tokens": self._tokens}, f)
         except OSError:
-            pass
+            logger.warning("Failed to save tokens to disk", exc_info=True)
 
     def store_token(self, device_id: str, token: str, ttl: int = 86400) -> None:
         self._tokens[device_id] = {
@@ -55,7 +58,7 @@ class TokenService:
         }
         self._save()
 
-    def get_token(self, device_id: str) -> Optional[str]:
+    def get_token(self, device_id: str) -> str | None:
         entry = self._tokens.get(device_id)
         if entry is None:
             return None
@@ -81,7 +84,7 @@ class TokenService:
             self._save()
         return len(expired)
 
-    def list_tokens(self) -> List[Dict[str, Any]]:
+    def list_tokens(self) -> list[dict[str, Any]]:
         now = time.time()
         result = []
         for device_id, entry in self._tokens.items():
@@ -97,7 +100,7 @@ class TokenService:
         return len(self._tokens)
 
 
-_TOKEN_SERVICE: Optional[TokenService] = None
+_TOKEN_SERVICE: TokenService | None = None
 
 
 def get_token_service() -> TokenService:

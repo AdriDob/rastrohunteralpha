@@ -7,14 +7,12 @@ No mock data. No placeholders.
 
 from __future__ import annotations
 
-from typing import Optional
-
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from core_engines.ai.provider import get_provider
 from core_engines.ai.assistant import get_assistant
+from core_engines.ai.provider import get_provider
 from core_engines.assistant.ai_assistant import get_narrator
 
 router = APIRouter(prefix="/api/assistant", tags=["assistant"])

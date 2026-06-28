@@ -8,11 +8,11 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from core_engines.auth.session import get_session_store, SessionStore
-from core_engines.sync.manager import get_sync_manager, SyncManager
-from core_engines.notifications.hub import get_hub, NotificationHub, Notification
+from core_engines.auth.session import SessionStore, get_session_store
+from core_engines.notifications.hub import NotificationHub, get_hub
+from core_engines.sync.manager import SyncManager, get_sync_manager
 
 logger = logging.getLogger("rastro.unification")
 
@@ -23,9 +23,9 @@ class DeviceContext:
     device_id: str
     session_token: str = ""
     last_sync: float = 0.0
-    preferences: Dict[str, Any] = field(default_factory=dict)
-    last_tab: Optional[str] = None
-    last_target: Optional[int] = None
+    preferences: dict[str, Any] = field(default_factory=dict)
+    last_tab: str | None = None
+    last_target: int | None = None
 
 
 class UnificationLayer:
@@ -39,9 +39,9 @@ class UnificationLayer:
         self.auth: SessionStore = get_session_store()
         self.sync: SyncManager = get_sync_manager()
         self.hub: NotificationHub = get_hub()
-        self._devices: Dict[str, DeviceContext] = {}
+        self._devices: dict[str, DeviceContext] = {}
 
-    def register_device(self, device_id: str, info: Dict[str, Any]) -> Dict[str, str]:
+    def register_device(self, device_id: str, info: dict[str, Any]) -> dict[str, str]:
         """Full device registration: auth session + sync registration.
 
         Returns tokens and device info.
@@ -72,7 +72,7 @@ class UnificationLayer:
         logger.info("Device registered: %s (%s)", device_id, info.get("name", "unknown"))
         return result
 
-    def push_device_state(self, device_id: str, state: Dict[str, Any]) -> Dict[str, Any]:
+    def push_device_state(self, device_id: str, state: dict[str, Any]) -> dict[str, Any]:
         """Push state with full context propagation."""
         merged = self.sync.push_state(device_id, state)
         ctx = self._devices.get(device_id)
@@ -80,7 +80,7 @@ class UnificationLayer:
             ctx.last_sync = merged.get("last_sync", 0)
         return merged
 
-    def pull_device_state(self, device_id: str) -> Dict[str, Any]:
+    def pull_device_state(self, device_id: str) -> dict[str, Any]:
         """Pull state with context restoration."""
         state = self.sync.pull_state(device_id)
         ctx = self._devices.get(device_id)
@@ -119,10 +119,10 @@ class UnificationLayer:
             metadata={"device_id": device_id},
         )
 
-    def get_device_context(self, device_id: str) -> Optional[DeviceContext]:
+    def get_device_context(self, device_id: str) -> DeviceContext | None:
         return self._devices.get(device_id)
 
-    def list_active_devices(self) -> List[Dict[str, Any]]:
+    def list_active_devices(self) -> list[dict[str, Any]]:
         return [
             {
                 "device_id": did,
@@ -139,7 +139,7 @@ class UnificationLayer:
         logger.info("Device disconnected: %s", device_id)
 
 
-_UNIFICATION: Optional[UnificationLayer] = None
+_UNIFICATION: UnificationLayer | None = None
 
 
 def get_unification_layer() -> UnificationLayer:

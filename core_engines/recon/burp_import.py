@@ -3,7 +3,7 @@ import logging
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 LOG = logging.getLogger("rastro.recon.burp")
 
@@ -22,10 +22,10 @@ class BurpItem:
     request: str = ""
     response: str = ""
     comment: str = ""
-    findings: Dict[str, Any] = field(default_factory=dict)
+    findings: dict[str, Any] = field(default_factory=dict)
 
 
-def parse_burp_xml(path: Path) -> List[BurpItem]:
+def parse_burp_xml(path: Path) -> list[BurpItem]:
     """Parse Burp Suite XML export into structured items."""
     items = []
     try:
@@ -42,7 +42,7 @@ def parse_burp_xml(path: Path) -> List[BurpItem]:
 
             host_el = item.find("host")
             host_text = host_el.text if host_el is not None else ""
-            ip = host_el.get("ip", "") if host_el is not None else ""
+            host_el.get("ip", "") if host_el is not None else ""
 
             port_el = item.find("port")
             port = int(port_el.text) if port_el is not None else 0
@@ -100,7 +100,7 @@ def parse_burp_xml(path: Path) -> List[BurpItem]:
     return items
 
 
-def parse_burp_json(path: Path) -> List[BurpItem]:
+def parse_burp_json(path: Path) -> list[BurpItem]:
     """Parse Burp Suite JSON export."""
     items = []
     try:
@@ -142,9 +142,9 @@ def parse_burp_json(path: Path) -> List[BurpItem]:
     return items
 
 
-def _analyze_burp_item(item: BurpItem) -> Dict[str, Any]:
+def _analyze_burp_item(item: BurpItem) -> dict[str, Any]:
     """Analyze a single Burp item for interesting findings."""
-    findings: Dict[str, Any] = {}
+    findings: dict[str, Any] = {}
     flags = []
 
     if item.status == 200:
@@ -175,7 +175,7 @@ def _analyze_burp_item(item: BurpItem) -> Dict[str, Any]:
     return findings
 
 
-def import_burp(path: Path) -> List[BurpItem]:
+def import_burp(path: Path) -> list[BurpItem]:
     """Auto-detect format and import Burp Suite data."""
     if not path.exists():
         LOG.error("Burp import file not found: %s", path)

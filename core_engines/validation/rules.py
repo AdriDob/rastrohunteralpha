@@ -1,8 +1,6 @@
-from dataclasses import dataclass, field
-from typing import Dict, List
+from dataclasses import dataclass
 
 from core_engines.validation.replayer import ComparisonResult
-
 
 CRITICAL_SENSITIVE_FIELDS = {
     "email", "ssn", "credit_card", "passport", "jwt",
@@ -20,21 +18,21 @@ NON_CRITICAL_SENSITIVE_FIELDS = {
 class RuleResult:
     passed: bool
     reason: str
-    evidence: List[str]
+    evidence: list[str]
     confidence_contribution: float
 
 
 @dataclass
 class ValidationReport:
     passed: bool
-    passed_rules: List[str]
-    failed_rules: List[str]
-    details: Dict[str, RuleResult]
+    passed_rules: list[str]
+    failed_rules: list[str]
+    details: dict[str, RuleResult]
 
 
 class ValidationRuleSet:
-    def evaluate(self, results: List[ComparisonResult]) -> ValidationReport:
-        rules: Dict[str, RuleResult] = {
+    def evaluate(self, results: list[ComparisonResult]) -> ValidationReport:
+        rules: dict[str, RuleResult] = {
             "privilege_boundary_break": self.rule_privilege_boundary_break(results),
             "auth_bypass": self.rule_auth_bypass(results),
             "sensitive_data_exposure": self.rule_sensitive_data_exposure(results),
@@ -49,7 +47,7 @@ class ValidationRuleSet:
             details=rules,
         )
 
-    def rule_privilege_boundary_break(self, results: List[ComparisonResult]) -> RuleResult:
+    def rule_privilege_boundary_break(self, results: list[ComparisonResult]) -> RuleResult:
         if len(results) < 3:
             return RuleResult(
                 passed=False, reason="Insufficient attempts (< 3).",
@@ -93,7 +91,7 @@ class ValidationRuleSet:
             confidence_contribution=0.0,
         )
 
-    def rule_auth_bypass(self, results: List[ComparisonResult]) -> RuleResult:
+    def rule_auth_bypass(self, results: list[ComparisonResult]) -> RuleResult:
         if len(results) < 3:
             return RuleResult(
                 passed=False, reason="Insufficient attempts (< 3).",
@@ -131,7 +129,7 @@ class ValidationRuleSet:
             evidence=[], confidence_contribution=0.0,
         )
 
-    def rule_sensitive_data_exposure(self, results: List[ComparisonResult]) -> RuleResult:
+    def rule_sensitive_data_exposure(self, results: list[ComparisonResult]) -> RuleResult:
         if len(results) < 3:
             return RuleResult(
                 passed=False, reason="Insufficient attempts (< 3).",
@@ -169,7 +167,7 @@ class ValidationRuleSet:
             evidence=[], confidence_contribution=0.0,
         )
 
-    def rule_cross_session_mismatch(self, results: List[ComparisonResult]) -> RuleResult:
+    def rule_cross_session_mismatch(self, results: list[ComparisonResult]) -> RuleResult:
         if len(results) < 3:
             return RuleResult(
                 passed=False, reason="Insufficient attempts (< 3).",

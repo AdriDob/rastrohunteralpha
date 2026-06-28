@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from core_engines.validation.gate import Verdict
 from core_engines.validation.replayer import ComparisonResult
@@ -11,7 +11,7 @@ LOG = logging.getLogger("rastro.evidence.store")
 
 
 class EvidenceStore:
-    def save_verdict(self, verdict: Verdict, endpoint_id: Optional[int] = None) -> int:
+    def save_verdict(self, verdict: Verdict, endpoint_id: int | None = None) -> int:
         session = SessionLocal()
         try:
             db_verdict = models.Verdict(
@@ -51,7 +51,7 @@ class EvidenceStore:
         attempt: int,
         result: ComparisonResult,
         auth_label: str,
-        endpoint_id: Optional[int] = None,
+        endpoint_id: int | None = None,
     ) -> int:
         session = SessionLocal()
         try:
@@ -108,7 +108,7 @@ class EvidenceStore:
         finally:
             session.close()
 
-    def get_verdicts_by_status(self, status: str) -> List[Dict[str, Any]]:
+    def get_verdicts_by_status(self, status: str) -> list[dict[str, Any]]:
         session = SessionLocal()
         try:
             rows = (
@@ -132,7 +132,7 @@ class EvidenceStore:
         finally:
             session.close()
 
-    def get_evidence_for_verdict(self, verdict_id: int) -> List[Dict[str, Any]]:
+    def get_evidence_for_verdict(self, verdict_id: int) -> list[dict[str, Any]]:
         session = SessionLocal()
         try:
             rows = (
@@ -155,7 +155,7 @@ class EvidenceStore:
         finally:
             session.close()
 
-    def batch_get_evidence_for_verdicts(self, verdict_ids: List[int]) -> Dict[int, List[Dict[str, Any]]]:
+    def batch_get_evidence_for_verdicts(self, verdict_ids: list[int]) -> dict[int, list[dict[str, Any]]]:
         if not verdict_ids:
             return {}
         session = SessionLocal()
@@ -165,7 +165,7 @@ class EvidenceStore:
                 .filter(models.Evidence.verdict_id.in_(verdict_ids))
                 .all()
             )
-            result: Dict[int, List[Dict[str, Any]]] = {vid: [] for vid in verdict_ids}
+            result: dict[int, list[dict[str, Any]]] = {vid: [] for vid in verdict_ids}
             for e in rows:
                 result.setdefault(e.verdict_id, []).append({
                     "id": e.id,

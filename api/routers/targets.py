@@ -1,18 +1,18 @@
-from typing import Optional
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
-from api.schemas.models import PaginatedResponse, TargetOut, TargetSummaryOut
-from api.services.data_service import list_targets, get_target, create_target as svc_create_target
+from api.schemas.models import PaginatedResponse, TargetSummaryOut
+from api.services.data_service import create_target as svc_create_target
+from api.services.data_service import get_target, list_targets
 
 router = APIRouter(prefix="/api/targets", tags=["targets"])
 
 
 class TargetCreate(BaseModel):
     name: str
-    domain: Optional[str] = None
-    mode: Optional[str] = "FAST"
+    domain: str | None = None
+    mode: str | None = "FAST"
 
 
 @router.post("")

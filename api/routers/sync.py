@@ -1,10 +1,9 @@
-from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi import APIRouter, Query, Request
 
-from core_engines.sync.manager import get_sync_manager
 from core_engines.auth.auth import verify_session
-from core_engines.gateway.schemas import ok, error
+from core_engines.gateway.schemas import error, ok
+from core_engines.sync.manager import get_sync_manager
 
 router = APIRouter(prefix="/api/sync", tags=["sync"])
 

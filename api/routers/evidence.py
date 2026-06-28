@@ -1,6 +1,6 @@
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Query
 
-from api.schemas.models import EvidenceOut, PaginatedResponse
+from api.schemas.models import PaginatedResponse
 from api.services.data_service import list_evidence
 
 router = APIRouter(prefix="/api/evidence", tags=["evidence"])

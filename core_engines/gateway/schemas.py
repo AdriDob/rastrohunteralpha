@@ -9,10 +9,9 @@ Every DTO follows:
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field
-
 
 # ── Envelope ──────────────────────────────────────────────────────────
 
@@ -21,7 +20,7 @@ class APIEnvelope(BaseModel):
     version: str = "1.0"
     schema_: str = Field("rastro/v1", alias="schema")
     data: Any = None
-    error: Optional[str] = None
+    error: str | None = None
     timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
 
     model_config = ConfigDict(
@@ -34,11 +33,11 @@ class PaginatedEnvelope(BaseModel):
     """Paginated response wrapper."""
     version: str = "1.0"
     schema_: str = Field("rastro/v1", alias="schema")
-    items: List[Any] = []
+    items: list[Any] = []
     total: int = 0
     skip: int = 0
     limit: int = 100
-    error: Optional[str] = None
+    error: str | None = None
     timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
 
     model_config = ConfigDict(populate_by_name=True)
@@ -60,7 +59,7 @@ def paginated(items: list, total: int, skip: int = 0, limit: int = 100, version:
 
 # ── Simple envelope helpers for direct dict responses ──────────────
 
-def safe_response(data: Optional[dict] = None) -> dict:
+def safe_response(data: dict | None = None) -> dict:
     """Wrap a response dict with a minimal safety envelope.
 
     Ensures every response has 'status', 'items', 'meta', 'error' keys
@@ -82,7 +81,7 @@ def error_response(msg: str) -> dict:
 class TargetDTO(BaseModel):
     id: int
     name: str
-    domain: Optional[str] = None
+    domain: str | None = None
     endpoint_count: int = 0
     finding_count: int = 0
     confirmed_findings: int = 0
@@ -102,10 +101,10 @@ class OpportunityDTO(BaseModel):
     priority: str = "medium"
     estimated_payout: int = 0
     confidence: float = 0.0
-    evh_value: Optional[float] = None
-    evh_rating: Optional[str] = None
-    public_url: Optional[str] = None
-    reasoning: List[str] = []
+    evh_value: float | None = None
+    evh_rating: str | None = None
+    public_url: str | None = None
+    reasoning: list[str] = []
 
 
 class FindingDTO(BaseModel):
@@ -116,8 +115,8 @@ class FindingDTO(BaseModel):
     confidence: float = 0.0
     status: str = "open"
     estimated_payout: int = 0
-    created_at: Optional[str] = None
-    vector: Optional[str] = None
+    created_at: str | None = None
+    vector: str | None = None
 
 
 class InsightDTO(BaseModel):
@@ -135,18 +134,18 @@ class NotificationDTO(BaseModel):
     message: str
     is_read: bool = False
     created_at: str
-    metadata: Dict[str, Any] = {}
+    metadata: dict[str, Any] = {}
 
 
 class AssistantMessageDTO(BaseModel):
     role: str = "assistant"
     content: str
-    actions: List[str] = []
+    actions: list[str] = []
     timestamp: str = Field(default_factory=lambda: datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"))
 
 
 class SyncStateDTO(BaseModel):
     device_id: str
     last_sync: str
-    state: Dict[str, Any] = {}
+    state: dict[str, Any] = {}
     version: int = 1

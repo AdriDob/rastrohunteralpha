@@ -1,6 +1,4 @@
-import copy
 import re
-from typing import Any, Dict, List, Optional, Tuple
 
 from core_engines.validation.replayer import AuthContext, RequestSpec
 
@@ -9,8 +7,8 @@ PARAM_PATTERN = re.compile(r"\{(\w+)\}")
 
 class RequestMutator:
     def build_mutations(
-        self, attack_vector: str, path: str, params: Dict[str, str]
-    ) -> Dict[str, str]:
+        self, attack_vector: str, path: str, params: dict[str, str]
+    ) -> dict[str, str]:
         if attack_vector == "IDOR":
             return self._idor_mutations(params)
         if attack_vector in ("Auth bypass", "Privilege escalation"):
@@ -26,9 +24,9 @@ class RequestMutator:
     def build_auth_contexts(
         self,
         attack_vector: str,
-        baseline_token: Optional[str] = None,
-        probe_token: Optional[str] = None,
-    ) -> Tuple[AuthContext, AuthContext]:
+        baseline_token: str | None = None,
+        probe_token: str | None = None,
+    ) -> tuple[AuthContext, AuthContext]:
         if attack_vector == "Auth bypass":
             return (
                 AuthContext(token=baseline_token, label="authenticated"),
@@ -42,7 +40,7 @@ class RequestMutator:
     def mutate_request_spec(
         self,
         spec: RequestSpec,
-        mutations: Dict[str, str],
+        mutations: dict[str, str],
     ) -> RequestSpec:
         mutated = RequestSpec(
             url=self._mutate_url(spec.url, mutations),
@@ -69,29 +67,29 @@ class RequestMutator:
         parts.append(f"'{spec.url}'")
         return " \\\n  ".join(parts)
 
-    def _idor_mutations(self, params: Dict[str, str]) -> Dict[str, str]:
-        mutations: Dict[str, str] = {}
+    def _idor_mutations(self, params: dict[str, str]) -> dict[str, str]:
+        mutations: dict[str, str] = {}
         for key in params:
             lower = key.lower()
             if any(tok in lower for tok in ["id", "uid", "user", "account", "order", "org", "tenant", "team"]):
                 mutations[key] = self._swap_id(params[key])
         return mutations
 
-    def _auth_bypass_mutations(self) -> Dict[str, str]:
+    def _auth_bypass_mutations(self) -> dict[str, str]:
         return {}
 
-    def _data_exposure_mutations(self, params: Dict[str, str]) -> Dict[str, str]:
-        mutations: Dict[str, str] = {}
+    def _data_exposure_mutations(self, params: dict[str, str]) -> dict[str, str]:
+        mutations: dict[str, str] = {}
         for key in params:
             if any(tok in key.lower() for tok in ["limit", "offset", "page", "export", "format"]):
                 mutations[key] = "all" if "format" in key.lower() else "9999"
         return mutations
 
-    def _graphql_mutations(self) -> Dict[str, str]:
+    def _graphql_mutations(self) -> dict[str, str]:
         return {}
 
-    def _business_logic_mutations(self, params: Dict[str, str]) -> Dict[str, str]:
-        mutations: Dict[str, str] = {}
+    def _business_logic_mutations(self, params: dict[str, str]) -> dict[str, str]:
+        mutations: dict[str, str] = {}
         for key in params:
             lower = key.lower()
             if any(tok in lower for tok in ["role", "admin", "type", "level", "access"]):
@@ -102,7 +100,7 @@ class RequestMutator:
                 mutations[key] = "approved"
         return mutations
 
-    def _mutate_url(self, url: str, mutations: Dict[str, str]) -> str:
+    def _mutate_url(self, url: str, mutations: dict[str, str]) -> str:
         result = url
         for key, val in mutations.items():
             result = result.replace(f"{{{key}}}", val)

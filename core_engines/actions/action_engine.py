@@ -6,12 +6,13 @@ Rule: every insight must have an associated action. No passive elements.
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 logger = logging.getLogger("rastro.actions")
 
-ActionHandler = Callable[[Dict[str, Any]], Dict[str, Any]]
+ActionHandler = Callable[[dict[str, Any]], dict[str, Any]]
 
 
 @dataclass
@@ -19,12 +20,12 @@ class Action:
     id: str
     label: str
     action_type: str
-    route: Optional[str] = None
-    handler: Optional[ActionHandler] = None
-    payload: Dict[str, Any] = field(default_factory=dict)
+    route: str | None = None
+    handler: ActionHandler | None = None
+    payload: dict[str, Any] = field(default_factory=dict)
     requires_confirmation: bool = False
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "label": self.label,
@@ -39,8 +40,8 @@ class ActionEngine:
     """Registry of all executable actions. Each action has a handler or a route."""
 
     def __init__(self) -> None:
-        self._actions: Dict[str, Action] = {}
-        self._history: List[Dict[str, Any]] = []
+        self._actions: dict[str, Action] = {}
+        self._history: list[dict[str, Any]] = []
         self._register_builtins()
 
     def _register_builtins(self) -> None:
@@ -96,23 +97,23 @@ class ActionEngine:
     def register(self, action: Action) -> None:
         self._actions[action.id] = action
 
-    def get_action(self, action_id: str) -> Optional[Action]:
+    def get_action(self, action_id: str) -> Action | None:
         return self._actions.get(action_id)
 
-    def list_actions(self, action_type: Optional[str] = None) -> List[Action]:
+    def list_actions(self, action_type: str | None = None) -> list[Action]:
         if action_type:
             return [a for a in self._actions.values() if a.action_type == action_type]
         return list(self._actions.values())
 
-    def execute(self, action_id: str, payload: Optional[Dict[str, Any]] = None, user_id: Optional[str] = None) -> Dict[str, Any]:
+    def execute(self, action_id: str, payload: dict[str, Any] | None = None, user_id: str | None = None) -> dict[str, Any]:
         import time
         start = time.time()
         action = self._actions.get(action_id)
         if not action:
             return {"status": "error", "error": f"Unknown action: {action_id}"}
 
-        result: Dict[str, Any] = {"action_id": action_id, "status": "executed"}
-        error: Optional[str] = None
+        result: dict[str, Any] = {"action_id": action_id, "status": "executed"}
+        error: str | None = None
 
         if action.handler:
             try:
@@ -146,11 +147,11 @@ class ActionEngine:
     def _track_execution(
         self,
         action: Action,
-        payload: Optional[Dict[str, Any]],
-        user_id: Optional[str],
-        result: Dict[str, Any],
+        payload: dict[str, Any] | None,
+        user_id: str | None,
+        result: dict[str, Any],
         duration_ms: float,
-        error: Optional[str],
+        error: str | None,
     ) -> None:
         try:
             from core_engines.actions.execution_tracker import get_execution_tracker
@@ -169,7 +170,7 @@ class ActionEngine:
         except Exception as exc:
             logger.debug("Execution tracking error: %s", exc)
 
-    def execute_by_priority(self, action_id: str, priority_payload: Dict[str, Any]) -> Dict[str, Any]:
+    def execute_by_priority(self, action_id: str, priority_payload: dict[str, Any]) -> dict[str, Any]:
         from core_engines.intelligence.priority_engine import get_priority_engine
         engine = get_priority_engine()
 
@@ -183,11 +184,11 @@ class ActionEngine:
 
         return result
 
-    def get_history(self, limit: int = 20) -> List[Dict[str, Any]]:
+    def get_history(self, limit: int = 20) -> list[dict[str, Any]]:
         return self._history[-limit:]
 
-    def get_stats(self) -> Dict[str, Any]:
-        type_counts: Dict[str, int] = {}
+    def get_stats(self) -> dict[str, Any]:
+        type_counts: dict[str, int] = {}
         for entry in self._history:
             action = self._actions.get(entry["action_id"])
             atype = action.action_type if action else "unknown"
@@ -200,12 +201,12 @@ class ActionEngine:
             from core_engines.actions.execution_tracker import get_execution_tracker
             tracker = get_execution_tracker()
             stats["execution_tracker"] = tracker.get_stats()
-        except Exception:
-            pass
+        except Exception as exc:
+            logger.warning("Failed to collect execution tracker stats: %s", exc)
         return stats
 
 
-_ACTION_ENGINE: Optional[ActionEngine] = None
+_ACTION_ENGINE: ActionEngine | None = None
 
 
 def get_action_engine() -> ActionEngine:

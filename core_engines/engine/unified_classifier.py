@@ -1,8 +1,8 @@
 import re
-from typing import Any, Dict, Iterable, List, Optional
+from collections.abc import Iterable
+from typing import Any
 
 from core_engines.engine.unified_scoring import score
-
 
 UUID_PATTERN = re.compile(
     r"[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
@@ -47,8 +47,8 @@ IDOR_PARAMS = [
 def classify(
     path: str,
     method: str = "GET",
-    params: Optional[Dict[str, Any]] = None,
-) -> Dict[str, Any]:
+    params: dict[str, Any] | None = None,
+) -> dict[str, Any]:
     """
     Unified endpoint classification.
 
@@ -62,9 +62,9 @@ def classify(
     safe_params = params or {}
     lower = safe_path.lower()
 
-    labels: List[str] = []
-    auth_smells: List[str] = []
-    attack_surface: List[str] = []
+    labels: list[str] = []
+    auth_smells: list[str] = []
+    attack_surface: list[str] = []
 
     is_api = (
         "/api/" in lower
@@ -108,7 +108,7 @@ def classify(
         labels.append("mutation")
 
     if safe_params:
-        lowered_params = [str(p).lower() for p in safe_params.keys()]
+        lowered_params = [str(p).lower() for p in safe_params]
 
         if any(param in IDOR_PARAMS for param in lowered_params):
             labels.append("id_parameter")
@@ -153,8 +153,8 @@ def classify(
 
 
 def synthesize_target_meta(
-    endpoints: Iterable[Dict[str, Any]],
-) -> Dict[str, bool]:
+    endpoints: Iterable[dict[str, Any]],
+) -> dict[str, bool]:
     """
     Unified target-level metadata synthesis.
 

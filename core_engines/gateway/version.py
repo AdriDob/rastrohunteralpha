@@ -5,17 +5,15 @@ Current: 1.0
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional
-
 API_VERSION = "1.0"
 API_SCHEMA = "rastro/v1"
 
-VERSIONS: Dict[str, int] = {
+VERSIONS: dict[str, int] = {
     "1.0": 1,
 }
 
 # Routes grouped by API version
-VERSIONED_PREFIXES: Dict[str, List[str]] = {
+VERSIONED_PREFIXES: dict[str, list[str]] = {
     "1.0": [
         "/api/health",
         "/api/version",

@@ -2,7 +2,6 @@ import asyncio
 import json
 import logging
 from pathlib import Path
-from typing import Optional
 
 logger = logging.getLogger("rastro.recon.crtsh")
 
@@ -18,8 +17,7 @@ class CrtshRunner:
         path = self.output_dir / out_file
         url = f"https://crt.sh/?q=%25.{domain}&output=json"
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url, timeout=aiohttp.ClientTimeout(total=self.timeout)) as resp:
+            async with aiohttp.ClientSession() as session, session.get(url, timeout=aiohttp.ClientTimeout(total=self.timeout)) as resp:
                     if resp.status != 200:
                         path.write_text(json.dumps({"error": f"HTTP {resp.status}"}))
                         return path

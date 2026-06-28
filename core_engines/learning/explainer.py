@@ -5,7 +5,7 @@ Every recommendation must include a reason. No opaque decisions.
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 from .profile import ProfileService, get_profile_service
 
@@ -13,10 +13,10 @@ from .profile import ProfileService, get_profile_service
 class Explainer:
     """Generates explanations for profile-driven recommendations."""
 
-    def __init__(self, profile_service: Optional[ProfileService] = None):
+    def __init__(self, profile_service: ProfileService | None = None):
         self._profile = profile_service or get_profile_service()
 
-    def why_priority_increased(self, user_id: str, item_type: str, item: Dict[str, Any]) -> List[str]:
+    def why_priority_increased(self, user_id: str, item_type: str, item: dict[str, Any]) -> list[str]:
         """Explain why an item was prioritised higher."""
         profile = self._profile.get(user_id)
         if not profile:
@@ -93,7 +93,7 @@ class Explainer:
         return "\n".join(lines)
 
 
-_explainer: Optional[Explainer] = None
+_explainer: Explainer | None = None
 
 
 def get_explainer() -> Explainer:

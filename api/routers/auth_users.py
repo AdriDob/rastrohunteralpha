@@ -6,14 +6,13 @@ Integrates with existing JWT token system in core_engines/auth.
 
 import hashlib
 import os
-from datetime import datetime, timezone
 
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
 from core_engines.auth.auth import (
-    create_session_token,
     create_refresh_token,
+    create_session_token,
     verify_token,
 )
 from database.db import SessionLocal

@@ -22,7 +22,6 @@ import argparse
 import logging
 import sys
 from pathlib import Path
-from typing import Optional
 
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
@@ -39,7 +38,7 @@ def _is_dir(path: str) -> bool:
 app = FastAPI(title="Rastro Frontend")
 
 
-def mount_frontend(target_app: FastAPI, static_dir: Optional[str] = None) -> bool:
+def mount_frontend(target_app: FastAPI, static_dir: str | None = None) -> bool:
     """Mount frontend static dist onto an existing FastAPI app.
 
     Args:

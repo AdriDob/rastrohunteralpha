@@ -29,7 +29,7 @@ class ScoringViolationError(RuntimeError):
     Raised when legacy scoring is invoked at runtime.
     Only active when ONLY_PIPELINE_CAN_SCORE is True.
     """
-    pass
+
 
 
 def assert_no_legacy_scoring():

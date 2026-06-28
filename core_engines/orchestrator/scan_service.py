@@ -1,16 +1,20 @@
 from pathlib import Path
+
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from database import models
+
 from core_engines.platform.system import get_data_dir
 from core_engines.recon.runner import ReconRunner
+from database import models
+
 
 async def launch_scan(target_name: str, target_domain: str, target_mode: str, session: Session):
     import asyncio
     import json
     import logging
     from datetime import datetime, timezone
-    from core_engines.recon.tools import verify_recon_tools, validate_mode_compatibility
+
+    from core_engines.recon.tools import validate_mode_compatibility, verify_recon_tools
 
     logger = logging.getLogger("rastro.main")
 
@@ -72,7 +76,7 @@ async def launch_scan(target_name: str, target_domain: str, target_mode: str, se
             logger.info(f"Parsing normalized endpoints from {normalized_path}")
             try:
                 with open(
-                    normalized_path, "r", encoding="utf-8", errors="ignore"
+                    normalized_path, encoding="utf-8", errors="ignore"
                 ) as fh:
                     entries = json.load(fh)
                 logger.info(f"Found {len(entries)} endpoint entries to persist")
@@ -167,7 +171,7 @@ async def launch_scan(target_name: str, target_domain: str, target_mode: str, se
         raise HTTPException(
             status_code=504,
             detail=f"Scan timed out after {timeout}s. Check tool availability and network connectivity.",
-        )
+        ) from None
 
     except Exception as exc:
         logger.error(f"Scan {scan.id} failed: {exc}", exc_info=True)
@@ -176,7 +180,7 @@ async def launch_scan(target_name: str, target_domain: str, target_mode: str, se
         scan.outputs = str(exc)[:500]
         session.add(scan)
         session.commit()
-        raise HTTPException(status_code=500, detail=f"Scan failed: {str(exc)[:200]}")
+        raise HTTPException(status_code=500, detail=f"Scan failed: {str(exc)[:200]}") from exc
 
     return {
         "scan_id": scan.id,

@@ -5,9 +5,9 @@ from __future__ import annotations
 import logging
 import time
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any
 
-from core_engines.memory.memory_store import get_memory_store, MemoryStore
+from core_engines.memory.memory_store import MemoryStore, get_memory_store
 
 logger = logging.getLogger("rastro.memory.decision")
 
@@ -21,11 +21,11 @@ class Decision:
     reason: str
     confidence: float = 0.0
     source: str = "system"
-    context: Dict[str, Any] = field(default_factory=dict)
-    outcome: Optional[str] = None
+    context: dict[str, Any] = field(default_factory=dict)
+    outcome: str | None = None
     timestamp: float = field(default_factory=time.time)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "id": self.id,
             "action": self.action,
@@ -63,7 +63,7 @@ class DecisionMemory:
         self._store.store(CATEGORY, decision_id, existing)
         return True
 
-    def get_decision(self, decision_id: str) -> Optional[Dict[str, Any]]:
+    def get_decision(self, decision_id: str) -> dict[str, Any] | None:
         return self._store.get(CATEGORY, decision_id)
 
     def list_decisions(
@@ -71,20 +71,20 @@ class DecisionMemory:
         limit: int = 50,
         offset: int = 0,
         only_with_outcomes: bool = False,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         results = self._store.query(CATEGORY, limit=limit)
         if only_with_outcomes:
             results = [r for r in results if r.get("details", {}).get("outcome")]
         return results
 
-    def get_decisions_by_action(self, action: str, limit: int = 20) -> List[Dict[str, Any]]:
+    def get_decisions_by_action(self, action: str, limit: int = 20) -> list[dict[str, Any]]:
         results = self._store.query(CATEGORY, limit=100)
         return [
             r for r in results
             if r.get("details", {}).get("action") == action
         ][:limit]
 
-    def get_success_rate(self, action: Optional[str] = None) -> float:
+    def get_success_rate(self, action: str | None = None) -> float:
         results = self._store.query(CATEGORY, limit=500)
         scored = []
         for r in results:
@@ -92,14 +92,13 @@ class DecisionMemory:
             if d.get("outcome") in ("success", "completed"):
                 if action is None or d.get("action") == action:
                     scored.append(1)
-            elif d.get("outcome") in ("failure", "error", "dismissed"):
-                if action is None or d.get("action") == action:
-                    scored.append(0)
+            elif d.get("outcome") in ("failure", "error", "dismissed") and (action is None or d.get("action") == action):
+                scored.append(0)
         if not scored:
             return 0.5
         return sum(scored) / len(scored)
 
-    def get_confidence_trend(self, action: str, limit: int = 50) -> List[Tuple[float, float]]:
+    def get_confidence_trend(self, action: str, limit: int = 50) -> list[tuple[float, float]]:
         results = self._store.query(CATEGORY, limit=limit)
         pairs = []
         for r in results:
@@ -111,14 +110,14 @@ class DecisionMemory:
         pairs.sort(key=lambda x: x[0])
         return pairs
 
-    def count_decisions(self, action: Optional[str] = None) -> int:
+    def count_decisions(self, action: str | None = None) -> int:
         results = self._store.query(CATEGORY, limit=1000)
         if action:
             return sum(1 for r in results if r.get("details", {}).get("action") == action)
         return len(results)
 
 
-_DECISION_MEMORY: Optional[DecisionMemory] = None
+_DECISION_MEMORY: DecisionMemory | None = None
 
 
 def get_decision_memory() -> DecisionMemory:

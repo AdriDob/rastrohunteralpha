@@ -1,10 +1,11 @@
-from typing import Any, Optional
+from typing import Any
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 
 from api.schemas.models import EndpointOut, PaginatedResponse
-from api.services.data_service import list_endpoints, get_endpoint, create_endpoint as svc_create_endpoint
+from api.services.data_service import create_endpoint as svc_create_endpoint
+from api.services.data_service import get_endpoint, list_endpoints
 
 router = APIRouter(prefix="/api/endpoints", tags=["endpoints"])
 
@@ -13,14 +14,14 @@ class EndpointCreate(BaseModel):
     target_id: int
     path: str
     method: str = "GET"
-    params: Optional[dict[str, Any]] = None
+    params: dict[str, Any] | None = None
 
 
 class EndpointAnalysisRequest(BaseModel):
     path: str
     method: str = "GET"
-    params: Optional[dict[str, Any]] = None
-    model: Optional[str] = None
+    params: dict[str, Any] | None = None
+    model: str | None = None
 
 
 @router.post("")
@@ -33,7 +34,7 @@ def create_endpoint(body: EndpointCreate):
             params=body.params,
         )
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)) from e
 
 
 @router.post("/analyze")
