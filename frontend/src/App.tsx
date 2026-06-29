@@ -246,63 +246,51 @@ export default function App() {
   console.log(`[App] render bootComplete=${bootComplete} showOnboarding=${showOnboarding} showTour=${showTour} url=${window.location.href}`);
   console.log(`[App] sessionStorage rastro-token:`, sessionStorage.getItem('rastro-token') ? 'present' : 'null');
 
-  if (!bootComplete) {
-    const bootErr = licenseValid === false
-      ? (licenseError || 'No active license detected. Please activate Rastro to continue.')
-      : null;
-    return <BootScreen onComplete={handleBootComplete} licenseError={bootErr} />;
-  }
-
-  // License gate: if license is known invalid after boot, redirect
-  if (licenseValid === false && !showOnboarding && !showTour) {
-    return (
-      <div style={{
-        position: 'fixed', inset: 0, zIndex: 9999,
-        display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center',
-        gap: 24, background: '#13151d',
-      }}>
-        <div style={{
-          width: 48, height: 48, borderRadius: '50%',
-          background: 'rgba(239,68,68,0.15)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: 24,
-        }}>⚠</div>
-        <div style={{ fontSize: 15, fontWeight: 600, color: '#ef4444' }}>
-          License required
-        </div>
-        <div style={{ fontSize: 13, color: '#7c8299', textAlign: 'center', maxWidth: 360, lineHeight: 1.5 }}>
-          {licenseError || 'No active license detected.'}
-        </div>
-        <button
-          onClick={() => window.location.href = '/activate'}
-          style={{
-            padding: '10px 28px', borderRadius: 8, border: 'none',
-            background: '#7c3aed', color: '#fff', fontSize: 14, fontWeight: 600,
-            cursor: 'pointer', marginTop: 8,
-          }}
-        >
-          Activate license
-        </button>
-      </div>
-    );
-  }
-
-  if (showOnboarding) {
-    return (
-      <WelcomeWizard onComplete={() => {
-        setShowOnboarding(false);
-        setShowTour(true);
-      }} />
-    );
-  }
-
-  if (showTour) {
-    return <TourOverlay onComplete={() => setShowTour(false)} />;
-  }
-
   return (
     <QueryClientProvider client={queryClient}>
+      {!bootComplete ? (
+        <BootScreen
+          onComplete={handleBootComplete}
+          licenseError={licenseValid === false ? (licenseError || 'No active license detected. Please activate Rastro to continue.') : null}
+        />
+      ) : licenseValid === false && !showOnboarding && !showTour ? (
+        <div style={{
+          position: 'fixed', inset: 0, zIndex: 9999,
+          display: 'flex', flexDirection: 'column',
+          alignItems: 'center', justifyContent: 'center',
+          gap: 24, background: '#13151d',
+        }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: '50%',
+            background: 'rgba(239,68,68,0.15)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: 24,
+          }}>⚠</div>
+          <div style={{ fontSize: 15, fontWeight: 600, color: '#ef4444' }}>
+            License required
+          </div>
+          <div style={{ fontSize: 13, color: '#7c8299', textAlign: 'center', maxWidth: 360, lineHeight: 1.5 }}>
+            {licenseError || 'No active license detected.'}
+          </div>
+          <button
+            onClick={() => window.location.href = '/activate'}
+            style={{
+              padding: '10px 28px', borderRadius: 8, border: 'none',
+              background: '#7c3aed', color: '#fff', fontSize: 14, fontWeight: 600,
+              cursor: 'pointer', marginTop: 8,
+            }}
+          >
+            Activate license
+          </button>
+        </div>
+      ) : showOnboarding ? (
+        <WelcomeWizard onComplete={() => {
+          setShowOnboarding(false);
+          setShowTour(true);
+        }} />
+      ) : showTour ? (
+        <TourOverlay onComplete={() => setShowTour(false)} />
+      ) : (
       <ThemeContext.Provider value={themeValue}>
         <I18nContext.Provider value={i18nValue}>
           <GlobalErrorBoundaryUI>
@@ -373,6 +361,7 @@ export default function App() {
           </GlobalErrorBoundaryUI>
         </I18nContext.Provider>
       </ThemeContext.Provider>
+      )}
     </QueryClientProvider>
   );
 }
