@@ -15,7 +15,7 @@ Menu:
   ──────────
   - Check Status
   ──────────
-  - Quit Tray (no detiene el backend)
+  - Quit Tray
 """
 
 from __future__ import annotations
@@ -30,9 +30,10 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
-logger = logging.getLogger("rastro.desktop.tray")
+logger = logging.getLogger("orion.desktop.tray")
 
 _HAS_PYSTRAY = False
+_HAS_ICON_FILE = False
 try:
     import pystray
     from PIL import Image, ImageDraw
@@ -40,29 +41,52 @@ try:
 except ImportError:
     pass
 
+# ORION brand colors
+BG = (10, 11, 15)       # #0a0b0f
+GOLD = (212, 175, 55)    # #d4af37
+BLUE = (59, 130, 246)    # #3b82f6
+TEXT = (248, 250, 252)   # #f8fafc
+
 
 def _create_icon_image(size: int = 64) -> Image.Image:
     img = Image.new("RGBA", (size, size), (0, 0, 0, 0))
     draw = ImageDraw.Draw(img)
-    margin = size // 8
-    draw.rounded_rectangle(
-        [margin, margin, size - margin, size - margin],
-        radius=size // 4,
-        fill=(124, 58, 237, 255),
-    )
-    try:
-        draw.text(
-            (size // 2, size // 2),
-            "R",
-            fill=(255, 255, 255, 255),
-            anchor="mm",
-            font_size=size // 2,
-        )
-    except Exception:
-        cx, cy = size // 2, size // 2
-        r = size // 4
-        draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=(255, 255, 255, 255))
+    cx, cy = size // 2, size // 2
+
+    # Try to load the branded icon file
+    icon_path = _try_find_icon()
+    if icon_path:
+        try:
+            ico = Image.open(icon_path)
+            ico = ico.resize((size, size), Image.LANCZOS)
+            return ico.convert("RGBA")
+        except Exception:
+            pass
+
+    # Fallback: draw a gold 'O' ring
+    outer_r = size * 0.40
+    inner_r = size * 0.20
+    for y in range(size):
+        for x in range(size):
+            dx, dy = x - cx, y - cy
+            dist = (dx * dx + dy * dy) ** 0.5
+            if inner_r < dist <= outer_r:
+                t = (dist - inner_r) / (outer_r - inner_r)
+                r = int(GOLD[0] * (1 - t) + BLUE[0] * t)
+                g = int(GOLD[1] * (1 - t) + BLUE[1] * t)
+                b = int(GOLD[2] * (1 - t) + BLUE[2] * t)
+                draw.point((x, y), fill=(r, g, b, 255))
     return img
+
+
+def _try_find_icon() -> Path | None:
+    for candidate in [
+        Path(__file__).resolve().parent.parent / "installer" / "icons" / "orion.ico",
+        Path(sys.executable).parent / "orion.ico",
+    ]:
+        if candidate.exists():
+            return candidate
+    return None
 
 
 def _get_data_dir() -> Path:
@@ -70,7 +94,7 @@ def _get_data_dir() -> Path:
         base = Path(os.environ.get("APPDATA", Path.home() / "AppData" / "Roaming"))
     else:
         base = Path.home()
-    return base / "Rastro"
+    return base / "Orion"
 
 
 def _get_logs_dir() -> Path:
@@ -109,7 +133,7 @@ class TrayController:
     """Manages the system tray icon lifecycle.
 
     Closing the browser window does NOT stop the system.
-    The tray is the primary user-facing control for Rastro.
+    The tray is the primary user-facing control for ORION.
     """
 
     def __init__(
@@ -152,7 +176,7 @@ class TrayController:
     def _show_status(self) -> None:
         status_text = self._on_check_status()
         if self._icon:
-            self._icon.title = f"Rastro — {status_text}"
+            self._icon.title = f"ORION — {status_text}"
 
     def _run(self) -> None:
         if not _HAS_PYSTRAY:
@@ -162,7 +186,7 @@ class TrayController:
         icon_image = _create_icon_image()
         menu = self._create_menu()
         try:
-            self._icon = pystray.Icon("rastro", icon_image, "Rastro - Running", menu)
+            self._icon = pystray.Icon("orion", icon_image, "ORION - Running", menu)
             self._icon.run()
         except Exception as exc:
             logger.warning("Tray icon failed to start: %s", exc)
@@ -175,7 +199,7 @@ class TrayController:
         self._thread = threading.Thread(
             target=self._run,
             daemon=True,
-            name="rastro-tray",
+            name="orion-tray",
         )
         self._thread.start()
         logger.info("System tray started (persistent)")
@@ -238,7 +262,7 @@ def run_tray_only(host: str = "127.0.0.1", port: int = 8000) -> None:
         try:
             if _is_svc_running():
                 subprocess.run(
-                    ["net", "stop", "Rastro", "&&", "net", "start", "Rastro"],
+                    ["net", "stop", "Orion", "&&", "net", "start", "Orion"],
                     shell=True, check=False,
                 )
         except Exception:
@@ -247,7 +271,7 @@ def run_tray_only(host: str = "127.0.0.1", port: int = 8000) -> None:
     def _stop_service():
         try:
             if _is_svc_running():
-                subprocess.run(["net", "stop", "Rastro"], shell=True, check=False)
+                subprocess.run(["net", "stop", "Orion"], shell=True, check=False)
         except Exception:
             pass
 

@@ -1,4 +1,4 @@
-"""Rastro Desktop — single executable entry point (Windows primary).
+"""ORION Desktop — single executable entry point (Windows primary).
 
 Architecture:
   - Backend runs IN-PROCESS (no child processes, no multi-processing).
@@ -14,7 +14,7 @@ Startup:
 Shutdown:
   SIGINT/SIGTERM/tray quit -> Stop uvicorn -> Dispose DB -> Stop tray -> Exit
 
-PyInstaller produces: dist/Rastro/Rastro  (or dist/Rastro.exe on Windows)
+PyInstaller produces: dist/Orion/Orion.exe on Windows
 
 Path strategy:
   dev:    BASE_DIR = Path(__file__).resolve().parent  (project root)
@@ -35,6 +35,14 @@ import threading
 import time
 from pathlib import Path
 
+# Reconfigure stdout/stderr for UTF-8 (Windows console defaults to cp1252)
+for _stream in (sys.stdout, sys.stderr):
+    if hasattr(_stream, "reconfigure"):
+        try:
+            _stream.reconfigure(encoding="utf-8")
+        except Exception:
+            pass
+
 import webview
 
 _BOOT = "[BOOT]"
@@ -46,7 +54,7 @@ _TRAY = "[TRAY]"
 _READY = "[READY]"
 _SHUTDOWN = "[SHUTDOWN]"
 
-logger = logging.getLogger("rastro.desktop")
+logger = logging.getLogger("orion.desktop")
 _lifecycle_logger: logging.Logger | None = None
 
 
@@ -67,11 +75,14 @@ def _show_error(title: str, message: str) -> None:
 # ── Logging ──────────────────────────────────────────────────────────
 
 def _setup_logging(dev: bool) -> str:
-    base_dir = Path(sys.executable).resolve().parent if getattr(sys, "frozen", False) else Path.cwd()
-    log_dir = base_dir / "logs"
+    if getattr(sys, "frozen", False) and os.name == "nt":
+        from core_engines.platform.system import get_log_dir as _get_log_dir
+        log_dir = _get_log_dir()
+    else:
+        log_dir = Path.cwd() / "logs"
     log_dir.mkdir(parents=True, exist_ok=True)
 
-    rastro_log = log_dir / "rastro.log"
+    orion_log = log_dir / "orion.log"
     lifecycle_log = log_dir / "lifecycle.log"
     level = logging.DEBUG if dev else logging.INFO
 
@@ -80,18 +91,18 @@ def _setup_logging(dev: bool) -> str:
     fmt = logging.Formatter("%(asctime)s [%(name)s] %(levelname)s: %(message)s")
 
     fh = logging.handlers.RotatingFileHandler(
-        rastro_log, maxBytes=5 * 1024 * 1024, backupCount=3
+        orion_log, maxBytes=5 * 1024 * 1024, backupCount=3
     )
     fh.setFormatter(fmt)
     root.addHandler(fh)
 
     if dev:
         sh = logging.StreamHandler(sys.stdout)
-        sh.setFormatter(logging.Formatter("[Rastro] %(message)s"))
+        sh.setFormatter(logging.Formatter("[ORION] %(message)s"))
         root.addHandler(sh)
 
     global _lifecycle_logger
-    _lifecycle_logger = logging.getLogger("rastro.desktop.lifecycle")
+    _lifecycle_logger = logging.getLogger("orion.desktop.lifecycle")
     _lifecycle_logger.setLevel(logging.INFO)
     _lifecycle_logger.propagate = False
     lh = logging.handlers.RotatingFileHandler(
@@ -126,7 +137,7 @@ class ServerThread:
 
     def start(self, app) -> None:
         self._thread = threading.Thread(
-            target=self._run, args=(app,), daemon=True, name="rastro-server"
+            target=self._run, args=(app,), daemon=True, name="orion-server"
         )
         self._thread.start()
 
@@ -198,7 +209,7 @@ def _mount_frontend(app) -> bool:
         return False
 
     index_path = dist_dir / "index.html"
-    log = logging.getLogger("rastro.frontend")
+    log = logging.getLogger("orion.frontend")
 
     @app.get("/")
     async def serve_root():
@@ -322,7 +333,7 @@ def _open_desktop_window(host: str, port: int) -> bool:
     try:
         _lifecycle(_BROWSER, "webview.create_window() starting...")
         window = webview.create_window(
-            "Rastro Investigation OS",
+            "ORION",
             url=url,
             width=1400,
             height=900,
@@ -424,7 +435,7 @@ def main() -> None:
     browser_mode = "--browser" in sys.argv
 
     _setup_logging(dev)
-    _lifecycle(_BOOT, "Rastro Desktop — PID: %d", os.getpid())
+    _lifecycle(_BOOT, "ORION Desktop — PID: %d", os.getpid())
     _lifecycle(_BOOT, "Frozen: %s, Python: %s, OS: %s",
                getattr(sys, "frozen", False),
                sys.version.split()[0], sys.platform)
@@ -441,8 +452,8 @@ def main() -> None:
 
     db_path.parent.mkdir(parents=True, exist_ok=True)
     os.environ["DATABASE_URL"] = f"sqlite:///{db_path}"
-    os.environ["RASTRO_BASE_DIR"] = base_dir
-    os.environ["RASTRO_DESKTOP"] = "1"
+    os.environ["ORION_BASE_DIR"] = base_dir
+    os.environ["ORION_DESKTOP"] = "1"
 
     # ── Init settings / first-run ───────────────────────────────────
     port = _init_settings()
@@ -484,7 +495,7 @@ def main() -> None:
 
     if not _wait_for_port(host, port):
         _lifecycle(_API, "Server failed to bind on %s:%d", host, port)
-        _show_error("Rastro - Error de inicio",
+        _show_error("ORION - Error de inicio",
                     f"El servidor no pudo iniciar en {host}:{port}.\n"
                     "Verifica que el puerto no esté ocupado por otro proceso.")
         sys.exit(1)
@@ -493,7 +504,7 @@ def main() -> None:
     if not _wait_for_health(host, port):
         lifecycle_path = _lifecycle_logger.handlers[0].baseFilename if _lifecycle_logger and _lifecycle_logger.handlers else "logs/lifecycle.log"
         _lifecycle(_HEALTHY, "Health check timed out — revisar lifecycle.log")
-        _show_error("Rastro - Error de inicio",
+        _show_error("ORION - Error de inicio",
                     "El servidor backend no responde.\n"
                     "Revisa los detalles en:\n"
                     f"{lifecycle_path}")
@@ -519,22 +530,24 @@ def main() -> None:
     tray = None
 
     if browser_mode:
-        _open_browser(port)
+        _headless = os.environ.get("ORION_SMOKE_TEST") or os.environ.get("ORION_PORTABLE_TEST") or os.environ.get("ORION_INSTALLER_TEST")
+        if not _headless:
+            _open_browser(port)
         if not no_tray:
             tray = _start_tray(server, shutdown_event)
-        _lifecycle(_READY, "Rastro Desktop ready (browser mode)")
+        _lifecycle(_READY, "ORION Desktop ready (browser mode)")
         try:
             shutdown_event.wait()
         except KeyboardInterrupt:
             _lifecycle(_SHUTDOWN, "KeyboardInterrupt")
     else:
-        _lifecycle(_READY, "Rastro Desktop ready (desktop window)")
+        _lifecycle(_READY, "ORION Desktop ready (desktop window)")
         if not _open_desktop_window(host, port):
             _lifecycle(_BOOT, "Desktop UI unavailable, browser mode activated.")
             _open_browser(port)
             if not no_tray:
                 tray = _start_tray(server, shutdown_event)
-            _lifecycle(_READY, "Rastro Desktop ready (browser fallback)")
+            _lifecycle(_READY, "ORION Desktop ready (browser fallback)")
             try:
                 shutdown_event.wait()
             except KeyboardInterrupt:
@@ -554,7 +567,7 @@ def main() -> None:
     except Exception:
         pass
 
-    _lifecycle(_SHUTDOWN, "Rastro Desktop stopped")
+    _lifecycle(_SHUTDOWN, "ORION Desktop stopped")
 
 
 if __name__ == "__main__":

@@ -34,7 +34,7 @@ class MemoryAgent(BaseAgent):
     @staticmethod
     def _default_path() -> str:
         home = os.environ.get("HOME", os.environ.get("USERPROFILE", "."))
-        return os.path.join(home, ".rastro", "agent_memory.json")
+        return os.path.join(home, ".orion", "agent_memory.json")
 
     def _get_agent_id(self) -> AgentId:
         return AgentId.MEMORY

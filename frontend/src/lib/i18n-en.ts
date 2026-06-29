@@ -1,6 +1,15 @@
 import type { Translations } from './i18n';
 
 const en: Translations = {
+  // Greeting
+  greeting_morning: 'Good morning',
+  greeting_afternoon: 'Good afternoon',
+  greeting_evening: 'Good evening',
+  status_ok: 'Everything is running smoothly.',
+  status_agents_attention: 'agents need attention.',
+  status_evidence_found: 'New evidence found',
+  status_agent_recovered: 'Watchdog recovered an agent successfully.',
+
   // Mission
   mission_control: 'Mission Control',
   today_mission: "Today's Mission",
@@ -297,17 +306,17 @@ const en: Translations = {
 
   // Mode system
   mode_title: 'Operation Mode',
-  mode_description: 'Controls how Rastro handles reports after they are ready',
+  mode_description: 'Controls how ORION handles reports after they are ready',
   mode_manual: 'Manual (Default)',
   mode_manual_desc: 'Pipeline pauses at "Ready" for your review. You decide: edit, approve, discard, export, or upload.',
   mode_automatic: 'Automatic',
-  mode_automatic_desc: 'Rastro can auto-submit via platform APIs and track status. Enable only if you trust the report quality.',
+  mode_automatic_desc: 'ORION can auto-submit via platform APIs and track status. Enable only if you trust the report quality.',
   mode_caution: '⚠️ Automatic mode will submit reports without human review. Use with caution.',
   mode_current: 'Current mode',
 
   // Platform integration
   platform_title: 'Platform Integration',
-  platform_description: 'Configure how Rastro interacts with each bug bounty platform',
+  platform_description: 'Configure how ORION interacts with each bug bounty platform',
   platform_enabled: 'Enabled',
   platform_action: 'Submission Action',
   platform_action_prepare: 'Prepare only',

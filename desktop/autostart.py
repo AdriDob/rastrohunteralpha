@@ -1,4 +1,4 @@
-"""Auto-Start with OS — OS-level autostart integration.
+"""ORION Auto-Start with OS — OS-level autostart integration.
 
 Target platforms:
   - Windows (primary): Startup script in %APPDATA%\\...\\Startup\\
@@ -15,7 +15,7 @@ import platform
 import subprocess
 import sys
 
-logger = logging.getLogger("rastro.desktop.autostart")
+logger = logging.getLogger("orion.desktop.autostart")
 
 LAUNCHER_CMD = f"{sys.executable} -m desktop.main_desktop --no-tray"
 
@@ -25,7 +25,7 @@ LAUNCHD_PLIST = f"""<?xml version="1.0" encoding="UTF-8"?>
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.rastro.desktop</string>
+    <string>com.orion.desktop</string>
     <key>ProgramArguments</key>
     <array>
         <string>{sys.executable}</string>
@@ -39,7 +39,7 @@ LAUNCHD_PLIST = f"""<?xml version="1.0" encoding="UTF-8"?>
     <true/>
     <key>EnvironmentVariables</key>
     <dict>
-        <key>RASTRO_DESKTOP</key>
+        <key>ORION_DESKTOP</key>
         <string>1</string>
     </dict>
 </dict>
@@ -58,7 +58,7 @@ def _windows_startup_path() -> str | None:
     return os.path.join(
         appdata,
         "Microsoft", "Windows", "Start Menu", "Programs", "Startup",
-        "Rastro.bat",
+        "Orion.bat",
     )
 
 
@@ -66,7 +66,7 @@ def _launchd_path() -> str | None:
     home = os.environ.get("HOME")
     if not home:
         return None
-    return os.path.join(home, "Library", "LaunchAgents", "com.rastro.desktop.plist")
+    return os.path.join(home, "Library", "LaunchAgents", "com.orion.desktop.plist")
 
 
 def _get_autostart_path() -> str | None:
@@ -175,7 +175,7 @@ def disable_autostart() -> bool:
 # ── Check ────────────────────────────────────────────────────────────
 
 def is_autostart_enabled() -> bool:
-    """Check if Rastro is configured to start with the OS.
+    """Check if ORION is configured to start with the OS.
 
     Returns True if autostart is configured, False otherwise.
     """

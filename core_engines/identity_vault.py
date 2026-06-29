@@ -31,7 +31,7 @@ def _get_vault_path() -> str:
     global _VAULT_PATH
     if _VAULT_PATH is None:
         home = os.environ.get("HOME", os.environ.get("USERPROFILE", "."))
-        _VAULT_PATH = os.path.join(home, ".rastro", "identity_vault.json")
+        _VAULT_PATH = os.path.join(home, ".orion", "identity_vault.json")
     return _VAULT_PATH
 
 

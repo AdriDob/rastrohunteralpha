@@ -1,33 +1,43 @@
 #!/usr/bin/env python3
-"""Rastro Release Builder — one command to build the final production output.
+"""ORION Release Builder — one command to build the final production output.
 
 Usage:
-    python scripts/build_release.py              # Full release build
-    python scripts/build_release.py --version X.Y.Z  # Custom version
-    python scripts/build_release.py --no-frontend    # Skip frontend build
-    python scripts/build_release.py --dry-run        # Print steps only
+    python scripts/build_release.py                    # Full release build
+    python scripts/build_release.py --version X.Y.Z    # Custom version
+    python scripts/build_release.py --no-frontend      # Skip frontend build
+    python scripts/build_release.py --no-nsis          # Skip NSIS installer
+    python scripts/build_release.py --dry-run          # Print steps only
 
 Builds:
-  - Backend   (PyInstaller EXE)
-  - Frontend  (Vite production build)
-  - Installer (NSIS .exe)
-  - ZIP package
+  - Frontend (Vite production build)
+  - Backend (PyInstaller EXE from Orion.spec)
+  - Installer (NSIS .exe from installer/orion.nsi)
+  - Smoke test (validates built EXE)
   - Documentation (README, CHANGELOG, LICENSE, VERSION, build_info.json)
+  - ZIP package
 
-Output (Windows):
-  C:\\Users\\adrie\\OneDrive\\Desktop\\Yo\\privado\\Rastro\\
-    ├── RastroInstaller.exe
-    ├── Rastro.zip
-    ├── README.txt
-    ├── CHANGELOG.md
-    ├── VERSION.txt
-    ├── LICENSE.txt
-    └── build_info.json
+Output:
+  build/release/
+    Orion/
+      Orion.exe
+      _internal/
+      frontend_dist/
+    OrionInstaller.exe
+    Orion.zip
+    README.txt
+    CHANGELOG.md
+    VERSION.txt
+    LICENSE.txt
+    build_info.json
+
+Final target:
+  C:\\Users\\adrie\\OneDrive\\Desktop\\Yo\\privado\\Orion
 """
 
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
 import shutil
@@ -44,18 +54,15 @@ VERSION_FILE = PROJECT_ROOT / "VERSION"
 DIST_DIR = PROJECT_ROOT / "dist"
 BUILD_DIR = PROJECT_ROOT / "build"
 
-DEFAULT_OUTPUT_ENV = os.environ.get("RASTRO_OUTPUT_DIR")
-if DEFAULT_OUTPUT_ENV:
-    DEFAULT_OUTPUT = Path(DEFAULT_OUTPUT_ENV)
-elif sys.platform.startswith("win"):
+_OUTPUT_ENV = os.environ.get("ORION_OUTPUT_DIR")
+if _OUTPUT_ENV:
+    DEFAULT_OUTPUT = Path(_OUTPUT_ENV)
+elif sys.platform == "win32":
     DEFAULT_OUTPUT = Path(os.environ.get("USERPROFILE", "C:/")) / "OneDrive" / "Desktop" / "Yo" / "privado"
-elif Path("/mnt/c/Users/adrie/OneDrive/Desktop/Yo/privado").exists():
-    DEFAULT_OUTPUT = Path("/mnt/c/Users/adrie/OneDrive/Desktop/Yo/privado")
 else:
-    DEFAULT_OUTPUT = Path.home() / "Rastro"
+    DEFAULT_OUTPUT = Path.home() / "Orion"
 
-IS_WINDOWS = sys.platform.startswith("win")
-IS_LINUX = sys.platform.startswith("linux")
+IS_WINDOWS = sys.platform == "win32"
 
 
 def log(step: str, msg: str) -> None:
@@ -82,7 +89,7 @@ def run_cmd(cmd: list[str], cwd: Path | None = None, timeout: int = 300) -> bool
 def read_version() -> str:
     if VERSION_FILE.exists():
         return VERSION_FILE.read_text().strip()
-    return "1.5.0"
+    return "1.6.0"
 
 
 def build_frontend() -> bool:
@@ -112,22 +119,21 @@ def build_frontend() -> bool:
 
 
 def build_pyinstaller() -> bool:
-    log("PYINSTALLER", "Building EXE (pyinstaller Rastro.spec)...")
-    spec = PROJECT_ROOT / "Rastro.spec"
+    log("PYINSTALLER", "Building EXE (pyinstaller Orion.spec)...")
+    spec = PROJECT_ROOT / "Orion.spec"
     if not spec.exists():
-        log("PYINSTALLER", "SKIP — no Rastro.spec found")
+        log("PYINSTALLER", "SKIP — no Orion.spec found")
         return False
 
     if not shutil.which("pyinstaller"):
         log("PYINSTALLER", "SKIP — PyInstaller not installed")
         return False
 
-    if not run_cmd(["pyinstaller", "Rastro.spec", "-y"], timeout=600):
+    if not run_cmd(["pyinstaller", "Orion.spec", "-y"], timeout=600):
         log("PYINSTALLER", "FAILED")
         return False
 
-    exe = DIST_DIR / "Rastro" / ("Rastro.exe" if IS_WINDOWS else "Rastro")
-
+    exe = DIST_DIR / "Orion" / ("Orion.exe" if IS_WINDOWS else "Orion")
     if not exe.exists():
         log("PYINSTALLER", f"FAILED — {exe} not found")
         return False
@@ -137,11 +143,11 @@ def build_pyinstaller() -> bool:
     return True
 
 
-def build_installer() -> bool:
+def build_installer(version: str) -> bool:
     log("INSTALLER", "Building NSIS installer...")
-    nsi = PROJECT_ROOT / "installer" / "install_windows.nsi"
+    nsi = PROJECT_ROOT / "installer" / "orion.nsi"
     if not nsi.exists():
-        log("INSTALLER", "SKIP — no installer/install_windows.nsi found")
+        log("INSTALLER", "SKIP — no installer/orion.nsi found")
         return False
 
     makensis = shutil.which("makensis")
@@ -149,15 +155,14 @@ def build_installer() -> bool:
         log("INSTALLER", "SKIP — NSIS (makensis) not installed")
         return False
 
-    if not run_cmd([makensis, str(nsi)], cwd=PROJECT_ROOT, timeout=120):
+    cmd = [makensis, f"/DPRODUCT_VERSION={version}", str(nsi)]
+    if not run_cmd(cmd, cwd=PROJECT_ROOT / "installer", timeout=120):
         log("INSTALLER", "FAILED")
         return False
 
-    installer = PROJECT_ROOT / f"Rastro_Setup_{read_version()}.exe"
+    installer = DIST_DIR / "OrionInstaller.exe"
     if not installer.exists():
-        installer = DIST_DIR / f"Rastro_Setup_{read_version()}.exe"
-    if not installer.exists():
-        log("INSTALLER", "FAILED — installer EXE not found")
+        log("INSTALLER", "FAILED — OrionInstaller.exe not found in dist/")
         return False
 
     log("INSTALLER", f"OK — {installer.name} ({installer.stat().st_size / 1024 / 1024:.1f} MB)")
@@ -169,37 +174,30 @@ def create_docs(output_dir: Path, version: str) -> None:
 
     readme = output_dir / "README.txt"
     readme.write_text(
-        f"═══════════════════════════════════════════\n"
-        f"  Rastro v{version} — Investigación OS Profesional\n"
-        f"═══════════════════════════════════════════\n"
+        f"{'=' * 40}\n"
+        f"         ORION v{version.ljust(6)}          \n"
+        f"   Automated Security Investigation OS    \n"
+        f"{'=' * 40}\n"
         f"\n"
-        f"• Dashboard:      http://127.0.0.1:8000\n"
-        f"• Documentación:  https://github.com/AdriDob/rastrohunteralpha\n"
-        f"• Licencia:       LICENSE.txt\n"
+        f"  Dashboard:  http://127.0.0.1:8000\n"
         f"\n"
-        f"─═─═─═─═─═─═─═─═─═─═─═─═─═─═─═─═─═─═─═─═─═─═\n"
+        f"--  Getting Started  --\n"
         f"\n"
-        f"Instalación:\n"
-        f"  1. Ejecutar RastroInstaller.exe\n"
-        f"  2. Seguir el asistente de instalación\n"
-        f"  3. Rastro se inicia automáticamente al finalizar\n"
-        f"  4. Abrir Dashboard: http://127.0.0.1:8000\n"
+        f"  1. Install using OrionInstaller.exe (recommended)\n"
+        f"     OR extract Portable/Orion.zip and run Orion\\Orion.exe --tray\n"
         f"\n"
-        f"Uso Diario:\n"
-        f"  • Rastro inicia automáticamente con Windows\n"
-        f"  • Icono en bandeja del sistema para control\n"
-        f"  • Dashboard accesible en el navegador\n"
-        f"  • Actualizaciones automáticas vía GitHub\n"
+        f"  2. Open http://127.0.0.1:8000 in your browser\n"
         f"\n"
-        f"Requisitos:\n"
-        f"  • Windows 11 64-bit\n"
-        f"  • 4 GB RAM mínimo (8 GB recomendado)\n"
-        f"  • Conexión a Internet\n"
+        f"  3. The ORION icon appears in the system tray\n"
+        f"     Right-click for: Open Dashboard, Stop, View Logs\n"
         f"\n"
-        f"Soporte:\n"
-        f"  • Issues: https://github.com/AdriDob/rastrohunteralpha/issues\n"
+        f"--  System Requirements  --\n"
         f"\n"
-        f"──  v{version} – {datetime.now().strftime('%Y-%m-%d')}  ──\n"
+        f"  * Windows 11 64-bit\n"
+        f"  * 4 GB RAM (8 GB recommended)\n"
+        f"  * No Python or Node.js required\n"
+        f"\n"
+        f"--  v{version} - {datetime.now().strftime('%Y-%m-%d')}  --\n"
     )
     log("DOCS", f"  README.txt ({readme.stat().st_size} bytes)")
 
@@ -207,40 +205,21 @@ def create_docs(output_dir: Path, version: str) -> None:
     changelog.write_text(
         f"# Changelog\n\n"
         f"## v{version} ({datetime.now().strftime('%Y-%m-%d')})\n\n"
-        f"### 🚀 Nuevo\n"
-        f"- Build pipeline profesional con un solo comando\n"
-        f"- Instalador NSIS con instalación en Program Files\n"
-        f"- Servicio Windows (pywin32) con inicio automático\n"
-        f"- Watchdog interno con monitorización y auto-recovery\n"
-        f"- Actualizaciones automáticas con rollback seguro\n"
-        f"- Dashboard de salud y estado del sistema\n"
-        f"- Centro de Identity para gestión de cuentas\n"
+        f"### Release\n"
+        f"- ORION v{version} Stable\n"
+        f"- Build pipeline reproducible\n"
+        f"- NSIS installer with Windows 11 support\n"
+        f"- PyInstaller single-directory executable\n"
+        f"- Watchdog with auto-recovery\n"
+        f"- Multi-agent architecture (exploit, research, financial, strategy, validator, coordinator)\n"
+        f"- 40+ API routers for security investigation\n"
+        f"- React 19 + PrimeReact 10 frontend\n"
+        f"- Service mode (optional, requires pywin32)\n"
+        f"- Auto-update framework with safe rollback\n"
         f"\n"
-        f"### 🛡️ Seguridad\n"
-        f"- Cifrado AES-256-GCM para credenciales\n"
-        f"- Flag 'Nunca enviar sin aprobación' (por defecto activado)\n"
-        f"- Sesión desktop con auto-autenticación\n"
-        f"\n"
-        f"### ⚡ Rendimiento\n"
-        f"- EventSystem con límite FIFO (max 500 eventos)\n"
-        f"- SQLite WAL mode + busy_timeout\n"
-        f"- Optimización de memoria en Identity Vault\n"
-        f"\n"
-        f"### 🐛 Correcciones\n"
-        f"- Pipeline stuck en PAID → CLOSED\n"
-        f"- Scheduler double-wrapping\n"
-        f"- Agent subscriptions sin limpiar en stop()\n"
-        f"- Retry delay faltante en Coordinator\n"
-        f"- OOM en EventSystem\n"
-        f"- SQLite database is locked\n"
-        f"\n"
-        f"## v1.5.0 (2026-06-15)\n\n"
-        f"- Release Candidate 1\n"
-        f"- Arquitectura multi-agente completa\n"
-        f"- Pipeline de 11 estados\n"
-        f"- Integración con HackerOne, Bugcrowd, Intigriti, YesWeHack, Synack\n"
-        f"- Frontend PrimeReact dark mode\n"
-        f"- 333 tests pasando\n"
+        f"### Previous\n"
+        f"- v1.5.0 (2026-06-15) - Release Candidate 1\n"
+        f"- v1.6.0 RC (2026-06-20) - Release Candidate 3\n"
     )
     log("DOCS", f"  CHANGELOG.md ({changelog.stat().st_size} bytes)")
 
@@ -248,39 +227,84 @@ def create_docs(output_dir: Path, version: str) -> None:
     version_txt.write_text(f"{version}\n")
     log("DOCS", f"  VERSION.txt ({version_txt.stat().st_size} bytes)")
 
-    license_file = output_dir / "LICENSE.txt"
     current_year = datetime.now().year
+    license_file = output_dir / "LICENSE.txt"
     license_file.write_text(
-        f"Rastro v{version} — Investigación OS Profesional\n"
-        f"Copyright © {current_year} AdriDob\n\n"
-        f"Todos los derechos reservados.\n\n"
-        f"Este software está protegido por leyes de propiedad intelectual.\n"
-        f"Queda prohibida la distribución, modificación o uso no autorizado.\n\n"
-        f"Para uso personal únicamente.\n"
-        f"Licencia de uso no transferible.\n"
+        f"ORION v{version}\n"
+        f"Copyright (c) {current_year} ORION Labs\n\n"
+        f"All rights reserved.\n\n"
+        f"This software is protected by intellectual property laws.\n"
+        f"Unauthorized distribution, modification, or use is prohibited.\n\n"
+        f"For personal use only.\n"
+        f"Non-transferable license.\n"
     )
     log("DOCS", f"  LICENSE.txt ({license_file.stat().st_size} bytes)")
 
     log("DOCS", "OK — 4 documentation files generated")
 
 
+def sha256(path: Path) -> str:
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(65536), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def get_git_commit() -> str:
+    try:
+        result = subprocess.run(
+            ["git", "rev-parse", "--short", "HEAD"],
+            capture_output=True, text=True, timeout=10, cwd=PROJECT_ROOT,
+        )
+        return result.stdout.strip() if result.returncode == 0 else "unknown"
+    except Exception:
+        return "unknown"
+
+
+KEY_ARTIFACTS = ["Orion.exe", "Orion", "OrionInstaller.exe"]
+
+
+def artifact_sha256(output_dir: Path) -> dict[str, str]:
+    hashes = {}
+    for f in output_dir.rglob("*"):
+        if f.is_file() and f.name in KEY_ARTIFACTS:
+            hashes[f.name] = sha256(f)
+    orion_dir = output_dir / "Orion"
+    if orion_dir.exists():
+        for f in orion_dir.rglob("*"):
+            if f.is_file() and f.name in KEY_ARTIFACTS:
+                hashes[f.name] = sha256(f)
+    return hashes
+
+
 def create_build_info(output_dir: Path, version: str, components: dict[str, bool]) -> None:
+    total_size = sum(f.stat().st_size for f in output_dir.rglob("*") if f.is_file())
     info = {
-        "app": "Rastro",
+        "app": "ORION",
         "version": version,
+        "build_id": f"ORION-v{version}-{datetime.now().strftime('%Y%m%d-%H%M%S')}",
         "build_date": datetime.now(timezone.utc).isoformat(),
-        "build_host": os.uname().nodename if hasattr(os, "uname") else "unknown",
+        "commit": get_git_commit(),
         "python": sys.version.split()[0],
         "platform": sys.platform,
+        "total_size_bytes": total_size,
+        "total_size_human": f"{total_size / 1024 / 1024:.1f} MB",
         "components": components,
+        "sha256": artifact_sha256(output_dir),
         "files": {},
     }
 
-    for f in output_dir.iterdir():
+    for f in output_dir.rglob("*"):
         if f.is_file():
-            info["files"][f.name] = {
+            rel = str(f.relative_to(output_dir))
+            info["files"][rel] = {
                 "size_bytes": f.stat().st_size,
-                "size_human": f"{f.stat().st_size / 1024:.1f} KB" if f.stat().st_size < 1024 * 1024 else f"{f.stat().st_size / 1024 / 1024:.1f} MB",
+                "size_human": (
+                    f"{f.stat().st_size / 1024:.1f} KB"
+                    if f.stat().st_size < 1024 * 1024
+                    else f"{f.stat().st_size / 1024 / 1024:.1f} MB"
+                ),
             }
 
     build_info = output_dir / "build_info.json"
@@ -289,80 +313,120 @@ def create_build_info(output_dir: Path, version: str, components: dict[str, bool
 
 
 def create_zip(output_dir: Path, version: str) -> Path | None:
-    log("ZIP", f"Creating Rastro.zip from {output_dir}...")
-    zip_path = output_dir / "Rastro.zip"
+    log("ZIP", f"Creating Orion-{version}.zip from {output_dir}...")
+    zip_path = output_dir / f"Orion-{version}.zip"
 
     if zip_path.exists():
         zip_path.unlink()
 
     with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
-        for f in output_dir.iterdir():
-            if f.is_file() and f.name != "Rastro.zip":
-                zf.write(f, f.name)
+        for root, _dirs, files in os.walk(output_dir):
+            for file in files:
+                if file.endswith(".zip"):
+                    continue
+                full_path = Path(root) / file
+                arcname = str(full_path.relative_to(output_dir))
+                zf.write(full_path, arcname)
 
     if zip_path.exists():
         size = zip_path.stat().st_size
-        log("ZIP", f"OK — {zip_path.name} ({size / 1024:.1f} KB)")
+        log("ZIP", f"OK — {zip_path.name} ({size / 1024 / 1024:.1f} MB)")
         return zip_path
     log("ZIP", "FAILED")
     return None
 
 
 def copy_to_output(output_dir: Path) -> bool:
-    target = DEFAULT_OUTPUT / "Rastro"
+    target = DEFAULT_OUTPUT / "Orion"
     if target.exists():
         shutil.rmtree(target)
     target.mkdir(parents=True, exist_ok=True)
     for f in output_dir.iterdir():
         if f.is_file():
             shutil.copy2(f, target / f.name)
+    # Also copy Orion/ subdir
+    orion_dir = output_dir / "Orion"
+    if orion_dir.exists():
+        dest = target / "Orion"
+        if dest.exists():
+            shutil.rmtree(dest)
+        shutil.copytree(orion_dir, dest)
     log("COPY", f"Files copied to: {target}")
     return True
 
 
 def verify_output(output_dir: Path) -> bool:
     log("VERIFY", "Verifying output files...")
-    required = ["Rastro.zip", "README.txt", "CHANGELOG.md", "VERSION.txt", "LICENSE.txt", "build_info.json"]
+    required = [
+        "README.txt",
+        "CHANGELOG.md",
+        "VERSION.txt",
+        "LICENSE.txt",
+        "build_info.json",
+    ]
     all_ok = True
 
     for name in required:
         path = output_dir / name
         exists = path.exists()
         size = path.stat().st_size if exists else 0
-        status = "✅" if exists else "❌"
-        log("VERIFY", f"  {status} {name} ({size / 1024:.1f} KB)" if exists else f"  {status} {name} (MISSING)")
+        status = "OK" if exists else "MISSING"
+        log("VERIFY", f"  [{status}] {name} ({size / 1024:.1f} KB)" if exists else f"  [{status}] {name}")
         if not exists:
             all_ok = False
 
-    rastro_dir = output_dir / "Rastro"
-    rastro_exe = rastro_dir / ("Rastro.exe" if IS_WINDOWS else "Rastro")
-    if rastro_exe.exists():
-        log("VERIFY", f"  ✅ Rastro/{rastro_exe.name} ({rastro_exe.stat().st_size / 1024 / 1024:.1f} MB)")
+    orion_dir = output_dir / "Orion"
+    orion_exe = orion_dir / ("Orion.exe" if IS_WINDOWS else "Orion")
+    if orion_exe.exists():
+        log("VERIFY", f"  [OK] Orion/{orion_exe.name} ({orion_exe.stat().st_size / 1024 / 1024:.1f} MB)")
     else:
-        log("VERIFY", "  ⚠ Rastro/ binary not found (PyInstaller not run)")
+        log("VERIFY", "  [--] Orion/ binary not found (PyInstaller not run)")
+
+    # PyInstaller 6.x places data files inside _internal/
+    frontend_candidates = [
+        orion_dir / "_internal" / "frontend_dist" / "index.html",
+        orion_dir / "frontend_dist" / "index.html",
+    ]
+    frontend_found = any(p.exists() for p in frontend_candidates)
+    if frontend_found:
+        log("VERIFY", "  [OK] Orion/_internal/frontend_dist/index.html")
+    else:
+        log("VERIFY", "  [--] Orion/frontend_dist not found")
+
+    installer = output_dir / "OrionInstaller.exe"
+    if installer.exists():
+        log("VERIFY", f"  [OK] OrionInstaller.exe ({installer.stat().st_size / 1024 / 1024:.1f} MB)")
+    else:
+        log("VERIFY", "  [--] OrionInstaller.exe not found")
+
+    zip_file = output_dir / f"Orion-{read_version()}.zip"
+    if zip_file.exists():
+        log("VERIFY", f"  [OK] {zip_file.name} ({zip_file.stat().st_size / 1024 / 1024:.1f} MB)")
+    else:
+        log("VERIFY", "  [--] Orion.zip not found")
 
     return all_ok
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Rastro Release Builder")
+    parser = argparse.ArgumentParser(description="ORION Release Builder")
     parser.add_argument("--version", default=None, help="Version override")
     parser.add_argument("--no-frontend", action="store_true", help="Skip frontend build")
+    parser.add_argument("--no-nsis", action="store_true", help="Skip NSIS installer")
     parser.add_argument("--clean", action="store_true", help="Clean dist/ and build/ before building")
-    parser.add_argument("--no-nsis", action="store_true", help="Skip NSIS installer even if available")
     parser.add_argument("--dry-run", action="store_true", help="Print steps without executing")
     args = parser.parse_args()
 
     version = args.version or read_version()
-    log("BUILD", f"Rastro Release Builder v{version}")
+    log("BUILD", f"ORION Release Builder v{version}")
     log("BUILD", f"Platform: {sys.platform}")
     log("BUILD", f"Project: {PROJECT_ROOT}")
     log("BUILD", f"Dry run: {args.dry_run}")
 
-    output_dir = PROJECT_ROOT / "build" / "release"
+    output_dir = BUILD_DIR / "release"
     if args.dry_run:
         log("BUILD", f"Output would be: {output_dir}")
-        log("BUILD", f"Output target: {DEFAULT_OUTPUT / 'Rastro'}")
+        log("BUILD", f"Final target: {DEFAULT_OUTPUT / 'Orion'}")
         log("BUILD", "Dry run complete")
         return
 
@@ -380,46 +444,41 @@ def main() -> None:
 
     components["frontend"] = build_frontend() if not args.no_frontend else True
     components["pyinstaller"] = build_pyinstaller()
-    components["installer"] = build_installer() if not args.no_nsis else False
+    components["installer"] = build_installer(version) if not args.no_nsis else False
     components["docs"] = True
 
     create_docs(output_dir, version)
-    create_build_info(output_dir, version, components)
 
-    if components.get("pyinstaller") or components.get("installer"):
-        src = DIST_DIR / "Rastro"
+    if components.get("pyinstaller"):
+        src = DIST_DIR / "Orion"
         if src.exists():
             log("BUILD", "Copying PyInstaller build to output...")
-            dest = output_dir / "Rastro"
+            dest = output_dir / "Orion"
             if dest.exists():
                 shutil.rmtree(dest)
             shutil.copytree(src, dest)
 
+    # Copy installer to output
+    installer_src = DIST_DIR / "OrionInstaller.exe"
+    if installer_src.exists():
+        shutil.copy2(installer_src, output_dir / "OrionInstaller.exe")
+
+    create_build_info(output_dir, version, components)
     create_zip(output_dir, version)
 
-    log("BUILD", "─" * 50)
-
+    log("BUILD", "\u2500" * 50)
     verify_output(output_dir)
-
-    log("BUILD", "─" * 50)
+    log("BUILD", "\u2500" * 50)
+    total_mb = sum(f.stat().st_size for f in output_dir.rglob("*") if f.is_file()) / 1024 / 1024
     log("BUILD", f"Output directory: {output_dir}")
-    log("BUILD", f"Total size: {sum(f.stat().st_size for f in output_dir.rglob('*') if f.is_file()) / 1024 / 1024:.1f} MB")
+    log("BUILD", f"Total size: {total_mb:.1f} MB")
 
     copy_to_output(output_dir)
 
-    log("BUILD", "─" * 50)
-    if IS_LINUX:
-        log("BUILD", "NOTE: Running on Linux. To complete the Windows build:")
-        log("BUILD", f"  1. Copy {output_dir} to Windows")
-        log("BUILD", "  2. Run: pyinstaller Rastro.spec -y")
-        log("BUILD", "  3. Run: makensis installer\\install_windows.nsi")
-        log("BUILD", "  4. Run: python scripts\\build_release.py")
-        log("BUILD", "  OR use: scripts\\build_windows.ps1")
-    else:
-        log("BUILD", "Build complete. Files ready in:")
-        log("BUILD", f"  {output_dir}")
-        log("BUILD", f"  Copied to: {DEFAULT_OUTPUT / 'Rastro'}")
-
+    log("BUILD", "\u2500" * 50)
+    log("BUILD", "Build complete.")
+    log("BUILD", f"  Output:  {output_dir}")
+    log("BUILD", f"  Target:  {DEFAULT_OUTPUT / 'Orion'}")
     log("BUILD", "DONE")
 
 

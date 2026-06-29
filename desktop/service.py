@@ -1,4 +1,4 @@
-"""Windows Service — registers Rastro as a background Windows Service.
+"""Windows Service — registers ORION as a background Windows Service.
 
 Usage:
     python -m desktop.service --install     # Register service
@@ -22,7 +22,7 @@ import os
 import sys
 from pathlib import Path
 
-logger = logging.getLogger("rastro.service")
+logger = logging.getLogger("orion.service")
 
 _pywin32 = {}
 
@@ -47,14 +47,14 @@ except ImportError:
 _HAS_PYWIN32 = all(v is not None for v in _pywin32.values())
 
 
-SERVICE_NAME = "Rastro"
-SERVICE_DISPLAY_NAME = "Rastro Investigation OS"
-SERVICE_DESCRIPTION = "Automated bug bounty investigation platform"
+SERVICE_NAME = "Orion"
+SERVICE_DISPLAY_NAME = "ORION Investigation OS"
+SERVICE_DESCRIPTION = "Automated security investigation platform"
 
 
 if _HAS_PYWIN32:
 
-    class RastroService(_pywin32["serviceutil"].ServiceFramework):
+    class OrionService(_pywin32["serviceutil"].ServiceFramework):
         _svc_name_ = SERVICE_NAME
         _svc_display_name_ = SERVICE_DISPLAY_NAME
         _svc_description_ = SERVICE_DESCRIPTION
@@ -67,7 +67,7 @@ if _HAS_PYWIN32:
             self._running = False
 
         def SvcDoRun(self):
-            logger.info("[SERVICE] Starting Rastro Service...")
+            logger.info("[SERVICE] Starting ORION Service...")
             self._running = True
             self._run_backend()
 
@@ -92,14 +92,14 @@ if _HAS_PYWIN32:
             )
 
             _setup_logging(dev=False)
-            _lifecycle("[SERVICE]", "Rastro Service — PID: %d", os.getpid())
+            _lifecycle("[SERVICE]", "ORION Service — PID: %d", os.getpid())
 
-            os.environ["RASTRO_DESKTOP"] = "1"
+            os.environ["ORION_DESKTOP"] = "1"
             from core_engines.platform.system import get_db_path
             db_path = get_db_path()
             db_path.parent.mkdir(parents=True, exist_ok=True)
             os.environ["DATABASE_URL"] = f"sqlite:///{db_path}"
-            os.environ["RASTRO_BASE_DIR"] = str(
+            os.environ["ORION_BASE_DIR"] = str(
                 getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent)
             )
 
@@ -125,7 +125,7 @@ if _HAS_PYWIN32:
             start_all_agents()
             _lifecycle("[SERVICE]", "Agents started")
 
-            _lifecycle("[SERVICE]", "Rastro Service is running")
+            _lifecycle("[SERVICE]", "ORION Service is running")
 
             while self._running:
                 _pywin32["event"].WaitForSingleObject(self._stop_event, 5000)
@@ -133,7 +133,7 @@ if _HAS_PYWIN32:
             _lifecycle("[SERVICE]", "Service shutdown complete")
 else:
 
-    class RastroService:
+    class OrionService:
         _svc_name_ = SERVICE_NAME
         _svc_display_name_ = SERVICE_DISPLAY_NAME
         _svc_description_ = SERVICE_DESCRIPTION
@@ -156,7 +156,7 @@ def install_service() -> None:
     win32serviceutil = _pywin32["serviceutil"]
     print(f"Installing service: {SERVICE_NAME}")
     sys.argv = ["service.py", "--startup", "auto", "install"]
-    win32serviceutil.HandleCommandLine(RastroService)
+    win32serviceutil.HandleCommandLine(OrionService)
     print(f"Service {SERVICE_NAME} installed and set to auto-start")
 
 
@@ -167,7 +167,7 @@ def remove_service() -> None:
     win32serviceutil = _pywin32["serviceutil"]
     print(f"Removing service: {SERVICE_NAME}")
     sys.argv = ["service.py", "remove"]
-    win32serviceutil.HandleCommandLine(RastroService)
+    win32serviceutil.HandleCommandLine(OrionService)
     print(f"Service {SERVICE_NAME} removed")
 
 
@@ -178,7 +178,7 @@ def run_service() -> None:
         desktop_main()
         return
     win32serviceutil = _pywin32["serviceutil"]
-    win32serviceutil.HandleCommandLine(RastroService)
+    win32serviceutil.HandleCommandLine(OrionService)
 
 
 if __name__ == "__main__":

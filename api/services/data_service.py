@@ -513,7 +513,7 @@ def generate_report() -> dict[str, Any]:
                 intel_map[intel.id] = intel
 
         lines = [
-            "# Rastro Bug Bounty Report\n",
+            "# ORION Bug Bounty Report\n",
             f"*Generated: {now}*\n",
             "---\n",
             "## Summary\n",
@@ -550,7 +550,7 @@ def generate_report() -> dict[str, Any]:
             })
 
         return {
-            "title": "Rastro Bug Bounty Report",
+            "title": "ORION Bug Bounty Report",
             "summary": f"{len(confirmed_findings)} confirmed findings across {len(targets)} targets",
             "findings": finding_outs,
             "total_findings": len(confirmed_findings),

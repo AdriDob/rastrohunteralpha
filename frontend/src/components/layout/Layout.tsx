@@ -82,11 +82,11 @@ export default function Layout() {
           transform: assistantOpen ? 'translateX(0)' : 'translateX(100%)',
           transition: 'transform 0.2s ease',
           display: 'flex', flexDirection: 'column',
-          background: '#1a1d29', borderLeft: '1px solid #2a2e3d',
+          background: '#161B22', borderLeft: '1px solid #212838',
           overflow: 'auto',
         }}>
           <div style={{
-            padding: '12px 14px', borderBottom: '1px solid #2a2e3d',
+            padding: '12px 14px', borderBottom: '1px solid #212838',
             display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0,
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

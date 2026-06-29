@@ -1,6 +1,6 @@
-import math
-from PIL import Image, ImageDraw, ImageFont
 import os
+
+from PIL import Image, ImageDraw, ImageFont
 
 W = 1280
 H = 800

@@ -1,4 +1,4 @@
-"""First Run Experience — runs exactly once on first launch.
+"""ORION First Run Experience — runs exactly once on first launch.
 
 Executes:
   - Register OS-level autostart (Windows primary)
@@ -18,7 +18,7 @@ from pathlib import Path
 from desktop.autostart import enable_autostart, is_autostart_enabled
 from desktop.settings import DesktopSettings
 
-logger = logging.getLogger("rastro.desktop.first_run")
+logger = logging.getLogger("orion.desktop.first_run")
 
 
 def run_first_time(settings: DesktopSettings) -> bool:

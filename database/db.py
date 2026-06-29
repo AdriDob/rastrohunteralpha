@@ -9,7 +9,7 @@ from sqlalchemy.orm import declarative_base, sessionmaker
 
 load_dotenv()
 
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./database/rastro.db")
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./database/orion.db")
 IS_SQLITE = DATABASE_URL.startswith("sqlite")
 
 _engine_args: dict = {}
@@ -20,9 +20,9 @@ engine = create_engine(DATABASE_URL, **_engine_args)
 
 if IS_SQLITE:
     with engine.connect() as conn:
-        conn.execute(text("PRAGMA journal_mode=WAL"))
-        conn.execute(text("PRAGMA synchronous=NORMAL"))
-        conn.execute(text("PRAGMA busy_timeout=5000"))
+        for pragma in ("PRAGMA journal_mode=WAL", "PRAGMA synchronous=NORMAL", "PRAGMA busy_timeout=5000"):
+            with contextlib.suppress(Exception):
+                conn.execute(text(pragma))
         conn.commit()
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 Base = declarative_base()
@@ -65,7 +65,7 @@ def init_db():
                 try:
                     session.execute(text(f"ALTER TABLE targets_intel ADD COLUMN {col_name} {col_type};"))
                 except Exception as exc:
-                    logger = __import__('logging').getLogger('rastro.db')
+                    logger = __import__('logging').getLogger('orion.db')
                     logger.warning("Migration skip (targets_intel.%s): %s", col_name, exc)
 
             # Auto-migration for reports table
@@ -88,7 +88,7 @@ def init_db():
                 try:
                     session.execute(text(f"ALTER TABLE reports ADD COLUMN {col_name} {col_type};"))
                 except Exception as exc:
-                    logger = __import__('logging').getLogger('rastro.db')
+                    logger = __import__('logging').getLogger('orion.db')
                     logger.warning("Migration skip (reports.%s): %s", col_name, exc)
 
             # Auto-migration for notifications table
@@ -105,7 +105,7 @@ def init_db():
 
             session.commit()
         except Exception as exc:
-            logger = __import__('logging').getLogger('rastro.db')
+            logger = __import__('logging').getLogger('orion.db')
             logger.warning("Migration block failed: %s", exc)
         finally:
             if session is not None:

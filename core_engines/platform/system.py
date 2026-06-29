@@ -118,23 +118,23 @@ def get_data_dir() -> Path:
     - Windows: %APPDATA%/Rastro
     - macOS:   ~/Library/Application Support/Rastro
     - Frozen:  next to the executable (Linux only, Windows prioritizes APPDATA)
-    - Default: ~/.rastro
+    - Default: ~/.orion
     """
     _diag_path = os.path.join(
         os.environ.get("APPDATA", os.path.expanduser("~")),
-        "Rastro", "license_diagnostic.log",
+        "ORION", "license_diagnostic.log",
     )
 
     if is_windows():
         base = os.environ.get("APPDATA", "")
-        result = Path(base) / "Rastro" if base else Path.home() / ".rastro"
+        result = Path(base) / "ORION" if base else Path.home() / ".orion"
         logger.info("PLATFORM_DIAG: is_windows=True APPDATA=%s data_dir=%s", base, result)
         _append_diag(_diag_path, f"[PATH-DIAG] Windows: APPDATA={base} → data_dir={result}")
         return result
 
     if is_macos():
         base = Path.home() / "Library" / "Application Support"
-        result = base / "Rastro"
+        result = base / "ORION"
         logger.info("PLATFORM_DIAG: is_macos=True data_dir=%s", result)
         _append_diag(_diag_path, f"[PATH-DIAG] macOS: data_dir={result}")
         return result
@@ -145,7 +145,7 @@ def get_data_dir() -> Path:
         _append_diag(_diag_path, f"[PATH-DIAG] Frozen: executable_dir={get_executable_dir()} → data_dir={result}")
         return result
 
-    result = Path.home() / ".rastro"
+    result = Path.home() / ".orion"
     logger.info("PLATFORM_DIAG: default data_dir=%s", result)
     _append_diag(_diag_path, f"[PATH-DIAG] Default (Linux dev): data_dir={result}")
     return result
@@ -165,18 +165,18 @@ def get_config_dir() -> Path:
 
     - Windows: %APPDATA%/Rastro
     - macOS:   ~/Library/Application Support/Rastro
-    - Default: ~/.rastro
+    - Default: ~/.orion
     """
     if is_windows():
         base = os.environ.get("APPDATA", "")
         if base:
-            return Path(base) / "Rastro"
+            return Path(base) / "ORION"
 
     if is_macos():
         base = Path.home() / "Library" / "Application Support"
-        return base / "Rastro"
+        return base / "ORION"
 
-    return Path.home() / ".rastro"
+    return Path.home() / ".orion"
 
 
 def get_log_dir() -> Path:
@@ -193,7 +193,7 @@ def get_db_path() -> Path:
     """Return the database file path (persistent across restarts)."""
     db_dir = get_data_dir() / "database"
     db_dir.mkdir(parents=True, exist_ok=True)
-    return db_dir / "rastro.db"
+    return db_dir / "orion.db"
 
 
 def get_frontend_dist_dir() -> Path:

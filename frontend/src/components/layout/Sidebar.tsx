@@ -162,7 +162,7 @@ export function DesktopSidebar({ isExpanded }: { isExpanded: boolean }) {
     <aside
       style={{
         width: isExpanded ? expandedWidth : collapsedWidth,
-        background: '#1a1d29', borderRight: '1px solid #2a2e3d',
+        background: '#161B22', borderRight: '1px solid #212838',
         display: 'flex', flexDirection: 'column', flexShrink: 0,
         transition: 'width 0.15s ease', overflow: 'hidden',
       }}
@@ -175,12 +175,12 @@ export function DesktopSidebar({ isExpanded }: { isExpanded: boolean }) {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{
-            width: 32, height: 32, borderRadius: 6,
-            background: 'linear-gradient(135deg,#7c3aed,#a855f7)',
+            width: 32, height: 32, borderRadius: 8,
+            background: 'linear-gradient(135deg,#D4AF37,#E6C24A)',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
-            color: '#fff', fontWeight: 800, fontSize: 14, flexShrink: 0,
-          }}>R</div>
-          {isExpanded && <span style={{ fontWeight: 800, fontSize: 16, letterSpacing: 2, color: '#fff' }}>RASTRO</span>}
+            color: '#0A0B0F', fontWeight: 800, fontSize: 16, flexShrink: 0,
+          }}>O</div>
+          {isExpanded && <span style={{ fontWeight: 700, fontSize: 16, letterSpacing: 3, color: '#F8FAFC' }}>ORION</span>}
         </div>
         {isExpanded && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>

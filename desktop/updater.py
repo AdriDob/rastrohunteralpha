@@ -12,6 +12,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import os
 import shutil
 import sys
 import time
@@ -19,12 +20,22 @@ from dataclasses import dataclass
 from pathlib import Path
 from urllib.request import Request, urlopen
 
-logger = logging.getLogger("rastro.desktop.updater")
+logger = logging.getLogger("orion.desktop.updater")
 
-GITHUB_REPO = "AdriDob/rastrohunteralpha"
-UPDATE_STAGING_DIR = Path(__file__).resolve().parent / "build" / ".updates"
-ROLLBACK_DIR = Path(__file__).resolve().parent / "build" / ".rollback"
-ROLLBACK_FLAG = Path.home() / ".rastro" / ".update_pending"
+GITHUB_REPO = "AdriDob/orion"
+
+# Production paths resolved at import time
+def _get_data_dir() -> Path:
+    if sys.platform == "win32":
+        base = os.environ.get("APPDATA", "")
+        if base:
+            return Path(base) / "ORION"
+    return Path.home() / ".orion"
+
+_DATA_DIR = _get_data_dir()
+UPDATE_STAGING_DIR = _DATA_DIR / "updates"
+ROLLBACK_DIR = _DATA_DIR / "rollback"
+ROLLBACK_FLAG = _DATA_DIR / ".update_pending"
 
 # Timeout in seconds after which a boot after update is considered successful
 BOOT_GRACE_SECONDS = 15
@@ -42,8 +53,8 @@ class ReleaseInfo:
 def _get_exe_dir() -> Path:
     """Get the directory containing the current executable."""
     if getattr(sys, "frozen", False):
-        return Path(sys.executable).parent
-    return Path(__file__).resolve().parent.parent / "dist" / "Rastro"
+        return Path(sys.executable).resolve().parent
+    return Path(__file__).resolve().parent.parent / "build" / "release" / "Orion"
 
 
 def _parse_semver(v: str) -> tuple[int, int, int, int]:
@@ -68,6 +79,16 @@ def _parse_semver(v: str) -> tuple[int, int, int, int]:
 
 
 def _current_version() -> str:
+    if getattr(sys, "frozen", False):
+        meipass = getattr(sys, "_MEIPASS", None)
+        if meipass:
+            version_file = Path(meipass) / "VERSION"
+            if version_file.exists():
+                return version_file.read_text().strip()
+        exe_dir = Path(sys.executable).resolve().parent
+        version_file = exe_dir / "VERSION"
+        if version_file.exists():
+            return version_file.read_text().strip()
     version_file = Path(__file__).resolve().parent.parent / "VERSION"
     if version_file.exists():
         return version_file.read_text().strip()
@@ -83,7 +104,7 @@ def check_for_updates(current_version: str | None = None) -> ReleaseInfo | None:
     api_url = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 
     try:
-        req = Request(api_url, headers={"User-Agent": "Rastro/1.0", "Accept": "application/json"})
+        req = Request(api_url, headers={"User-Agent": "ORION/1.0", "Accept": "application/json"})
         with urlopen(req, timeout=10) as resp:
             data = json.loads(resp.read().decode("utf-8"))
     except Exception as exc:
@@ -158,7 +179,7 @@ def download_update(release: ReleaseInfo) -> str | None:
     Returns the path to the downloaded ZIP, or None on failure.
     """
     UPDATE_STAGING_DIR.mkdir(parents=True, exist_ok=True)
-    dest = UPDATE_STAGING_DIR / f"rastro-{release.version}.zip"
+    dest = UPDATE_STAGING_DIR / f"orion-{release.version}.zip"
 
     if dest.exists():
         logger.debug("Update already downloaded: %s", dest)
@@ -166,7 +187,7 @@ def download_update(release: ReleaseInfo) -> str | None:
 
     logger.info("Downloading update %s from %s", release.version, release.download_url)
     try:
-        req = Request(release.download_url, headers={"User-Agent": "Rastro/1.0"})
+        req = Request(release.download_url, headers={"User-Agent": "ORION/1.0"})
         with urlopen(req, timeout=120) as resp:
             total = int(resp.headers.get("Content-Length", 0))
             downloaded = 0
@@ -259,7 +280,7 @@ def apply_update(release: ReleaseInfo, downloaded_path: str) -> bool:
 
     # Find the binary inside the extracted ZIP
     extracted_exe = None
-    for candidate in ["Rastro.exe", "Rastro", "run.exe", "run"]:
+    for candidate in ["Orion.exe", "Orion", "run.exe", "run"]:
         p = extract_dir / candidate
         if p.exists():
             extracted_exe = p
@@ -268,7 +289,7 @@ def apply_update(release: ReleaseInfo, downloaded_path: str) -> bool:
     if not extracted_exe:
         for item in extract_dir.iterdir():
             if item.is_dir():
-                for candidate in ["Rastro.exe", "Rastro", "run.exe", "run"]:
+                for candidate in ["Orion.exe", "Orion", "run.exe", "run"]:
                     p = item / candidate
                     if p.exists():
                         extracted_exe = p
@@ -298,8 +319,15 @@ def apply_update(release: ReleaseInfo, downloaded_path: str) -> bool:
     }))
 
     # 4. Update VERSION file
-    version_file = Path(__file__).resolve().parent.parent / "VERSION"
-    version_file.write_text(release.version + "\n")
+    version_file = _get_exe_dir() / "VERSION"
+    if not version_file.exists():
+        meipass = getattr(sys, "_MEIPASS", None)
+        if meipass:
+            version_file = Path(meipass) / "VERSION"
+    try:
+        version_file.write_text(release.version + "\n")
+    except OSError as exc:
+        logger.error("Failed to write VERSION file: %s", exc)
 
     logger.info("Update to %s applied. Restart to activate.", release.version)
     return True

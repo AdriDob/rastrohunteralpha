@@ -5,33 +5,32 @@ interface KPICardProps {
   accent?: string;
 }
 
-const cardStyle: React.CSSProperties = {
-  background: '#1e2230', borderRadius: 8, border: '1px solid #2a2e3d',
-  padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 6,
-};
-
-const valueStyle: React.CSSProperties = {
-  fontSize: 28, fontWeight: 700, color: '#fff', lineHeight: 1.1,
-};
-
-const labelStyle: React.CSSProperties = {
-  fontSize: 11, color: '#7c8299', textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: 600,
-};
-
-const iconStyle = (accent: string): React.CSSProperties => ({
-  width: 36, height: 36, borderRadius: 8, display: 'flex', alignItems: 'center',
-  justifyContent: 'center', fontSize: 16, background: accent,
-});
-
-export default function KPICard({ label, value, icon = '◈', accent = 'rgba(124,58,237,0.12)' }: KPICardProps) {
+export default function KPICard({ label, value, icon = '◈', accent = 'rgba(59,130,246,0.12)' }: KPICardProps) {
   return (
-    <div style={cardStyle}>
+    <div style={{
+      background: '#161B22', borderRadius: 14, border: '1px solid #212838',
+      padding: '16px 20px', display: 'flex', flexDirection: 'column', gap: 8,
+      boxShadow: '0 1px 2px rgba(0,0,0,0.3)',
+    }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <div>
-          <div style={labelStyle}>{label}</div>
-          <div style={valueStyle}>{value}</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <div style={{
+            fontSize: 11, color: '#A0A8B3', textTransform: 'uppercase', letterSpacing: 0.5, fontWeight: 600,
+          }}>
+            {label}
+          </div>
+          <div style={{
+            fontSize: 26, fontWeight: 700, color: '#F8FAFC', lineHeight: 1.1,
+          }}>
+            {value}
+          </div>
         </div>
-        <div style={iconStyle(accent)}>{icon}</div>
+        <div style={{
+          width: 36, height: 36, borderRadius: 10, display: 'flex', alignItems: 'center',
+          justifyContent: 'center', fontSize: 16, background: accent, flexShrink: 0,
+        }}>
+          {icon}
+        </div>
       </div>
     </div>
   );

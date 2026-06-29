@@ -1,42 +1,49 @@
 # Changelog
 
+## v1.6.0 (Stable) — 2026-06-29
+
+### 🚀 Release
+- ORION v1.6.0 Stable — primer release instalable profesional
+- Build pipeline reproducible con un solo comando
+- NSIS installer con instalación en Program Files, accesos directos, Add/Remove Programs
+- PyInstaller single-directory executable
+- Wonder fully isolated from development environment
+
+### 🛡️ Estabilidad
+- Watchdog interno con auto-recovery
+- Sistema de auto-healing con backoff exponencial
+- Rollback seguro en actualizaciones fallidas
+- Arquitectura monoproceso — sin subprocess, sin multiprocessing
+
+### ⚡ Rendimiento
+- EventSystem con límite FIFO (max 500 eventos)
+- SQLite WAL mode + synchronous=NORMAL
+- Cache de pipelines con límite
+
+---
+
 ## v1.6.0 (RC3) — 2026-06-28
 
 ### 🚀 Nuevo
-
-- **Build pipeline profesional**: `scripts/build_release.py` — un solo comando construye frontend + backend + instalador + ZIP
-- **Instalador NSIS profesional**: Instala en `Program Files`, registra servicio Windows, crea accesos directos, Add/Remove Programs
-- **Servicio Windows**: `desktop/service.py` — `Rastro.exe --service` como servicio residente con inicio automático
-- **Watchdog interno**: `desktop/watchdog.py` — monitorea API, agentes, scheduler, EventBus, RAM/CPU; auto-recovery con backoff
-- **Tray mejorado**: Nuevos menús: View Logs, Open Data Folder, Restart Service, Stop Service, Quit Tray (no detiene backend)
-- **Dashboard de salud**: `/api/system/status` — estado completo del sistema, watchdog, agentes, pipeline, memoria, CPU
-- **Identity Center**: Gestión de cuentas de plataformas, wallets, email, y flag `never_submit_without_approval`
-- **Auto-update**: Sistema completo de actualizaciones vía GitHub Releases con rollback seguro
+- Build pipeline profesional
+- Instalador NSIS profesional
+- Servicio Windows
+- Watchdog interno
+- Identity Center
+- Auto-update con rollback seguro
 
 ### 🛡️ Seguridad y Estabilidad
-
-- Cifrado AES-256-GCM para credenciales de plataforma
-- Flag "Nunca enviar sin mi aprobación" activado por defecto
+- Cifrado AES-256-GCM para credenciales
+- Flag "Nunca enviar sin aprobación"
 - Sesión desktop con auto-autenticación
-- SQLite WAL mode + busy_timeout=5000 en todas las conexiones
-
-### ⚡ Rendimiento
-
-- EventSystem con límite FIFO (max 500 eventos) — sin OOM
-- SQLite WAL mode + synchronous=NORMAL — sin `database is locked`
-- Pipeline state machine con validación de transiciones
-- Cache de pipelines con límite
 
 ### 🐛 Correcciones
-
-- Pipeline stuck en PAID → CLOSED (`_on_financial_update`)
-- Scheduler double-wrapping (`start()`/`stop()` correctos)
-- Agent subscriptions sin limpiar en `stop()` (nuevo `unsubscribe_agent()`)
+- Pipeline stuck en PAID → CLOSED
+- Scheduler double-wrapping
+- Agent subscriptions sin limpiar
 - Retry delay faltante en Coordinator
 - OOM en EventSystem
 - SQLite "database is locked"
-- `useRef` unused en frontend (build roto)
-- `_subscription_types` no inicializado en BaseAgent (crash en tests)
 
 ---
 
@@ -44,8 +51,8 @@
 
 - Release Candidate 1
 - Arquitectura multi-agente completa
-- Pipeline de 11 estados (PENDING → DISCOVERY → VALIDATION → ... → CLOSED)
+- Pipeline de 11 estados
 - Integración con HackerOne, Bugcrowd, Intigriti, YesWeHack, Synack
 - Frontend PrimeReact dark mode con 30+ páginas
-- 333 tests pasando
+- 333+ tests pasando
 - Exportación PDF / HTML / TXT

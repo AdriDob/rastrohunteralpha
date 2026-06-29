@@ -1,4 +1,4 @@
-"""Desktop Settings — persistent JSON configuration for the launcher.
+"""ORION Desktop Settings — persistent JSON configuration for the launcher.
 
 Stores: backend port, auto-start, theme, language, last URL, window state,
 uptime history, crash/recovery counts, diagnostic data.
@@ -14,7 +14,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-logger = logging.getLogger("rastro.desktop.settings")
+logger = logging.getLogger("orion.desktop.settings")
 
 SETTINGS_VERSION = 1
 
@@ -47,7 +47,7 @@ DEFAULT_SETTINGS: dict[str, Any] = {
     "first_run": True,
     "onboarding_complete": False,
     "initial_boot_timestamp": None,
-    "installed_version": "1.5.0",
+    "installed_version": "1.6.0",
     "settings_version": SETTINGS_VERSION,
     "uptime_history": [],
     "crash_count": 0,
@@ -104,10 +104,10 @@ class DesktopSettings:
         if self._data.get("settings_version") != SETTINGS_VERSION:
             self._data["settings_version"] = SETTINGS_VERSION
             changed = True
-        if self._data.get("installed_version") not in (None, "1.5.0"):
-            logger.info("Updated installed_version from %s to 1.5.0",
+        if self._data.get("installed_version") not in (None, "1.6.0"):
+            logger.info("Updated installed_version from %s to 1.6.0",
                         self._data.get("installed_version"))
-            self._data["installed_version"] = "1.5.0"
+            self._data["installed_version"] = "1.6.0"
             changed = True
         return changed
 

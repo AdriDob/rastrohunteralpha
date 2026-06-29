@@ -18,7 +18,7 @@ class RecoveryStore:
 
     def __init__(self, db_path: str | None = None) -> None:
         if db_path is None:
-            db_dir = Path(os.getenv("RASTRO_DATA_DIR", Path.home() / ".rastro" / "data"))
+            db_dir = Path(os.getenv("ORION_DATA_DIR", Path.home() / ".orion" / "data"))
             db_dir.mkdir(parents=True, exist_ok=True)
             db_path = str(db_dir / "recovery_history.db")
         self._db_path = db_path

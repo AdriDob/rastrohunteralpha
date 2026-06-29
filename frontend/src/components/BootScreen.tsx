@@ -1,71 +1,83 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
+import { useSystemState } from '../lib/api/system';
 
 interface BootScreenProps {
   onComplete: () => void;
   licenseError?: string | null;
 }
 
-const BOOT_PHASES = [
-  { label: 'Authenticating session', duration: 400 },
-  { label: 'Resolving identity', duration: 300 },
-  { label: 'Hydrating memory', duration: 400 },
-  { label: 'Loading intelligence', duration: 400 },
-  { label: 'Generating briefing', duration: 300 },
-  { label: 'Initializing assistant', duration: 300 },
-];
+const CHECK_INTERVAL = 500;
+const MAX_CHECKS = 60;
 
-export default function BootScreen({ onComplete, licenseError }: BootScreenProps) {
-  const [phase, setPhase] = useState(() => {
-    console.log('[BootScreen] phase initialized to 0');
-    return 0;
-  });
-  const [fadeOut, setFadeOut] = useState(false);
+const STATE_MESSAGES: Record<string, string> = {
+  BOOTING: 'Inicializando sistema...',
+  READY: 'Sistema listo',
+  DEGRADED: 'Sistema degradado',
+  FAILED: 'Error del sistema',
+};
 
-  console.log(`[BootScreen] render phase=${phase} fadeOut=${fadeOut} licenseError=${licenseError}`);
+function useRealBootState() {
+  const { data, isLoading } = useSystemState();
+  const [checks, setChecks] = useState(0);
 
   useEffect(() => {
-    if (licenseError) {
-      console.log('[BootScreen] license error — halting boot');
-      return;
-    }
-    if (phase >= BOOT_PHASES.length) {
-      console.log('[BootScreen] ALL PHASES DONE, starting fadeOut');
+    if (isLoading) return;
+    const interval = setInterval(() => {
+      setChecks(c => c + 1);
+    }, CHECK_INTERVAL);
+    return () => clearInterval(interval);
+  }, [isLoading]);
+
+  const isReady = data?.state?.system_state === 'READY' || checks >= MAX_CHECKS;
+
+  return {
+    systemState: data?.state,
+    services: data?.services ?? [],
+    isReady,
+    timedOut: checks >= MAX_CHECKS && data?.state?.system_state !== 'READY',
+  };
+}
+
+export default function BootScreen({ onComplete, licenseError }: BootScreenProps) {
+  const { systemState, services, isReady, timedOut } = useRealBootState();
+  const [fadeOut, setFadeOut] = useState(false);
+  const completedRef = useRef(false);
+
+  useEffect(() => {
+    if (completedRef.current) return;
+    if ((isReady || timedOut) && !licenseError) {
+      completedRef.current = true;
       setFadeOut(true);
-      const t = setTimeout(() => {
-        console.log('[BootScreen] calling onComplete()');
-        onComplete();
-      }, 400);
-      return () => {
-        console.log('[BootScreen] cleanup fadeOut timer');
-        clearTimeout(t);
-      };
+      const t = setTimeout(onComplete, 400);
+      return () => clearTimeout(t);
     }
-    console.log(`[BootScreen] scheduling phase ${phase + 1} in ${BOOT_PHASES[phase].duration}ms (label="${BOOT_PHASES[phase].label}")`);
-    const t = setTimeout(() => {
-      console.log(`[BootScreen] advancing to phase ${phase + 1}`);
-      setPhase((p) => p + 1);
-    }, BOOT_PHASES[phase].duration);
-    return () => {
-      console.log(`[BootScreen] cleanup timer for phase ${phase}`);
-      clearTimeout(t);
-    };
-  }, [phase, onComplete, licenseError]);
+  }, [isReady, timedOut, licenseError, onComplete]);
+
+  const healthyCount = services.filter(s => s.state === 'healthy').length;
 
   return (
     <div style={{
       position: 'fixed', inset: 0, zIndex: 9999,
       display: 'flex', flexDirection: 'column',
       alignItems: 'center', justifyContent: 'center',
-      background: '#13151d',
+      background: '#0A0B0F',
       opacity: fadeOut ? 0 : 1,
       transition: 'opacity 0.4s ease-out',
     }}>
+      {/* Logo */}
       <div style={{
-        fontSize: 36, fontWeight: 800, letterSpacing: '-0.03em',
-        color: '#fff', marginBottom: 48,
-        display: 'flex', alignItems: 'center', gap: 12,
+        fontSize: 32, fontWeight: 700, letterSpacing: '0.15em',
+        color: '#F8FAFC', marginBottom: 6,
+        display: 'flex', alignItems: 'center', gap: 10,
       }}>
-        <span style={{ color: '#7c3aed' }}>R</span>astro
+        <span style={{ color: '#D4AF37', fontWeight: 800 }}>O</span>
+        RION
+      </div>
+      <div style={{
+        fontSize: 11, color: '#6B7280', letterSpacing: '0.08em',
+        marginBottom: 48, fontWeight: 400,
+      }}>
+        Automated Security Investigation OS
       </div>
 
       {licenseError ? (
@@ -76,17 +88,17 @@ export default function BootScreen({ onComplete, licenseError }: BootScreenProps
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             fontSize: 24,
           }}>⚠</div>
-          <div style={{ fontSize: 15, fontWeight: 600, color: '#ef4444' }}>
+          <div style={{ fontSize: 15, fontWeight: 600, color: '#EF4444' }}>
             License required
           </div>
-          <div style={{ fontSize: 13, color: '#7c8299', textAlign: 'center', lineHeight: 1.5 }}>
+          <div style={{ fontSize: 13, color: '#A0A8B3', textAlign: 'center', lineHeight: 1.5 }}>
             {licenseError}
           </div>
           <button
             onClick={() => window.location.href = '/activate'}
             style={{
               padding: '10px 28px', borderRadius: 8, border: 'none',
-              background: '#7c3aed', color: '#fff', fontSize: 14, fontWeight: 600,
+              background: '#D4AF37', color: '#0A0B0F', fontSize: 14, fontWeight: 600,
               cursor: 'pointer', marginTop: 8,
             }}
           >
@@ -94,47 +106,72 @@ export default function BootScreen({ onComplete, licenseError }: BootScreenProps
           </button>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 16, width: 280 }}>
-          {BOOT_PHASES.map((p, i) => {
-            const status = i < phase ? 'done' : i === phase ? 'active' : 'pending';
-            return (
-              <div key={p.label} style={{
-                display: 'flex', alignItems: 'center', gap: 12,
-                opacity: status === 'pending' ? 0.3 : 1,
-                transition: 'all 0.3s ease',
-              }}>
-                <div style={{
-                  width: 20, height: 20, borderRadius: '50%',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  fontSize: 10, fontWeight: 700,
-                  background: status === 'done' ? '#22c55e'
-                    : status === 'active' ? '#7c3aed' : '#2a2e3d',
-                  color: status === 'pending' ? '#4a4f63' : '#fff',
-                  transition: 'all 0.3s ease',
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: 280 }}>
+          {systemState && (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'center',
+              fontSize: 13, color: '#A0A8B3',
+            }}>
+              <div style={{
+                width: 8, height: 8, borderRadius: '50%',
+                background: systemState.system_state === 'READY' ? '#22C55E'
+                  : systemState.system_state === 'DEGRADED' ? '#F59E0B'
+                  : systemState.system_state === 'FAILED' ? '#EF4444'
+                  : '#D4AF37',
+                animation: systemState.system_state !== 'READY' ? 'pulse-dot 1.5s ease-in-out infinite' : undefined,
+              }} />
+              {STATE_MESSAGES[systemState.system_state] || 'Inicializando...'}
+            </div>
+          )}
+          {!systemState && (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 10, justifyContent: 'center',
+              fontSize: 13, color: '#A0A8B3',
+            }}>
+              <div style={{
+                width: 8, height: 8, borderRadius: '50%',
+                background: '#D4AF37',
+                animation: 'pulse-dot 1.5s ease-in-out infinite',
+              }} />
+              Conectando con el backend...
+            </div>
+          )}
+          {services.length > 0 && (
+            <div style={{
+              display: 'flex', flexDirection: 'column', gap: 6, marginTop: 16,
+            }}>
+              {services.slice(0, 6).map(s => (
+                <div key={s.name} style={{
+                  display: 'flex', alignItems: 'center', gap: 8,
+                  fontSize: 11, color: s.state === 'healthy' ? '#A0A8B3' : '#F59E0B',
                 }}>
-                  {status === 'done' ? '✓' : status === 'active' ? '○' : '·'}
-                </div>
-                <div style={{ fontSize: 13, color: status === 'pending' ? '#4a4f63' : '#e2e4e9' }}>
-                  {p.label}
-                </div>
-                {status === 'active' && (
                   <div style={{
-                    width: 12, height: 12, borderRadius: '50%',
-                    border: '2px solid #7c3aed',
-                    borderTopColor: 'transparent',
-                    animation: 'spin 0.8s linear infinite',
-                    marginLeft: 'auto',
+                    width: 5, height: 5, borderRadius: '50%',
+                    background: s.state === 'healthy' ? '#22C55E' : '#F59E0B',
+                    flexShrink: 0,
                   }} />
-                )}
-              </div>
-            );
-          })}
+                  <span style={{ flex: 1 }}>{s.name}</span>
+                  <span style={{ fontSize: 10, color: '#6B7280' }}>{s.state}</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {systemState && (
+            <div style={{
+              textAlign: 'center', marginTop: 20,
+              fontSize: 10, color: '#4A4F63',
+            }}>
+              {healthyCount}/{systemState.services_total} servicios operativos
+            </div>
+          )}
         </div>
       )}
 
       <style>{`
-        @keyframes spin { to { transform: rotate(360deg); } }
-        @keyframes pulse { 0%,100% { opacity: 0.4; } 50% { opacity: 1; } }
+        @keyframes pulse-dot {
+          0%, 100% { opacity: 0.4; transform: scale(1); }
+          50% { opacity: 1; transform: scale(1.3); }
+        }
       `}</style>
     </div>
   );

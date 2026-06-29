@@ -220,7 +220,7 @@ async def lifespan(app: FastAPI):
 
     # Start Recovery Engine and Health Monitor
     try:
-        from core_engines.recovery import get_recovery_engine, get_health_monitor
+        from core_engines.recovery import get_health_monitor, get_recovery_engine
         recovery = get_recovery_engine()
         recovery.start()
         monitor = get_health_monitor()
@@ -314,7 +314,7 @@ async def lifespan(app: FastAPI):
 _VERSION_FILE = Path(__file__).resolve().parent.parent / "VERSION"
 _APP_VERSION = _VERSION_FILE.read_text().strip() if _VERSION_FILE.is_file() else "0.0.0"
 
-app = FastAPI(title="Rastro API", version=_APP_VERSION, lifespan=lifespan)
+app = FastAPI(title="ORION API", version=_APP_VERSION, lifespan=lifespan)
 
 # Production: restrict to local origins + pywebview app:// protocol.
 # Dev mode (RASTRO_DESKTOP not set) also keeps * for hot-reload.
@@ -400,7 +400,7 @@ async def global_exception_handler(request, exc):
 
 @app.get("/api/health")
 async def health():
-    return {"status": "ok", "app": "Rastro API", "version": APP_VERSION}
+    return {"status": "ok", "app": "ORION API", "version": APP_VERSION}
 
 
 @app.get("/api/system/status")
@@ -457,7 +457,7 @@ def _get_db_size_mb() -> float:
 
 @app.get("/api/version")
 async def version():
-    return {"version": APP_VERSION, "app": "Rastro API", "build": None}
+    return {"version": APP_VERSION, "app": "ORION API", "build": None}
 
 
 @app.get("/api/stats")

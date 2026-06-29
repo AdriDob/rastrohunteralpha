@@ -1,4 +1,4 @@
-"""Desktop Notifications — cross-platform system notifications via plyer.
+"""ORION Desktop Notifications — cross-platform system notifications via plyer.
 
 On Windows uses native Windows toast notifications (plyer -> winrt).
 On other platforms falls through to plyer's platform implementation.
@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import logging
 
-logger = logging.getLogger("rastro.desktop.notifications")
+logger = logging.getLogger("orion.desktop.notifications")
 
 _HAS_PLYER = False
 try:
@@ -34,7 +34,7 @@ def _notify_plyer(title: str, message: str, urgency: str = "normal") -> bool:
         plyer_notification.notify(
             title=title,
             message=message,
-            app_name="Rastro",
+            app_name="ORION",
             timeout=5000,
             urgency=urgency,
         )
@@ -60,20 +60,20 @@ def send_notification(title: str, message: str, urgency: str = "normal") -> None
 
 
 def notify_backend_started(port: int) -> None:
-    send_notification("Rastro", "Backend server started", "normal")
+    send_notification("ORION", "Backend server started", "normal")
 
 
 def notify_dashboard_ready() -> None:
-    send_notification("Rastro", "Dashboard ready — opening browser", "normal")
+    send_notification("ORION", "Dashboard ready — opening browser", "normal")
 
 
 def notify_system_warning(message: str) -> None:
-    send_notification("Rastro", message, "critical")
+    send_notification("ORION", message, "critical")
 
 
 def notify_backend_restored() -> None:
-    send_notification("Rastro", "Backend recovered after failure", "normal")
+    send_notification("ORION", "Backend recovered after failure", "normal")
 
 
 def notify_frontend_restored() -> None:
-    send_notification("Rastro", "Frontend recovered after failure", "normal")
+    send_notification("ORION", "Frontend recovered after failure", "normal")

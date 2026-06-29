@@ -32,7 +32,7 @@ class FinancialAgent(BaseAgent):
     @staticmethod
     def _default_path() -> str:
         home = os.environ.get("HOME", os.environ.get("USERPROFILE", "."))
-        return os.path.join(home, ".rastro", "financial_data.json")
+        return os.path.join(home, ".orion", "financial_data.json")
 
     def _get_agent_id(self) -> AgentId:
         return AgentId.FINANCIAL

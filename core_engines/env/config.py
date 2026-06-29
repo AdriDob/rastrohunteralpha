@@ -78,7 +78,7 @@ class EnvConfig:
     database_url: str = field(
         default_factory=lambda: os.environ.get(
             "DATABASE_URL",
-            f"sqlite:///{Path.home() / '.rastro' / 'database' / 'rastro.db'}",
+            f"sqlite:///{Path.home() / '.orion' / 'database' / 'orion.db'}",
         )
     )
 

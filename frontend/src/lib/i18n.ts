@@ -3,6 +3,15 @@ import { createContext, useContext } from 'react';
 export type Language = 'en' | 'es';
 
 export interface Translations {
+  // Greeting
+  greeting_morning: string;
+  greeting_afternoon: string;
+  greeting_evening: string;
+  status_ok: string;
+  status_agents_attention: string;
+  status_evidence_found: string;
+  status_agent_recovered: string;
+
   // Mission
   mission_control: string;
   today_mission: string;

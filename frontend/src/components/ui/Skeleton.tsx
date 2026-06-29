@@ -1,18 +1,3 @@
-const shimmer = `
-  @keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
-  }
-`;
-
-const styleId = 'skeleton-shimmer';
-if (typeof document !== 'undefined' && !document.getElementById(styleId)) {
-  const el = document.createElement('style');
-  el.id = styleId;
-  el.textContent = shimmer;
-  document.head.appendChild(el);
-}
-
 interface SkeletonProps {
   width?: string | number;
   height?: string | number;
@@ -20,14 +5,14 @@ interface SkeletonProps {
   style?: React.CSSProperties;
 }
 
-export function Skeleton({ width = '100%', height = 16, borderRadius = 6, style }: SkeletonProps) {
+export function Skeleton({ width = '100%', height = 16, borderRadius = 8, style }: SkeletonProps) {
   return (
     <div
       style={{
         width, height, borderRadius,
-        background: 'linear-gradient(90deg, #1e2230 25%, #2a2e3d 50%, #1e2230 75%)',
+        background: 'linear-gradient(90deg, #1F252E 25%, #252C38 50%, #1F252E 75%)',
         backgroundSize: '200% 100%',
-        animation: 'shimmer 1.5s ease-in-out infinite',
+        animation: 'shimmer 1.2s ease-in-out infinite',
         ...style,
       }}
     />
@@ -37,7 +22,7 @@ export function Skeleton({ width = '100%', height = 16, borderRadius = 6, style 
 export function SkeletonCard() {
   return (
     <div style={{
-      background: '#1e2230', borderRadius: 8, border: '1px solid #2a2e3d',
+      background: '#161B22', borderRadius: 14, border: '1px solid #212838',
       padding: 20, display: 'flex', flexDirection: 'column', gap: 12,
     }}>
       <Skeleton width={80} height={12} />
@@ -60,7 +45,7 @@ export function SkeletonTable({ rows = 5 }: { rows?: number }) {
 export function SkeletonPanel() {
   return (
     <div style={{
-      background: '#1e2230', borderRadius: 8, border: '1px solid #2a2e3d',
+      background: '#161B22', borderRadius: 14, border: '1px solid #212838',
       padding: 20,
     }}>
       <Skeleton width={140} height={14} style={{ marginBottom: 16 }} />

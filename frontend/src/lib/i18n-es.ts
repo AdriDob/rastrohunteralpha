@@ -1,6 +1,15 @@
 import type { Translations } from './i18n';
 
 const es: Translations = {
+  // Greeting
+  greeting_morning: 'Buenos días',
+  greeting_afternoon: 'Buenas tardes',
+  greeting_evening: 'Buenas noches',
+  status_ok: 'Todo está funcionando correctamente.',
+  status_agents_attention: 'agentes requieren atención.',
+  status_evidence_found: 'Nueva evidencia encontrada hace',
+  status_agent_recovered: 'Watchdog recuperó un agente correctamente.',
+
   // Mission
   mission_control: 'Centro de Mando',
   today_mission: 'Misión del Día',
@@ -269,17 +278,17 @@ const es: Translations = {
 
   // Mode system
   mode_title: 'Modo de Operación',
-  mode_description: 'Controla cómo Rastro maneja los reportes después de que están listos',
+  mode_description: 'Controla cómo ORION maneja los reportes después de que están listos',
   mode_manual: 'Manual (Predeterminado)',
   mode_manual_desc: 'El pipeline se pausa en "Listo" para tu revisión. Tú decides: editar, aprobar, descartar, exportar o subir.',
   mode_automatic: 'Automático',
-  mode_automatic_desc: 'Rastro puede enviar automáticamente vía APIs oficiales y rastrear el estado. Activa solo si confías en la calidad del reporte.',
+  mode_automatic_desc: 'ORION puede enviar automáticamente vía APIs oficiales y rastrear el estado. Activa solo si confías en la calidad del reporte.',
   mode_caution: '⚠️ El modo automático enviará reportes sin revisión humana. Úsalo con precaución.',
   mode_current: 'Modo actual',
 
   // Platform integration
   platform_title: 'Integración con Plataformas',
-  platform_description: 'Configura cómo Rastro interactúa con cada plataforma de bug bounty',
+  platform_description: 'Configura cómo ORION interactúa con cada plataforma de bug bounty',
   platform_enabled: 'Activada',
   platform_action: 'Acción de envío',
   platform_action_prepare: 'Solo preparar el reporte',

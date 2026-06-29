@@ -28,14 +28,14 @@ from fastapi.staticfiles import StaticFiles
 
 from core_engines.platform.system import get_frontend_dist_dir
 
-logger = logging.getLogger("rastro.frontend_server")
+logger = logging.getLogger("orion.frontend_server")
 
 DEFAULT_FRONTEND_DIR = str(get_frontend_dist_dir())
 
 def _is_dir(path: str) -> bool:
     return Path(path).is_dir()
 
-app = FastAPI(title="Rastro Frontend")
+app = FastAPI(title="ORION Frontend")
 
 
 def mount_frontend(target_app: FastAPI, static_dir: str | None = None) -> bool:
@@ -61,7 +61,7 @@ def mount_frontend(target_app: FastAPI, static_dir: str | None = None) -> bool:
 
 
 def create_app(static_dir: str) -> FastAPI:
-    _app = FastAPI(title="Rastro Frontend")
+    _app = FastAPI(title="ORION Frontend")
 
     if not _is_dir(static_dir):
         @_app.get("/{full_path:path}")
@@ -75,7 +75,7 @@ def create_app(static_dir: str) -> FastAPI:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Serve Rastro frontend")
+    parser = argparse.ArgumentParser(description="Serve ORION frontend")
     parser.add_argument("--port", type=int, default=8000)
     parser.add_argument("--host", type=str, default="127.0.0.1")
     parser.add_argument("--dir", type=str, default=DEFAULT_FRONTEND_DIR)
@@ -83,7 +83,7 @@ def main() -> None:
 
     logging.basicConfig(
         level=logging.INFO,
-        format="[Rastro] %(message)s",
+        format="[ORION] %(message)s",
         stream=sys.stdout,
     )
 

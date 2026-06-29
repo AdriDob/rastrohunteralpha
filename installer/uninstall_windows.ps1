@@ -1,4 +1,4 @@
-# Rastro — Windows Uninstaller Script
+# ORION — Windows Uninstaller Script
 # Run from the installed directory.
 #
 # Usage:
@@ -6,11 +6,11 @@
 
 $ErrorActionPreference = "Stop"
 
-$DEST = Join-Path $env:LOCALAPPDATA "Rastro"
-$SHORTCUT_NAME = "Rastro.lnk"
-$UNINSTALL_KEY = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\Rastro"
+$DEST = Join-Path $env:LOCALAPPDATA "ORION"
+$SHORTCUT_NAME = "ORION.lnk"
+$UNINSTALL_KEY = "HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\ORION"
 
-Write-Host "=== Rastro Uninstaller ===" -ForegroundColor Cyan
+Write-Host "=== ORION Uninstaller ===" -ForegroundColor Cyan
 
 # ── Remove program files ────────────────────────────────────────────
 if (Test-Path $DEST) {
@@ -44,7 +44,7 @@ if (Test-Path $UNINSTALL_KEY) {
 }
 
 # ── Optional: user data ────────────────────────────────────────────
-$userData = Join-Path $env:USERPROFILE ".rastro"
+$userData = Join-Path $env:USERPROFILE ".orion"
 if (Test-Path $userData) {
     $choice = Read-Host "Remove user data (config, sessions, license)? (y/N)"
     if ($choice -eq "y" -or $choice -eq "Y") {
@@ -53,4 +53,4 @@ if (Test-Path $userData) {
     }
 }
 
-Write-Host "=== Rastro uninstalled ===" -ForegroundColor Cyan
+Write-Host "=== ORION uninstalled ===" -ForegroundColor Cyan

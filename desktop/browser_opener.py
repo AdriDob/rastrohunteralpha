@@ -10,7 +10,7 @@ import shutil
 import urllib.parse
 import webbrowser
 
-logger = logging.getLogger("rastro.desktop.browser_opener")
+logger = logging.getLogger("orion.desktop.browser_opener")
 
 # Common browser executable names by priority
 BROWSER_NAMES = [

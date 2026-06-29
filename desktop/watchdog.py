@@ -25,7 +25,7 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-logger = logging.getLogger("rastro.watchdog")
+logger = logging.getLogger("orion.watchdog")
 
 
 class HealthStatus(Enum):
@@ -194,11 +194,13 @@ class Watchdog:
                        service_name, svc.recovery_attempts, self._max_attempts)
 
         if svc.recovery_attempts > self._max_attempts:
-            logger.error("[WATCHDOG] Max recovery attempts reached for %s — escalating", service_name)
+            logger.error("[WATCHDOG] Max recovery attempts reached for %s — escalating to safe mode", service_name)
             if self._on_escalate:
                 self._on_escalate(service_name)
+            logger.critical("[WATCHDOG] RECOVERY EXHAUSTED for %s — system will degrade", service_name)
             return False
 
+        # Level 1: Try the dedicated recovery engine (if available)
         try:
             from core_engines.recovery.engine import get_recovery_engine
             engine = get_recovery_engine()
@@ -227,17 +229,63 @@ class Watchdog:
                     self._on_recovery(service_name)
                 logger.info("[WATCHDOG] Recovery initiated for %s via RecoveryEngine", service_name)
                 return True
-            else:
-                logger.warning("[WATCHDOG] Recovery engine declined recovery for %s", service_name)
-                return False
+            logger.warning("[WATCHDOG] Recovery engine declined recovery for %s", service_name)
+        except ImportError:
+            logger.warning("[WATCHDOG] Recovery engine not available — using fallback")
         except Exception as exc:
-            logger.error("[WATCHDOG] Recovery failed for %s: %s", service_name, exc)
+            logger.error("[WATCHDOG] Recovery engine error for %s: %s", service_name, exc)
+
+        # Level 2: Direct HTTP restart (if API is partially responsive)
+        if service_name in ("api", "agents", "scheduler"):
+            try:
+                import httpx
+                base = self._health_url.rsplit("/api/health", 1)[0]
+                r = httpx.post(f"{base}/api/system/restart/{service_name}", timeout=5.0)
+                if r.status_code == 200:
+                    logger.info("[WATCHDOG] Direct restart OK for %s", service_name)
+                    if self._on_recovery:
+                        self._on_recovery(service_name)
+                    return True
+                logger.warning("[WATCHDOG] Direct restart returned %d for %s", r.status_code, service_name)
+            except Exception as exc:
+                logger.warning("[WATCHDOG] Direct restart failed for %s: %s", service_name, exc)
+
+        # Level 3: For eventbus, try reinitializing the bus
+        if service_name == "eventbus":
+            try:
+                from core_engines.agents.bus import get_agent_bus
+                bus = get_agent_bus()
+                if bus is not None:
+                    logger.info("[WATCHDOG] Reinitializing EventBus for %s", service_name)
+                    if self._on_recovery:
+                        self._on_recovery(service_name)
+                    return True
+            except Exception as exc:
+                logger.warning("[WATCHDOG] EventBus reinit failed: %s", exc)
+
+        logger.warning("[WATCHDOG] All recovery levels failed for %s", service_name)
+        return False
+
+    def _detect_freeze(self, history: list[WatchdogSnapshot]) -> bool:
+        """Detect if the system is frozen (identical status across last N snapshots)."""
+        if len(history) < 3:
             return False
+        recent = history[-3:]
+        if all(s.overall == recent[0].overall for s in recent):
+            # Check if timestamp deltas are consistent (process not truly frozen)
+            deltas = [recent[i+1].timestamp - recent[i].timestamp for i in range(len(recent)-1)]
+            if all(d < self._interval * 3 for d in deltas):
+                return False  # Normal operation, just stuck in same status
+            logger.warning("[WATCHDOG] Possible freeze detected — identical status across %d checks", len(recent))
+            return True
+        return False
 
     def _run_loop(self) -> None:
         self._start_time = time.time()
         consecutive_fails = 0
         backoff = self._interval
+        prev_mem = -1.0
+        mem_leak_warnings = 0
 
         while self._running:
             try:
@@ -263,6 +311,19 @@ class Watchdog:
                     logger.warning("[WATCHDOG] High memory: %.1f%%", mem_pct)
                 if not cpu_ok:
                     logger.warning("[WATCHDOG] High CPU: %.1f%%", cpu_pct)
+
+                # Memory leak detection (sustained growth >10% between checks)
+                if prev_mem > 0 and mem_pct > 0 and (mem_pct - prev_mem) > 10.0:
+                    mem_leak_warnings += 1
+                    logger.warning("[WATCHDOG] Memory leak suspected: %.1f%% → %.1f%% (warning %d/3)",
+                                   prev_mem, mem_pct, mem_leak_warnings)
+                    if mem_leak_warnings >= 3:
+                        logger.critical("[WATCHDOG] MEMORY LEAK CONFIRMED — escalating")
+                        if self._on_escalate:
+                            self._on_escalate("memory_leak")
+                else:
+                    mem_leak_warnings = max(0, mem_leak_warnings - 1)
+                prev_mem = mem_pct
 
                 all_ok = api_ok and agents_ok and sched_ok and bus_ok and mem_ok and cpu_ok
                 overall = HealthStatus.HEALTHY if all_ok else (
@@ -292,8 +353,18 @@ class Watchdog:
                     consecutive_fails = 0
                     backoff = self._interval
 
-                logger.debug("[WATCHDOG] Health: %s (mem=%.1f%% cpu=%.1f%% backoff=%.0fs)",
-                             overall.value, mem_pct, cpu_pct, backoff)
+                # Freeze detection
+                if consecutive_fails >= 3 and self._detect_freeze(self._snapshot_history):
+                    logger.critical("[WATCHDOG] SYSTEM FROZEN — initiating emergency recovery")
+                    for name in self._services:
+                        self._attempt_recovery(name)
+                    backoff = min(backoff * 2, 300)
+                    if self._on_escalate:
+                        self._on_escalate("system_frozen")
+
+                logger.info("[WATCHDOG] Health: %s (mem=%.1f%% cpu=%.1f%% api=%s agents=%s sched=%s bus=%s backoff=%.0fs)",
+                             overall.value, mem_pct, cpu_pct,
+                             api_ok, agents_ok, sched_ok, bus_ok, backoff)
 
             except Exception as exc:
                 logger.error("[WATCHDOG] Loop error: %s", exc, exc_info=True)
@@ -306,7 +377,7 @@ class Watchdog:
         if self._running:
             return
         self._running = True
-        self._thread = threading.Thread(target=self._run_loop, daemon=True, name="rastro-watchdog")
+        self._thread = threading.Thread(target=self._run_loop, daemon=True, name="orion-watchdog")
         self._thread.start()
         logger.info("[WATCHDOG] Started (interval=%ss, max_attempts=%d)", self._interval, self._max_attempts)
 

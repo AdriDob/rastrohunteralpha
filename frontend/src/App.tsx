@@ -52,7 +52,20 @@ const PipelineDetail = lazy(() => import('./pages/PipelineDetail'));
 const IdentityCenter = lazy(() => import('./pages/IdentityCenter'));
 
 const queryClient = new QueryClient({
-  defaultOptions: { queries: { refetchOnWindowFocus: false, staleTime: 30_000, gcTime: 10 * 60 * 1000 } },
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      staleTime: 30_000,
+      gcTime: 10 * 60 * 1000,
+      retry: 3,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 10000),
+      refetchOnReconnect: true,
+    },
+    mutations: {
+      retry: 2,
+      retryDelay: 1000,
+    },
+  },
 });
 
 const SETTINGS_KEY = 'rastro-desktop-settings';
