@@ -45,7 +45,6 @@
       "icons/icon.ico"
     ],
     "externalBin": [
-      "binaries/ownex-backend.exe",
       "binaries/ownex-backend"
     ],
     "windows": {

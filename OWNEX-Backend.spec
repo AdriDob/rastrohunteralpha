@@ -8,7 +8,7 @@
 # ONEFILE is required by the Tauri externalBin contract: Tauri bundles and
 # spawns exactly one file per target triple. A ONEDIR exe copied without its
 # _internal/ directory cannot import api.main (the failure that shipped in
-# the 2026-08-24 MSI). First launch extracts to %TEMP%/~ (~10-30 s), which fits
+# the 2026-08-24 MSI). First launch extracts to %TEMP% (~10-30 s), which fits
 # inside lib.rs's health-poll budget.
 #
 # Build with:
@@ -17,7 +17,7 @@
 # CLI args (passed by Tauri sidecar):
 #   --port <port>       (default: 8000)
 #   --host <host>       (default: 127.0.0.1)
-#   --data-dir <path>   (default: %LOCALAPPDATA%\OWNEX on Windows, ~/.local/share/OWNEX on Linux/macOS)
+#   --data-dir <path>   (default: %LOCALAPPDATA%\OWNEX on Windows)
 #   --log-level <level> (default: INFO)
 
 import os
@@ -29,7 +29,6 @@ from pathlib import Path
 PROJECT_ROOT = Path(os.getcwd()).resolve()
 IS_WINDOWS = sys.platform.startswith("win")
 IS_MACOS = sys.platform == "darwin"
-ICON_PATH = str(PROJECT_ROOT / "installer" / "icons" / "cateye.ico") if IS_WINDOWS else None
 
 # ── Auto-discover router modules ─────────────────────────────────────
 ROUTERS_DIR = PROJECT_ROOT / "api" / "routers"
@@ -149,7 +148,7 @@ a = Analysis(
 
 pyz = PYZ(a.pure)
 
-# Output name without .exe extension (PyInstaller adds it on Windows)
+# Output name without extension (Tauri expects base name without platform suffix)
 EXE_NAME = "ownex-backend"
 
 exe = EXE(
@@ -170,15 +169,15 @@ exe = EXE(
     console=True,
     disable_windowed_traceback=False,
     argv_emulation=False,
-    icon=ICON_PATH,
+    icon=None,
 )
 
 # ── macOS .app bundle (only on macOS) ─────────────────────────────────
 if IS_MACOS:
     app = BUNDLE(
         exe,
-        name="OWNEX Backend",
-        icon=ICON_PATH,
+        name="OWNE Backend",
+        icon=None,
         bundle_identifier="ai.orion.ownex.backend",
         info_plist={
             "LSUIElement": True,  # No dock icon
