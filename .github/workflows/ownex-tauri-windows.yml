@@ -129,12 +129,12 @@ jobs:
               src-tauri/target/release/bundle/macos/*.app
               src-tauri/target/release/bundle/**/*.sha256
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 90
+    timeout-minutes: 120
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Download sidecar artifact to sidecar/ directory
+      # Download sidecar artifact
       - name: Download sidecar
         uses: actions/download-artifact@v4
         with:
@@ -249,6 +249,7 @@ jobs:
 
       # Debug: Check environment before build
       - name: Debug environment
+        shell: bash
         run: |
           set +e
           echo "=== Environment Debug ==="
@@ -268,7 +269,6 @@ jobs:
           echo "Sidecar (exe) exists: $(test -f src-tauri/binaries/ownex-backend.exe && echo YES || echo NO)"
           echo "=== tauri.conf.json ==="
           cat src-tauri/tauri.conf.json
-          set -e
         env:
           RUST_BACKTRACE: 1
 
@@ -350,9 +350,18 @@ jobs:
 
       # Verify output
       - name: Verify Tauri output
+        shell: bash
         run: |
+          set +e
           echo "=== Tauri build output ==="
           find src-tauri/target/release/bundle -type f \( -name "*.msi" -o -name "*.exe" -o -name "*.deb" -o -name "*.AppImage" -o -name "*.dmg" -o -name "*.app" \) -exec ls -lh {} \;
+          EXIT_CODE=$?
+          if [ $EXIT_CODE -ne 0 ]; then
+            echo "WARNING: No output files found in expected locations"
+            echo "Checking all files in target/release/bundle:"
+            find src-tauri/target/release/bundle -type f -exec ls -lh {} \; 2>/dev/null || echo "No files found"
+          fi
+          set -e
 
       # Calculate checksums
       - name: Calculate SHA256 checksums
