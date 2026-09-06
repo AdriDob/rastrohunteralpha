@@ -149,7 +149,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Download sidecar artifact to current directory
+      # Download sidecar artifact to sidecar/ directory
       - name: Download sidecar
         uses: actions/download-artifact@v4
         with:
@@ -383,10 +383,13 @@ jobs:
           fi
           set -e
 
-      # Calculate checksums
+      # Calculate checksums (non-failing)
       - name: Calculate SHA256 checksums
+        shell: bash
         run: |
+          set +e
           find src-tauri/target/release/bundle -type f \( -name "*.msi" -o -name "*.exe" -o -name "*.deb" -o -name "*.AppImage" -o -name "*.dmg" \) -exec sh -c 'sha256sum "$1" > "$1.sha256"' _ {} \;
+          set -e
 
       # Upload artifacts
       - name: Upload Tauri artifacts
