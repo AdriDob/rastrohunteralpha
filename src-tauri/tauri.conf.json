@@ -45,10 +45,8 @@
       "icons/icon.ico"
     ],
     "externalBin": [
-      { "path": "binaries/ownex-backend.exe", "target": "x86_64-pc-windows-msvc" },
-      { "path": "binaries/ownex-backend", "target": "x86_64-unknown-linux-gnu" },
-      { "path": "binaries/ownex-backend", "target": "x86_64-apple-darwin" },
-      { "path": "binaries/ownex-backend", "target": "aarch64-apple-darwin" }
+      "binaries/ownex-backend.exe",
+      "binaries/ownex-backend"
     ],
     "windows": {
       "wix": {

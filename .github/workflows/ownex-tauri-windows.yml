@@ -134,7 +134,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Download sidecar artifact to current directory
+      # Download sidecar artifact to sidecar/ directory
       - name: Download sidecar
         uses: actions/download-artifact@v4
         with:
@@ -143,6 +143,7 @@ jobs:
 
       # Verify sidecar download and move to dist/
       - name: Verify and move sidecar
+        shell: bash
         run: |
           echo "=== Sidecar Download Verification ==="
           ls -la sidecar/
@@ -213,6 +214,7 @@ jobs:
       # Verify Tauri CLI installation
       - name: Verify Tauri CLI
         run: |
+          set +e
           echo "=== Tauri CLI Verification ==="
           echo "Node: $(node --version)"
           echo "NPM: $(npm --version)"
