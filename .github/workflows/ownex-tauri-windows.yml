@@ -348,7 +348,7 @@ jobs:
           path: tauri-build.log
           if-no-files-found: warn
 
-      # Verify output
+      # Verify output (non-failing)
       - name: Verify Tauri output
         shell: bash
         run: |
